@@ -11,8 +11,8 @@ Neither operation shares Core State or memory between the two sides after
 the operation completes — each Instance is autonomous (spec section 12).
 
 STATUS: IMPLEMENTED (Instance, clone_state, fork_instance, lineage-of a
-given instance map). No persistence (storage/database.py) yet —
-everything here is in-process only; see STATUS.md.
+        given instance map). No persistence (storage/database.py) yet —
+        everything here is in-process only; see STATUS.md.
 STATUS: MISSING (cryptographic Identity per instance — Phase 5; Capability
-enforcement on who may fork/clone — Phase 5/8)
+        enforcement on who may fork/clone — Phase 5/8)
 """

@@ -9,8 +9,8 @@ in a process or loaded from storage in a future phase.
 
 STATUS: IMPLEMENTED (in-memory ancestry/descendant queries)
 STATUS: MISSING (persisted lineage recoverable from a real logs/DB store —
-spec section 11 says lineage "должен быть восстанавливаемым из
-Logs/Database"; today it's only recoverable from live objects)
+        spec section 11 says lineage "должен быть восстанавливаемым из
+        Logs/Database"; today it's only recoverable from live objects)
 """
 
 from __future__ import annotations

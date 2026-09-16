@@ -7,8 +7,8 @@ to them.** They exist only to reserve the layout named in the master spec
 
 The only thing that currently records transitions is
 `gnosis.core.evolution.Engine.history` — an in-process Python list. It is
-lost when the process exits. It is **not a persistent audit log, it is**
-**not hash-chained, and it must not be described as "audit-complete" or
+lost when the process exits. It is **not** a persistent audit log, it is
+**not** hash-chained, and it must not be described as "audit-complete" or
 as satisfying spec section 39 (auditability) or section 10 (logs) until a
 real writer exists here.
 

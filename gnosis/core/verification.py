@@ -21,6 +21,9 @@ from typing import Callable
 from .invariants import DEFAULT_INVARIANTS, all_pass, run_invariants
 from .types import Candidate, State, TestResult
 
+# A Test function is any computable predicate over a candidate. Spec section 2:
+# "Test не является внешним богом" — it must be part of the system, not a
+# human-in-the-loop gate called at runtime.
 TestFn = Callable[[State, Candidate], TestResult]
 
 
