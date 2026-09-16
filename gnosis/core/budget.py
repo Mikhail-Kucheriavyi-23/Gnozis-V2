@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-DEFAULT_BUDGET = 20
+DEFAULT_BUDGET = 20  # spec section 8: B <= 20 atomic operations by default
 
 
 class BudgetExhaustedError(RuntimeError):
@@ -31,6 +31,8 @@ class Budget:
         if cost < 0:
             raise ValueError("operation cost cannot be negative")
         if self.remaining - cost < 0:
+            # Hard stop: never allow negative remaining budget (spec section 42:
+            # "Budget невозможно отрицательно переполнить").
             raise BudgetExhaustedError(
                 f"insufficient budget: remaining={self.remaining}, cost={cost}"
             )
