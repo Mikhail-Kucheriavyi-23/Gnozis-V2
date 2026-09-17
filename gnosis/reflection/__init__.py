@@ -12,6 +12,7 @@ from .analyzer import (
     ReflectionReport,
     RuleProposal,
 )
+from .runtime import reflect
 
 __all__ = [
     "CounterexampleCandidate",
@@ -20,4 +21,5 @@ __all__ = [
     "ReflectionObservation",
     "ReflectionReport",
     "RuleProposal",
+    "reflect",
 ]
