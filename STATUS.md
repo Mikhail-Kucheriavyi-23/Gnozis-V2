@@ -6,11 +6,14 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 
 - Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
+- Current canonical HEAD: `ba5f0ad3b15be512d985ea22a7698cc2446d3630`
 - `AI_CONTEXT.md` is the operational handoff context.
 - `context/PROJECT_CONTEXT.json` is the machine-readable canonical project snapshot.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol.
 - `docs/USER_ARCHITECTURE.md` is the canonical design document for user/task/context/capability continuity.
-- `docs/CORE_REFLECTION_ROADMAP.md` is the canonical roadmap for controlled self-reflection.
+- `docs/CONTEXT_CONTRACT.md` and `docs/CONTEXT_IMPLEMENTATION_TASK.md` define the first runtime continuity slice.
+- `docs/CORE_REFLECTION_ROADMAP.md` and `docs/CORE_REFLECTION_R1_TASK.md` define the controlled self-reflection track.
+- `docs/ARCHITECTURE_SEQUENCING.md` defines the relationship and boundaries between these tracks.
 - Persistence implementation is present in `main` and accepted after independent verification.
 - Implementation state is kept separate from verification and acceptance state.
 
@@ -24,7 +27,8 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 | Instance/lineage | PARTIAL | Durable persistence present; cryptographic Identity is future scope |
 | Persistence | IMPLEMENTED / ACCEPTED | SQLite storage and audit structures are in `main` |
 | Append-only audit storage | IMPLEMENTED | Broader runtime integration remains phase-scoped |
-| User/Task/Context/Capability runtime | MISSING | Architecture documented only |
+| User/Task/Context/Capability runtime | MISSING | Architecture documented; runtime contracts defined |
+| TaskContext runtime | MISSING | `CONTEXT_IMPLEMENTATION_TASK.md` is ready for explicit bounded implementation |
 | Memory | NOT ACCEPTED | Not merged; corrective findings remain |
 | Identity/cryptography | MISSING | Future bounded phase |
 | Agents/federation | MISSING | Future strategy |
@@ -53,39 +57,41 @@ The following are future strategy and are NOT current implementation scope:
 
 Do not implement these merely because they appear in long-term architecture documents.
 
-## User-centered architecture
+## Architecture tracks
 
-**DOCUMENTED / NOT IMPLEMENTED**.
+The repository now treats the current architecture as two bounded tracks rather than one large implementation task.
 
-The intended model is:
+### Track A — User Continuity
+
+**DOCUMENTED / CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED**.
+
+Goal: a new authorized terminal can reconstruct a durable task from canonical context without relying on the previous AI conversation.
 
 ```text
-USER
+TaskContext
   ↓
-TASK
+revision-safe persistence
   ↓
-CONTEXT
+reconstruction / handoff
   ↓
-CAPABILITIES
-  ↓
-DATA / TOOLS / CONNECTORS
-  ↓
-CORE / EXECUTION
-  ↓
-VERIFIED RESULT
-  ↓
-PROVENANCE / MEMORY
+verified continuation
 ```
 
-A replacement AI terminal should recover durable project/task context, verified state, evidence, provenance, capabilities and allowed next action without reconstructing the project from chat history.
+Canonical documents:
 
-Connectors such as GitHub, Google Drive and AI terminals provide capabilities; they are not automatically sources of truth. `Capability ≠ Authority`.
+```text
+docs/USER_ARCHITECTURE.md
+docs/CONTEXT_CONTRACT.md
+docs/CONTEXT_IMPLEMENTATION_TASK.md
+```
 
-## Core Reflection architecture
+The first runtime slice must remain isolated from Core, Memory and external connector execution.
+
+### Track B — Core Reflection
 
 **ARCHITECTURE DEFINED / RUNTIME NOT IMPLEMENTED**.
 
-The target controlled-reflection layers are:
+Goal: controlled reflection over Core evidence without direct self-modification.
 
 ```text
 L0 Ψ-Core
@@ -99,9 +105,28 @@ L3 Shadow / Verification / Governance
 L4 Future Endogenous Evolution
 ```
 
+Canonical documents:
+
+```text
+docs/CORE_REFLECTION_ROADMAP.md
+docs/CORE_REFLECTION_R1_TASK.md
+```
+
 Reflection cannot directly mutate canonical Core state. A `RuleProposal` is not a Core transition and cannot activate itself. No AI model belongs inside Ψ-Core.
 
-### Roadmap
+### Track relationship
+
+The tracks are complementary but independently bounded. Neither track may silently implement the other.
+
+```text
+User/Task Context  ──────→  Core execution  ──────→  Reflection evidence
+       ↑                                             ↓
+       └──────────── verified result / provenance ──┘
+```
+
+A future orchestration layer may connect them through explicit contracts only after each track is independently verified.
+
+## Core Reflection roadmap
 
 ```text
 R1 Core Reflection Foundation
@@ -119,20 +144,7 @@ R6 Endogenous Rule Generation
 R7 Cooperative Self-Reflection Network — future multi-user strategy
 ```
 
-`docs/CORE_REFLECTION_ROADMAP.md` contains the bounded scope and acceptance boundary for each stage.
-
-### R1 current handoff
-
-When implementation is explicitly authorized:
-
-```text
-Primary implementer: Claude
-Independent reviewer: Manus
-Final integration gate: ChatGPT
-Phase: R1 only
-```
-
-R1 must not change existing transition semantics, introduce a second state model, activate rules, merge Memory, or implement autonomous self-modification.
+R7 is future strategy only.
 
 ## Persistence status
 
@@ -182,21 +194,7 @@ Open corrective findings:
 - M-01 — enforce root/version continuity;
 - M-02 — enforce retention state machine.
 
-Required sequence:
-
-```text
-STATUS.md / AI_CONTEXT.md synchronization
-        ↓
-Manus read-only audit
-        ↓
-Memory corrective pass
-        ↓
-independent Memory re-audit
-        ↓
-ChatGPT integration gate
-```
-
-Memory must remain outside `main` until this sequence passes.
+Memory must remain outside `main` until its corrective implementation is independently re-audited and accepted.
 
 ## Evidence hierarchy
 
@@ -223,15 +221,24 @@ context/PROJECT_CONTEXT.json
     ↓
 docs/AI_HANDOFF_PROTOCOL.md
     ↓
+docs/ARCHITECTURE_SEQUENCING.md
+    ↓
 docs/USER_ARCHITECTURE.md
+    ↓
+docs/CONTEXT_CONTRACT.md
     ↓
 docs/CORE_REFLECTION_ROADMAP.md
     ↓
-relevant contracts → source → tests → CI
+relevant task contract → source → tests → CI
 ```
 
-Before modifying anything, report repository/branch/HEAD, implementation state, verification state, acceptance state, active phase, role, allowed scope, forbidden scope, latest tested commit, open findings and next permitted action.
+Before modifying anything, report repository/branch/HEAD, implementation state, verification state, acceptance state, active track/phase, role, allowed scope, forbidden scope, latest tested commit, open findings and next permitted action.
 
 ## Immediate next step
 
-The repository is now prepared for the next authorized architectural implementation stage. The intended next substantive Core stage is **R1 Core Reflection Foundation**, but implementation must remain separately authorized and independently verified. The already-open Memory corrective sequence remains a separate blocked track and must not be silently merged into R1.
+The repository is now architecturally prepared for either of two explicitly assigned bounded runtime phases:
+
+1. **Track A — Context Implementation Task**, which directly tests terminal-independent continuity; or
+2. **Track B — R1 Core Reflection Foundation**, which begins controlled self-reflection.
+
+Neither phase is accepted merely because its contract exists. The Memory corrective sequence remains a separate blocked track and must not be silently merged into either phase.
