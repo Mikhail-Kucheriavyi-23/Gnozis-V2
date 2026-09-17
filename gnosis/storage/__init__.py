@@ -7,6 +7,7 @@ from .repositories import (
     load_instance,
     recover_instance,
     load_state,
+    load_transition_records,
     persist_transition,
     save_candidate,
     save_instance,
@@ -19,6 +20,6 @@ __all__ = [
     "GENESIS_HASH", "SCHEMA_VERSION", "connect", "close", "transaction",
     "SecretMaterialError", "StorageCorruptionError",
     "append_audit", "load_candidate", "load_instance", "recover_instance", "load_state",
-    "persist_transition", "save_candidate", "save_instance", "save_state",
+    "load_transition_records", "persist_transition", "save_candidate", "save_instance", "save_state",
     "verify_audit_chain", "verify_durable_graph",
 ]
