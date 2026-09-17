@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
-from gnosis.core.invariants import InvariantCheck, InvariantResult, run_invariants
+from gnosis.core.invariants import InvariantCheck, run_invariants
 from gnosis.core.types import Candidate, State
 
 from .shadow import ShadowEvaluation
@@ -69,20 +69,10 @@ def analyze_invariant_delta(
     current_states: Mapping[str, State],
     invariants: Sequence[InvariantCheck],
 ) -> InvariantDelta:
-    """Compare invariant violations among active- and shadow-accepted candidates.
-
-    A shadow-only acceptance of a candidate with an invariant violation is a
-    ``violated`` signal. A shadow rule that stops accepting such a candidate is
-    an ``improved`` signal. Missing candidate/state evidence is ``unknown``.
-    This function is descriptive only; governance remains a later layer.
-    """
+    """Compare invariant violations among active- and shadow-accepted candidates."""
     candidate_map = {candidate.candidate_id: candidate for candidate in candidates}
-    active_ids = {
-        case.candidate_id for case in evaluation.cases if case.active.passed
-    }
-    shadow_ids = {
-        case.candidate_id for case in evaluation.cases if case.shadow.passed
-    }
+    active_ids = {case.candidate_id for case in evaluation.cases if case.active.passed}
+    shadow_ids = {case.candidate_id for case in evaluation.cases if case.shadow.passed}
 
     active_violations, active_unknown = _profile(
         candidate_map, active_ids, current_states, invariants
