@@ -94,3 +94,16 @@ def test_recover_instance_runs_graph_validation():
     instance = Instance.create_root("u", State(elements={"a": 1}))
     save_instance(conn, instance)
     assert recover_instance(conn, instance.instance_id).instance_id == instance.instance_id
+
+
+def test_after_commit_failure_leaves_committed_transition_durable():
+    conn = connect()
+    instance = Instance.create_root("u", State(elements={"a": 1}))
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    record = instance.engine.step(candidate)
+    with pytest.raises(RuntimeError, match="injected failure"):
+        persist_transition(conn, instance, candidate, record, actor="u", failure_at="after_commit")
+    assert load_instance(conn, instance.instance_id).engine.state.state_id == proposed.state_id
+    assert verify_durable_graph(conn)[0] == 2
