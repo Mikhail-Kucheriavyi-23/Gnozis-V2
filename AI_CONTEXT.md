@@ -5,11 +5,12 @@
 - Canonical development repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Legacy `Gnozis` remains an archival research source and historical provenance.
 - `AI_CONTEXT.md` is the operational handoff document for participating AI systems.
+- `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation/recovery protocol for replacing or adding AI agents at any project stage.
 
 ## Current verified repository baseline
 
 - Branch: `main`
-- Documentation synchronization baseline: `843231638844a298cd23a1fe288c5171e6a0de6d`.
+- Current documentation baseline after handoff-protocol addition: `8a8f0c1f22942bc6e5df21386525f4b753824499`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
 - Persistence is accepted in `main` following the project's independent verification gate.
@@ -197,10 +198,11 @@ A new AI session must read, in order:
 
 1. `AI_CONTEXT.md`;
 2. `STATUS.md`;
-3. relevant specification/schema documents;
-4. relevant source files;
-5. relevant tests;
-6. latest CI status.
+3. `docs/AI_HANDOFF_PROTOCOL.md`;
+4. relevant specification/schema documents;
+5. relevant source files;
+6. relevant tests;
+7. latest CI status.
 
 Then report:
 
