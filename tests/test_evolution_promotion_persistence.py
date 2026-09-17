@@ -12,7 +12,7 @@ from gnosis.evolution.recursive import ReEvaluationResult
 from gnosis.evolution.hypothesis import EvolutionHypothesis
 from gnosis.instances.instance import Instance
 from gnosis.storage.database import connect
-from gnosis.storage.repositories import save_instance
+from gnosis.storage.repositories import save_instance, save_state
 from gnosis.reflection.invariant_delta import InvariantDelta
 
 
@@ -122,7 +122,11 @@ def test_stale_parent_is_rejected_without_write():
     instance = Instance.create_root("owner", current)
     save_instance(conn, instance)
     advanced = current.with_elements({"already": True})
-    instance.engine.state = advanced
+    save_state(conn, advanced)
+    conn.execute(
+        "UPDATE instances SET current_state_id=? WHERE instance_id=?",
+        (advanced.state_id, instance.instance_id),
+    )
 
     with pytest.raises(PromotionPersistenceError, match="stale canonical Core head"):
         persist_promotion(
