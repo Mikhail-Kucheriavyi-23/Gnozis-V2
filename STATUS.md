@@ -5,9 +5,10 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 
 ## Current repository baseline
 
-- Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
+- Repository: `Mikhail-Kucheriaviy/Gnozis-V2`
 - Branch: `main`
-- Documentation synchronization source baseline: `843231638844a298cd23a1fe288c5171e6a0de6d`
+- Current documentation/handoff baseline: `3199cf8d12596a2a156b547eea07351800dd2ca6`.
+- `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol for connecting a new AI at any project stage.
 - Persistence implementation is present in `main`; older statements saying `storage/` is an empty placeholder are obsolete.
 - Implementation state is kept separate from verification and acceptance state.
 
@@ -32,7 +33,7 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 | 33-36 | Mathematical population model / mutation | THEORETICAL | Described in specification; no corresponding runtime implementation |
 | 37 | Database schema / persistence | IMPLEMENTED / ACCEPTED | SQLite persistence and append-only audit structures are present in `gnosis/storage/`; Persistence is accepted in `main` after independent verification |
 | 38-39 | Logs / auditability | PARTIAL | Persistent `audit_events` and hash-chain verification exist; broader runtime/audit integration remains subject to phase-level verification |
-| 40 | CI | VERIFIED | CI run on the documentation synchronization source baseline succeeded; subsequent documentation commits require their own CI result |
+| 40 | CI | VERIFIED | CI run on the documentation synchronization source baseline succeeded; subsequent commits require their own CI result |
 | 41-42 | Test strategy / security tests | PARTIAL | Core/Persistence tests exist; Memory/Identity/Agent/Federation/Bridge security tiers remain future work |
 | 43 | Reproducibility | PARTIAL | `Candidate.seed` exists; full experiment/event-log harness remains future scope |
 | 44 | Dependencies | IMPLEMENTED | `pyproject.toml` defines the dependency boundary |
@@ -64,6 +65,7 @@ The multi-agent development strategy is recorded in:
 
 - `docs/MULTI_AGENT_BUILD_STRATEGY.md`
 - `AGENT_ROLES.md`
+- `docs/AI_HANDOFF_PROTOCOL.md`
 
 Current working model:
 
@@ -87,7 +89,7 @@ context/status update
 
 GitHub/Google Drive access is an operational capability, not architectural authority. Phase ownership, allowed scope, forbidden changes, independent reviewer, and final gate must be explicit for each substantive phase.
 
-Multi-agent strategy status: **PASS WITH FINDINGS**. The documented workflow is accepted as the current working model; the prior documentation-drift finding is being closed by this synchronization.
+Multi-agent strategy status: **PASS WITH FINDINGS**. The documented workflow is accepted as the current working model; documentation continuity is now formalized by the canonical handoff protocol.
 
 ## Memory status
 
@@ -109,6 +111,30 @@ independent Memory re-audit
 ChatGPT integration gate
 ```
 
+## Canonical AI continuation
+
+A new or replacement AI must not depend on prior chat history to reconstruct the project.
+
+Read in this order:
+
+```text
+AI_CONTEXT.md
+    ↓
+STATUS.md
+    ↓
+docs/AI_HANDOFF_PROTOCOL.md
+    ↓
+docs/MULTI_AGENT_BUILD_STRATEGY.md
+    ↓
+AGENT_ROLES.md
+    ↓
+relevant contracts → source → tests → CI evidence
+```
+
+Before modifying anything, the AI must report the exact repository/branch/HEAD, implementation state, verification state, acceptance state, active phase, role assignment, allowed scope, forbidden scope, latest tested commit, open findings, and next permitted action.
+
+If a previous AI stopped midway, continue from durable repository artifacts and reproducible evidence. Do not reconstruct unfinished work from memory or treat a report as proof of completion.
+
 ## Documentation / verification rule
 
 Never treat a report saying `PASS`, `implemented`, `complete`, or `ready` as sufficient evidence. Prefer, in order:
@@ -123,4 +149,4 @@ Every CI claim must identify the tested commit SHA. Implementation state and ver
 
 ## Immediate next step
 
-Complete the **narrow read-only documentation audit** of `STATUS.md` and `AI_CONTEXT.md`. No Memory corrective implementation is part of this documentation step.
+The canonical handoff/continuation mechanism is now recorded. The next substantive project step remains the **narrow read-only documentation audit** of `STATUS.md` and `AI_CONTEXT.md`, followed by the already approved Memory corrective sequence. No Memory corrective implementation is part of this documentation architecture change.
