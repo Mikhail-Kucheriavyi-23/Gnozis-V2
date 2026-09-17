@@ -7,10 +7,9 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 
 - Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
-- Current HEAD: `0164e77b0abd422ab4bd5b9b2aa1c53279d7eb77`
-- Current HEAD message: `docs: define multi-agent roles and authority`
-- Persistence implementation is present in the current `main`; the previous status entry claiming `storage/` was an empty placeholder is obsolete.
-- Current status below distinguishes implementation state from verification/acceptance state.
+- Current baseline before this documentation synchronization: `0164e77b0abd422ab4bd5b9b2aa1c53279d7eb77`
+- Persistence implementation is present in `main`; older statements saying `storage/` is an empty placeholder are obsolete.
+- Implementation state is kept separate from verification and acceptance state.
 
 | Spec section | Topic | Implementation status | Current evidence / qualification |
 |---|---|---|---|
@@ -31,9 +30,9 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 | 29-31 | Bridge / world exploration / external AI | MISSING | Not started |
 | 32 | Analytics layer | MISSING | Future phase |
 | 33-36 | Mathematical population model / mutation | THEORETICAL | Described in specification; no corresponding runtime implementation |
-| 37 | Database schema / persistence | IMPLEMENTED / VERIFICATION QUALIFIED | SQLite persistence and append-only audit structures are present in `gnosis/storage/`; current phase acceptance is based on the repository's existing verification history and current source, not on the obsolete pre-Persistence status |
+| 37 | Database schema / persistence | IMPLEMENTED / VERIFICATION QUALIFIED | SQLite persistence and append-only audit structures are present in `gnosis/storage/`; acceptance remains subject to the project's recorded verification gates |
 | 38-39 | Logs / auditability | PARTIAL | Persistent `audit_events` and hash-chain verification exist; broader runtime/audit integration remains subject to phase-level verification |
-| 40 | CI | VERIFICATION QUALIFIED | CI evidence must always be associated with the exact tested commit SHA; do not reuse historical CI claims for a different HEAD |
+| 40 | CI | VERIFICATION QUALIFIED | CI evidence must always be associated with the exact tested commit SHA |
 | 41-42 | Test strategy / security tests | PARTIAL | Core/Persistence tests exist; Memory/Identity/Agent/Federation/Bridge security tiers remain future work |
 | 43 | Reproducibility | PARTIAL | `Candidate.seed` exists; full experiment/event-log harness remains future scope |
 | 44 | Dependencies | IMPLEMENTED | `pyproject.toml` defines the dependency boundary |
@@ -55,9 +54,9 @@ The current `main` contains:
 - `gnosis/storage/__init__.py`
 - Persistence test suites
 
-`database.py` currently defines `SCHEMA_VERSION = 3`, SQLite foreign-key enforcement, `BEGIN IMMEDIATE` transactions, durable `states`, `relations`, `candidates`, `instances`, `transitions`, and append-only `audit_events` with SQLite update/delete guards. fileciteturn16file0L2-L2
+`database.py` defines `SCHEMA_VERSION = 3`, SQLite foreign-key enforcement, `BEGIN IMMEDIATE` transactions, durable `states`, `relations`, `candidates`, `instances`, `transitions`, and append-only `audit_events` with SQLite update/delete guards.
 
-Persistence is therefore **not MISSING**. Any older report describing `storage/` as an empty placeholder is historical and must not be used as the current implementation state.
+Persistence is therefore **not MISSING**. Older reports describing `storage/` as an empty placeholder are historical and must not be used as the current implementation state.
 
 ## Multi-agent governance status
 
