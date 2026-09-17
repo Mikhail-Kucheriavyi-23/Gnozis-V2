@@ -7,8 +7,9 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 
 - Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
-- Current canonical HEAD: `a3c6e5122de436be33ceac0eb3b26be7d4288341`.
+- Current canonical HEAD: `7d40a9c91fd2e69736305141a71b62aeebb99461`.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol for connecting a new AI at any project stage.
+- `docs/CONTEXT_CONTINUITY_CONTRACT.md` is the canonical architectural contract for recovering task-relevant project context across AI products/connectors.
 - Persistence implementation is present in `main`; older statements saying `storage/` is an empty placeholder are obsolete.
 - Implementation state is kept separate from verification and acceptance state.
 
@@ -66,6 +67,7 @@ The multi-agent development strategy is recorded in:
 - `docs/MULTI_AGENT_BUILD_STRATEGY.md`
 - `AGENT_ROLES.md`
 - `docs/AI_HANDOFF_PROTOCOL.md`
+- `docs/CONTEXT_CONTINUITY_CONTRACT.md`
 
 Current working model:
 
@@ -89,7 +91,25 @@ context/status update
 
 GitHub/Google Drive access is an operational capability, not architectural authority. Phase ownership, allowed scope, forbidden changes, independent reviewer, and final gate must be explicit for each substantive phase.
 
-Multi-agent strategy status: **PASS WITH FINDINGS**. The documented workflow is accepted as the current working model; documentation continuity is now formalized by the canonical handoff protocol.
+Multi-agent strategy status: **PASS WITH FINDINGS**. The documented workflow is accepted as the current working model; documentation continuity is now formalized by the canonical handoff protocol and Context Continuity Contract.
+
+## Context continuity status
+
+**ARCHITECTURE CONTRACT RECORDED / IMPLEMENTATION NOT YET BUILT**.
+
+The project now explicitly defines a cross-product context continuity contract. The durable distinction is:
+
+```text
+Memory    = durable stored information
+Context   = task-relevant projection of durable information
+Evidence  = basis for verified claims
+State     = authoritative Ψ-Core state
+Authority = permitted ability to change the project
+```
+
+The contract is documentation-only at this stage. It does not create a second Core state, Memory implementation, Identity system, authorization layer, encryption layer, Bridge, federation, or autonomous execution mechanism.
+
+The first practical validation is a fresh-session recovery test against repository evidence. The test is considered successful only when a newly connected AI can reconstruct the current baseline, active phase, implementation/verification/acceptance states, role/scope, open findings and next permitted action without relying on previous conversation history.
 
 ## Memory status
 
@@ -128,12 +148,22 @@ docs/MULTI_AGENT_BUILD_STRATEGY.md
     ↓
 AGENT_ROLES.md
     ↓
+docs/CONTEXT_CONTINUITY_CONTRACT.md
+    ↓
 relevant contracts → source → tests → CI evidence
 ```
 
 Before modifying anything, the AI must report the exact repository/branch/HEAD, implementation state, verification state, acceptance state, active phase, role assignment, allowed scope, forbidden scope, latest tested commit, open findings, and next permitted action.
 
 If a previous AI stopped midway, continue from durable repository artifacts and reproducible evidence. Do not reconstruct unfinished work from memory or treat a report as proof of completion.
+
+## Practical fresh-session test
+
+Use a new AI session with no prior Gnozis conversation history and repository access. Give only this instruction:
+
+> Continue Gnozis from the current confirmed state. Read the canonical handoff/context documents and repository evidence first. Do not rely on previous conversation history. Report the baseline, active phase, implementation/verification/acceptance states, your role and scope, open findings, and the next permitted action. Do not modify anything until the explicit task is established.
+
+Expected result: the AI reconstructs the project context from durable artifacts and does not restart Persistence or claim Memory acceptance.
 
 ## Documentation / verification rule
 
@@ -149,4 +179,4 @@ Every CI claim must identify the tested commit SHA. Implementation state and ver
 
 ## Immediate next step
 
-The canonical handoff/continuation mechanism is now recorded. The next substantive project step remains the **narrow read-only documentation audit** of `STATUS.md` and `AI_CONTEXT.md`, followed by the already approved Memory corrective sequence. No Memory corrective implementation is part of this documentation architecture change.
+Run the **fresh-session context recovery test** against this branch/contract, then perform the narrow read-only audit of the documentation changes. The Memory corrective sequence remains separate and is not part of this documentation architecture change.
