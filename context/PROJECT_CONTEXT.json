@@ -1,9 +1,9 @@
 {
-  "schema": "gnozis.project-context/v4",
+  "schema": "gnozis.project-context/v5",
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
-  "snapshot_of_canonical_source_head": "b616c2328f1acf52d0ea99cb5cfc57a3d466a2f5",
+  "snapshot_of_canonical_source_head": "b97a3058233b6e47dea342f73bfd5606dc1e5cd8",
   "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
@@ -14,10 +14,11 @@
     "task_context_runtime": "NOT IMPLEMENTED / CONTRACT DEFINED",
     "reflection_observation": "IMPLEMENTED / UNVERIFIED",
     "reflection_findings": "IMPLEMENTED / UNVERIFIED",
-    "counterexample_contract": "IMPLEMENTED / UNVERIFIED",
+    "counterexample_engine": "IMPLEMENTED / UNVERIFIED",
     "rule_proposals": "IMPLEMENTED / UNVERIFIED",
-    "reflection_persistence": "MISSING",
-    "shadow_evaluation": "MISSING",
+    "proposal_lineage": "IMPLEMENTED / UNVERIFIED",
+    "reflection_persistence": "IMPLEMENTED / UNVERIFIED",
+    "shadow_evaluation": "IMPLEMENTED / UNVERIFIED",
     "governance_activation_rollback": "MISSING",
     "endogenous_rule_generation": "THEORETICAL / NOT ACTIVE",
     "agents_federation_bridge": "MISSING"
@@ -25,9 +26,10 @@
   "reflection_runtime": {
     "module": "gnosis/reflection/",
     "entry_point": "gnosis.reflection.reflect(engine)",
+    "cumulative_entry_point": "gnosis.reflection.reflect_and_persist(engine, conn)",
     "mode": "READ_ONLY",
-    "input": "canonical Engine.history / TransitionRecord evidence",
-    "output": ["ReflectionObservation", "Finding", "CounterexampleCandidate", "RuleProposal"],
+    "input": "canonical Engine.history / TransitionRecord evidence plus persisted reflection history",
+    "output": ["ReflectionObservation", "Finding", "CounterexampleCandidate", "RuleProposal", "ProposalEvolution"],
     "authority": "NONE OVER CANONICAL CORE",
     "activation": "FORBIDDEN",
     "status": "IMPLEMENTED / UNVERIFIED"
@@ -35,25 +37,18 @@
   "architecture_tracks": {
     "track_a_user_continuity": {
       "status": "CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED",
-      "contracts": [
-        "docs/USER_ARCHITECTURE.md",
-        "docs/CONTEXT_CONTRACT.md",
-        "docs/CONTEXT_IMPLEMENTATION_TASK.md"
-      ]
+      "contracts": ["docs/USER_ARCHITECTURE.md", "docs/CONTEXT_CONTRACT.md", "docs/CONTEXT_IMPLEMENTATION_TASK.md"]
     },
     "track_b_core_reflection": {
-      "status": "R1 FOUNDATION IMPLEMENTED / UNVERIFIED",
-      "contracts": [
-        "docs/CORE_REFLECTION_ROADMAP.md",
-        "docs/CORE_REFLECTION_R1_TASK.md"
-      ]
+      "status": "CUMULATIVE R1 FOUNDATION IMPLEMENTED / UNVERIFIED",
+      "contracts": ["docs/CORE_REFLECTION_ROADMAP.md", "docs/CORE_REFLECTION_R1_TASK.md"]
     }
   },
   "reflection_roadmap": [
     "R1 persistence/provenance integration and verification",
-    "R2 richer observation/finding engine",
-    "R3 executable counterexample engine",
-    "R4 shadow rule evaluation",
+    "R2 observation/finding hardening and cumulative reflection",
+    "R3 richer replay/boundary/mutation counterexamples",
+    "R4 shadow evaluation hardening + invariant delta analysis",
     "R5 governance / activation / rollback",
     "R6 endogenous rule generation",
     "R7 cooperative self-reflection network - future multi-user strategy"
@@ -91,10 +86,11 @@
     "docs/CORE_REFLECTION_R1_TASK.md"
   ],
   "next_permitted_actions": [
-    "Run real pytest/CI against the reflection foundation",
-    "complete R1 persistence/provenance integration for reflection artifacts",
-    "then implement R3 executable counterexample challenges",
+    "Run real pytest/CI against the current reflection foundation",
+    "verify reflection persistence and proposal lineage end-to-end",
+    "implement invariant-delta analysis for shadow evaluations",
+    "then define bounded Governance/Rollback",
     "do not activate or self-modify rules"
   ],
-  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts and independent audit evidence outrank AI reports. A RuleProposal is evidence-backed hypothesis only and has no activation authority."
+  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts and independent audit evidence outrank AI reports. Reflection may propose and evolve evidence-linked hypotheses, but has no activation authority over canonical Core."
 }
