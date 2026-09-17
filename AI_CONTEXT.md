@@ -6,11 +6,11 @@
 - Legacy `Gnozis` remains an archival research source and historical provenance.
 - `AI_CONTEXT.md` is the operational handoff document for participating AI systems.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation/recovery protocol for replacing or adding AI agents at any project stage.
+- `docs/USER_ARCHITECTURE.md` is the canonical architecture document for user/task/context/capability continuity across connected terminals and products.
 
 ## Current verified repository baseline
 
 - Branch: `main`
-- Current canonical HEAD: `47edd9527cc546d840119d7db3a63f52a23bc073`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
 - Persistence is accepted in `main` following the project's independent verification gate.
@@ -26,6 +26,7 @@
 - Identity and cryptography: `MISSING`.
 - Agents and federation: `MISSING` as Gnozis runtime architecture.
 - User/world bridge: `MISSING`.
+- User-centered multi-terminal architecture: `DOCUMENTED / NOT IMPLEMENTED` — see `docs/USER_ARCHITECTURE.md`.
 - Endogenous generation: `PARTIAL` / `THEORETICAL` boundary; current generation remains caller-supplied.
 
 ## Persistence source of truth
@@ -41,6 +42,55 @@ gnosis/storage/__init__.py
 The database layer currently defines `SCHEMA_VERSION = 3`, enables SQLite foreign keys, uses `BEGIN IMMEDIATE` transaction boundaries, persists states/candidates/instances/transitions, and defines append-only `audit_events` with SQLite update/delete guards.
 
 Persistence is accepted in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents.
+
+## User-centered architecture — FIXED DESIGN DIRECTION
+
+Gnozis is being built as a user-centered architecture in which the continuity of work belongs to the durable project/task context rather than to a particular AI terminal or product.
+
+The canonical design document is `docs/USER_ARCHITECTURE.md`.
+
+The target model is:
+
+```text
+USER
+  ↓
+TASK
+  ↓
+CONTEXT
+  ↓
+CAPABILITIES
+  ↓
+DATA / TOOLS / CONNECTORS
+  ↓
+CORE / EXECUTION
+  ↓
+VERIFIED RESULT
+  ↓
+PROVENANCE / MEMORY
+```
+
+Key architectural rules:
+
+- any authorized connected terminal should be able to reconstruct the relevant task/project context and continue work;
+- conversational history is not the canonical source of project continuity;
+- GitHub, Google Drive, AI terminals and other products are connectors/interfaces/capability providers, not automatic sources of truth;
+- `Capability ≠ Authority` and `Resource access ≠ Architectural authority`;
+- different user types (manager, programmer, engineer, physicist, researcher, analyst, etc.) use the same architecture; specialization comes from task + context + data + authorized capabilities rather than separate Core engines;
+- notifications are entry points to durable tasks, not the canonical task state;
+- results must remain distinguishable as verified facts, observations, calculations, proposals, or unresolved claims and retain provenance where applicable;
+- task/context/capability layers must not introduce a second Ψ-Core state model or silently redefine Core semantics;
+- this is an architectural target, not a claim that User/Task/Context/Capability runtime layers are already implemented.
+
+The target continuity property is:
+
+```text
+Terminal A ─┐
+Terminal B ─┼──→ shared canonical context/state ←── connectors
+Terminal C ─┤
+Terminal D ─┘
+```
+
+A terminal may disappear, reach a usage limit, or be replaced. The next terminal must recover from durable project artifacts and verified state rather than reconstructing the project from chat history.
 
 ## Multi-agent project governance — FIXED WORKING MODEL
 
@@ -162,6 +212,10 @@ Persistence is already in canonical `main` and is accepted after independent ver
 
 `docs/MULTI_AGENT_BUILD_STRATEGY.md` and `AGENT_ROLES.md` define the current governance model. The strategy has been independently reviewed as `PASS WITH FINDINGS`; the principal documentation-drift finding is addressed by the current synchronization.
 
+### User architecture
+
+`docs/USER_ARCHITECTURE.md` records the current architectural direction for user/task/context/capability continuity across connected terminals and products. It is **DOCUMENTED / NOT IMPLEMENTED**. No runtime User/Task/Context/Capability layer is claimed by this document alone.
+
 ### Memory
 
 Memory is **NOT ACCEPTED** and is not present in canonical `main`.
@@ -199,10 +253,11 @@ A new AI session must read, in order:
 1. `AI_CONTEXT.md`;
 2. `STATUS.md`;
 3. `docs/AI_HANDOFF_PROTOCOL.md`;
-4. relevant specification/schema documents;
-5. relevant source files;
-6. relevant tests;
-7. latest CI status.
+4. `docs/USER_ARCHITECTURE.md`;
+5. relevant specification/schema documents;
+6. relevant source files;
+7. relevant tests;
+8. latest CI status.
 
 Then report:
 
@@ -211,7 +266,10 @@ Then report:
 - latest CI-tested commit;
 - implementation state using `IMPLEMENTED / PARTIAL / MISSING / THEORETICAL`;
 - verification qualifiers separately;
-- any mismatch between current HEAD and tested commit.
+- any mismatch between current HEAD and tested commit;
+- current task and its durable context;
+- capabilities available to the current terminal;
+- allowed and forbidden scope.
 
 Never assume an earlier AI report is proof of implementation.
 
