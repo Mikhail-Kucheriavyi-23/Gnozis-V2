@@ -14,6 +14,7 @@ from .analyzer import (
 )
 from .counterexample import CounterexampleEngine, CounterexampleResult
 from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
+from .invariant_delta import InvariantDelta, analyze_invariant_delta
 from .rules import RuleMetadata, RuleRegistry
 from .runtime import reflect
 from .shadow import ShadowCase, ShadowEvaluation, evaluate_shadow
@@ -37,6 +38,8 @@ __all__ = [
     "evaluate_shadow",
     "ProposalShadowAssessment",
     "evaluate_proposal_shadow",
+    "InvariantDelta",
+    "analyze_invariant_delta",
     "reflect",
     "summarize_reflection_history",
     "unresolved_findings",
