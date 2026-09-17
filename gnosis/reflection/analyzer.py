@@ -9,9 +9,10 @@ A proposal is a hypothesis, not a patch and not an activation command.
 
 from __future__ import annotations
 
+import hashlib
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Iterable, Sequence
+from typing import Sequence
 
 from gnosis.core.types import TransitionRecord
 
@@ -136,7 +137,8 @@ class ReflectionAnalyzer:
                 continue
 
             related = tuple(o for o in reason_observations if o.value == reason)
-            finding_id = f"finding:repeated-rejection:{abs(hash(reason))}"
+            reason_key = hashlib.sha256(reason.encode("utf-8")).hexdigest()[:16]
+            finding_id = f"finding:repeated-rejection:{reason_key}"
             observation_ids = tuple(o.observation_id for o in related)
             evidence_refs = tuple(o.evidence_ref for o in related)
 
