@@ -1,5 +1,5 @@
 from gnosis.core import State, TestResult, TransitionRecord
-from gnosis.reflection import ReflectionAnalyzer
+from gnosis.reflection import ReflectionAnalyzer, reflect
 
 
 def transition(candidate_id: str, accepted: bool, reason: str) -> TransitionRecord:
@@ -34,6 +34,22 @@ def test_reflection_observes_core_history_and_proposes_without_mutation():
 
     # Reflection is read-only: the source evidence remains identical.
     assert tuple(history) == analyzer._transitions
+
+
+def test_runtime_reflects_engine_history_without_mutation():
+    class EngineLike:
+        def __init__(self):
+            self.history = [
+                transition("a", False, "repeated"),
+                transition("b", False, "repeated"),
+            ]
+
+    engine = EngineLike()
+    before = tuple(engine.history)
+    report = reflect(engine)
+
+    assert len(report.proposals) == 1
+    assert tuple(engine.history) == before
 
 
 def test_reflection_does_not_create_finding_for_single_occurrence():
