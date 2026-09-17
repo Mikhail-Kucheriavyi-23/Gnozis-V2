@@ -36,6 +36,143 @@ next task
 
 The system is therefore not treated as a static specification followed by a one-time implementation. The implementation process itself is a controlled source of engineering evidence.
 
+## User-centered architecture direction
+
+The development target is broader than a multi-agent coding workflow. Gnozis is being shaped as a **user-owned continuity architecture**.
+
+The fundamental product property is:
+
+> **The user owns the continuity of the work; AI terminals and connected products are replaceable interfaces to that continuity.**
+
+A user may interact with the same project, task, evidence, data, and accumulated context through different AI products, mobile applications, work systems, or other connected terminals. A new terminal must be able to recover the canonical state without relying on the previous chat transcript.
+
+The intended flow is:
+
+```text
+USER / ORGANIZATION
+        ↓
+TASK / EVENT
+        ↓
+CANONICAL CONTEXT
+        ↓
+CAPABILITIES + DATA ROUTING POLICY
+        ↓
+CONNECTED DATA / TOOLS / AI TERMINAL
+        ↓
+CORE / EXECUTION
+        ↓
+VERIFIED RESULT
+        ↓
+PROVENANCE / MEMORY
+        ↓
+OUTPUT ROUTING POLICY
+        ↓
+USER / AUTHORIZED TERMINAL / WORK SYSTEM
+```
+
+This direction is now a canonical architectural requirement for subsequent design and implementation tasks. It does **not** mean that all corresponding runtime components are already implemented.
+
+### Any terminal must be replaceable
+
+A user may start a task in one AI terminal, receive a notification through another product, continue analysis from a mobile application, and later resume implementation from another AI system.
+
+The terminal is not the context. The connector is not the context. The chat transcript is not the context.
+
+```text
+canonical Gnozis context
+        ≠
+terminal-local context
+        ≠
+connector-local state
+        ≠
+conversation history
+```
+
+The durable project/task context must record, as applicable:
+
+- user/organization scope;
+- task identity and objective;
+- current implementation state;
+- verification state;
+- evidence and provenance;
+- relevant data/context;
+- available capabilities;
+- allowed data sources;
+- allowed output destinations;
+- unresolved findings;
+- next permitted action.
+
+### Broad user spectrum, one Core
+
+The same architecture must support different classes of users without creating separate Core engines:
+
+```text
+Manager
+Programmer
+Engineer
+Analyst
+Physicist / Researcher
+```
+
+The specialization comes from:
+
+```text
+task + context + data + capabilities + authorized tools
+```
+
+not from a profession-specific replacement for Ψ-Core.
+
+### Organization / CRM mode
+
+Gnozis should also be usable by a company as a shared intelligence/continuity layer around existing work systems such as CRM and work chat.
+
+For example:
+
+```text
+WORK CHAT / CRM / TICKET
+        ↓
+TASK / NOTIFICATION
+        ↓
+GNOZIS TASK REFERENCE
+        ↓
+USER DATA-ROUTING POLICY
+        ├── GitHub: allowed
+        ├── Work Drive: allowed
+        ├── Personal Drive: denied for this task
+        └── Other source: limited by data class
+        ↓
+ANALYSIS / CALCULATION / VERIFICATION
+        ↓
+RESULT + EVIDENCE + PROVENANCE
+        ↓
+OUTPUT-ROUTING POLICY
+        ├── Mobile app: allowed
+        ├── Work chat: summary only
+        └── Personal channel: denied
+```
+
+Organization-level policy remains authoritative within the organization's scope. User-controlled personal sources must not become implicitly visible to an organization merely because the user connected them to Gnozis.
+
+This is an architectural target, not a claim of existing CRM integration.
+
+### Data routing is a first-class concept
+
+The architecture must distinguish:
+
+```text
+available data
+        ≠
+data authorized for this task
+        ≠
+data actually used
+        ≠
+result authorized for a recipient
+```
+
+Connection alone does not imply permission to use every available source for every task.
+
+Likewise, producing a result does not imply permission to deliver that result to every connected terminal or system.
+
 ## Multi-agent operating model
 
 ### ChatGPT
@@ -87,6 +224,8 @@ AI systems may be connected to project resources such as:
 
 - GitHub — canonical source, branches, tests, CI, review history;
 - Google Drive — exchange of archives, audit reports, snapshots, and other artifacts;
+- work chat / CRM / ticket systems — organizational task and event sources;
+- user-authorized personal tools — optional data sources subject to explicit routing policy;
 - other explicitly authorized project interfaces.
 
 Access is intentionally broader than write authority.
@@ -137,7 +276,7 @@ rather than:
 broad access = unrestricted write authority
 ```
 
-Changes to Ψ-Core, persistence contracts, trust boundaries, identity, security, and other architectural invariants require an explicit task and acceptance gate.
+Changes to Ψ-Core, persistence contracts, trust boundaries, identity, security, context continuity, routing, and other architectural invariants require an explicit task and acceptance gate.
 
 ## Phase lifecycle
 
@@ -164,13 +303,50 @@ The project intentionally does not require every future subsystem to be designed
 
 Instead, each new layer is introduced as a bounded vertical slice where practical. The running system exposes real integration problems that pure design review can miss, while independent agents provide different failure modes and perspectives.
 
-This is especially important for future Memory, Identity, Bridge, Agent, Federation, and Evolution work.
+This is especially important for future Memory, Identity, Bridge, Agent, Federation, Context, Routing, and Evolution work.
 
 The rule is:
 
 > **Runtime interaction can influence the next design iteration, but runtime convenience must not silently redefine Ψ-Core invariants.**
 
 Observed behavior may reveal a missing invariant, a useful interface, or a necessary contract change. Such a change must then be explicitly documented and gated before becoming part of the canonical architecture.
+
+## Repository/Core architectural direction
+
+The repository is now expected to evolve toward explicit layers around Ψ-Core rather than allowing each connector or AI product to invent its own context model.
+
+The intended logical boundary is:
+
+```text
+interfaces / terminals / connectors
+              ↓
+       identity + capability
+              ↓
+       user/task/context layer
+              ↓
+       data + output routing
+              ↓
+       Memory / evidence / provenance
+              ↓
+       Core contract boundary
+              ↓
+            Ψ-Core
+```
+
+This is a logical architecture, not a requirement to create all directories immediately.
+
+The next architectural work should define stable contracts for:
+
+1. durable task identity and resumption;
+2. canonical context reconstruction;
+3. capability discovery and scoped connector access;
+4. data-routing and output-routing policy;
+5. provenance/evidence attached to results;
+6. terminal-independent handoff;
+7. organization/user scope separation;
+8. explicit Core boundary adapters.
+
+No connector should write a second state model into Ψ-Core. No AI terminal should become a hidden owner of canonical context.
 
 ## Multi-agent formation direction
 
