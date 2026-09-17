@@ -76,6 +76,8 @@ Key architectural rules:
 - GitHub, Google Drive, AI terminals and other products are connectors/interfaces/capability providers, not automatic sources of truth;
 - `Capability ≠ Authority` and `Resource access ≠ Architectural authority`;
 - different user types (manager, programmer, engineer, physicist, researcher, analyst, etc.) use the same architecture; specialization comes from task + context + data + authorized capabilities rather than separate Core engines;
+- individuals may cooperate without belonging to the same organization; an organization is only one possible scope;
+- shared task/context does not merge participant identities or permissions;
 - notifications are entry points to durable tasks, not the canonical task state;
 - results must remain distinguishable as verified facts, observations, calculations, proposals, or unresolved claims and retain provenance where applicable;
 - task/context/capability layers must not introduce a second Ψ-Core state model or silently redefine Core semantics;
@@ -91,6 +93,237 @@ Terminal D ─┘
 ```
 
 A terminal may disappear, reach a usage limit, or be replaced. The next terminal must recover from durable project artifacts and verified state rather than reconstructing the project from chat history.
+
+## Self-reflective Core — ARCHITECTURAL DIRECTION
+
+Gnozis is intended eventually to inspect its own execution history and identify possible deficiencies in its own rules. This is controlled reflection, not unrestricted self-modification.
+
+### Layer model
+
+```text
+L0 Ψ-Core
+    canonical State = Ψ=(X,R)
+    transitions
+    invariants
+
+L1 Observation
+    transition history
+    audit events
+    evidence
+    provenance
+
+L2 Reflection
+    Rule Registry
+    ReflectionObservation
+    ReflectionPattern
+    ReflectionFinding
+    Counterexample
+    RuleProposal
+
+L3 Governance
+    Shadow Rule evaluation
+    independent verification
+    acceptance
+    activation
+    rollback
+
+L4 Endogenous Evolution
+    future phase only
+    autonomous generation remains disabled until L0-L3
+    are independently implemented and independently verified.
+```
+
+### Core protection
+
+- Reflection must not directly mutate canonical Core state.
+- A `RuleProposal` is not a Core transition.
+- A verified proposal is not automatically activated.
+- Reflection may identify a possible deficiency; it must not treat its own hypothesis as truth merely because it generated it.
+- No AI model belongs inside Ψ-Core.
+- No second state model may be introduced for Reflection.
+
+### Target self-reflection loop
+
+```text
+OBSERVE
+   ↓
+CLASSIFY
+   ↓
+HYPOTHESIZE
+   ↓
+CHALLENGE
+   ↓
+COLLECT EVIDENCE
+   ↓
+PROPOSE
+   ↓
+SHADOW TEST
+   ↓
+INDEPENDENT VERIFY
+   ↓
+GOVERN
+   ↓
+ADOPT
+   ↓
+OBSERVE AGAIN
+```
+
+Failure at a governance stage leads to rejection or quarantine, not forced activation.
+
+### Rule lifecycle target
+
+```text
+PROPOSED
+    ↓
+ANALYZING
+    ↓
+SHADOW
+    ↓
+CHALLENGED
+    ↓
+VERIFICATION
+    ↓
+AUDITED
+    ↓
+ACCEPTED
+    ↓
+ACTIVE
+```
+
+Alternative outcomes include `REJECTED` and `QUARANTINED`. Acceptance and activation are separate states. Rule versions are retained for provenance and rollback.
+
+### Planned reflection entities
+
+`Rule`:
+
+```text
+rule_id
+rule_version
+rule_type
+scope
+implementation_ref
+spec_ref
+invariant_refs
+provenance
+status
+```
+
+`ReflectionObservation` records which rule/version was applied to which state/candidate/transition, the outcome, reason codes and evidence references.
+
+`ReflectionFinding` groups reproducible observations into a candidate pattern and must identify falsification conditions. Frequency or confidence is not itself proof of correctness.
+
+`CounterexampleCandidate` is an explicit attempt to refute a reflection hypothesis using historical, synthetic, boundary, mutation, cross-rule or external-evidence methods.
+
+`RuleProposal` describes a proposed rule/version change, its evidence, expected effects, possible regressions and test plan. It cannot activate itself.
+
+### Evidence chain target
+
+```text
+Observation
+    ↓
+Pattern
+    ↓
+Finding
+    ↓
+Hypothesis
+    ↓
+Counterexample challenge
+    ↓
+Rule Proposal
+    ↓
+Shadow evaluation
+    ↓
+Independent verification
+    ↓
+Governance
+    ↓
+Activation / rejection / quarantine
+```
+
+Every substantive reflection claim must be traceable to reproducible observations/evidence. `NO_COUNTEREXAMPLE_FOUND` does not mean `PROVEN_TRUE`.
+
+## Current self-reflection status
+
+The existing Core already provides the foundation: canonical Ψ-State, candidate/transition verification, explicit invariants, persistence and append-only audit history. Endogenous generation remains caller-supplied and is therefore not autonomous.
+
+The following are architectural targets, not current implementation claims:
+
+- Rule Registry: `MISSING`
+- ReflectionObservation: `MISSING`
+- ReflectionPattern/Finding: `MISSING`
+- Counterexample engine: `MISSING`
+- RuleProposal lifecycle: `MISSING`
+- Shadow Core/rule evaluation: `MISSING`
+- Rule governance/activation/rollback: `MISSING`
+- Autonomous self-modification: `MISSING / FORBIDDEN FOR CURRENT PHASE`
+
+## Next bounded Core modernization phase
+
+### CORE REFLECTION FOUNDATION
+
+Purpose: create a read-only, provenance-preserving reflection layer without changing existing Ψ-Core transition semantics.
+
+Allowed scope:
+
+1. Rule Registry and version metadata.
+2. ReflectionObservation.
+3. ReflectionFinding/Pattern.
+4. Counterexample registration and challenge contracts.
+5. RuleProposal contract and lifecycle metadata.
+6. Provenance links to states, candidates, transitions and audit events.
+7. Persistence for the new reflection artifacts.
+8. Read-only reflection pipeline and tests.
+
+Explicit exclusions:
+
+- no autonomous Core modification;
+- no automatic rule activation;
+- no replacement or duplication of Ψ-State;
+- no second state model;
+- no autonomous endogenous generator;
+- no Shadow Core activation yet;
+- no changes to existing transition semantics unless a separate explicit task is issued.
+
+Acceptance criteria:
+
+```text
+existing Core tests remain valid;
+existing transition semantics remain unchanged;
+Reflection cannot commit a transition;
+all reflection claims have provenance;
+new artifacts are persistable and auditable;
+RuleProposal cannot activate itself;
+current Ψ-Core invariants remain authoritative.
+```
+
+Before implementation, record:
+
+```text
+Primary implementer:
+Independent reviewer:
+ChatGPT final gate:
+External audit required: yes/no
+Allowed files/scope:
+Forbidden changes:
+```
+
+The next phases after Foundation are expected to be:
+
+```text
+R1 Core Reflection Foundation
+    ↓
+R2 Rule Registry hardening
+    ↓
+R3 Reflection + Counterexample engine
+    ↓
+R4 Shadow evaluation
+    ↓
+R5 Governance / activation / rollback
+    ↓
+R6 Endogenous evolution
+```
+
+No phase may be assumed complete from documentation alone; source, tests, CI and independent verification remain authoritative.
 
 ## Multi-agent project governance — FIXED WORKING MODEL
 
