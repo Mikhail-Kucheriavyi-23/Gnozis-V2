@@ -17,6 +17,7 @@ from .history import HistoricalFinding, ReflectionHistorySummary, summarize_refl
 from .rules import RuleMetadata, RuleRegistry
 from .runtime import reflect
 from .shadow import ShadowCase, ShadowEvaluation, evaluate_shadow
+from .shadow_adapter import ProposalShadowAssessment, evaluate_proposal_shadow
 
 __all__ = [
     "CounterexampleCandidate",
@@ -34,6 +35,8 @@ __all__ = [
     "ShadowCase",
     "ShadowEvaluation",
     "evaluate_shadow",
+    "ProposalShadowAssessment",
+    "evaluate_proposal_shadow",
     "reflect",
     "summarize_reflection_history",
     "unresolved_findings",
