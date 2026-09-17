@@ -11,13 +11,13 @@
 - `gnosis/storage/` is not yet implemented.
 - `logs/` contains audit documentation and CI notes, but no runtime persistent audit-log writer.
 - `Engine.history` is in-process history and is lost on process exit.
-- The latest synchronization commit passed GitHub Actions CI successfully.
+- The latest GitHub Actions CI passed for the commit recorded in the verification snapshot below.
 - Current implementation status must always be verified from source, tests and CI rather than inferred from documentation.
 
 ## Current verification snapshot
 - Canonical repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- Current `main` commit: `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`
-- Latest GitHub Actions CI for this commit: `PASS`
+- Current `main` commit at the previous verified snapshot: `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`
+- Latest GitHub Actions CI for that commit: `PASS`
 - CI matrix: Python 3.11 and 3.12, package installation, pytest and coverage.
 - Local authoring-sandbox pytest execution: `NOT PERFORMED`.
 - Ψ-Core: `IMPLEMENTED` / verified by source, tests and GitHub Actions.
@@ -170,6 +170,22 @@ A phase must be evaluated for:
 - absence of undocumented architectural coupling;
 - accurate status classification.
 
+## Current synchronized operating decision — 2026-09-17
+
+The multi-AI governance model above is now fixed as the project's working model after synchronization between ChatGPT and the repository context, including the Manus audit findings.
+
+Current operational chain:
+
+`Task definition → assigned implementation AI → independent review by a different AI → ChatGPT final gate → AI_CONTEXT/STATUS update → next task`
+
+The division of labor is intentionally flexible at the phase level:
+- ChatGPT remains the architecture/integration/final-gate role.
+- Claude is the default primary implementation engineer for large bounded engineering tasks.
+- Manus is the independent implementation/review/adversarial role and may own a phase when explicitly assigned.
+- Gemini and other systems without repository access remain external read-only auditors.
+
+This is a process governance decision, not a claim that any AI is intrinsically more capable. The assignment for each phase must be recorded before implementation begins.
+
 ## Open evolution question
 As Gnozis approaches autonomous/self-directed evolution, this governance model must be revisited. In particular, future work must determine how human authority, AI-agent authority, proof/invariant checks, rollback, capability limits, and auditability interact when the system can propose or perform its own modifications.
 
@@ -179,7 +195,7 @@ No claim of autonomous self-development should be made until the corresponding m
 
 The AI context was reviewed against the current source tree, `STATUS.md`, `README.md`, `docs/DATABASE_SCHEMA.md`, the phase audit, and GitHub Actions. The architecture and Ψ-Core boundaries are coherent, but the following documentation and process corrections are required:
 
-1. `STATUS.md` and older audit text must distinguish between real GitHub Actions verification and the fact that pytest was not run in the local authoring sandbox. The current repository has a successful CI run on commit `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`.
+1. `STATUS.md` and older audit text must distinguish between real GitHub Actions verification and the fact that pytest was not run in the local authoring sandbox. The repository had a successful CI run on commit `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`.
 2. Status vocabulary must be consistent. Use the four primary implementation states above; use verification qualifiers separately instead of mixing `UNKNOWN`, `EXPERIMENTAL`, `BLOCKED`, and `UNVERIFIED` into the implementation-state column.
 3. Every CI claim must include the tested commit SHA and verification date. A successful run for an older commit does not verify the current source.
 4. `logs/` is not empty, but it is not a runtime audit system. It contains audit/CI documentation only; `Engine.history` remains process-local and is lost on restart.
