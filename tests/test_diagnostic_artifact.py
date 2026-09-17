@@ -1,12 +1,18 @@
-from types import SimpleNamespace
+from dataclasses import dataclass
 
 from gnosis.reflection.diagnostic_artifact import build_artifact, serialize_artifact
 from gnosis.reflection.self_diagnostic import SelfDiagnostic
 
 
+@dataclass(frozen=True)
+class _DiagnosticReport:
+    findings: tuple = ()
+    proposals: tuple = ()
+
+
 def test_artifact_is_read_only_and_machine_readable():
     diagnostic = SelfDiagnostic(
-        report=SimpleNamespace(findings=(), proposals=()),
+        report=_DiagnosticReport(),
         causal_candidates=(),
         refined_proposals=(),
         limitations=("example limitation",),
