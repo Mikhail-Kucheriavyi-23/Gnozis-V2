@@ -1,58 +1,63 @@
 # STATUS — GNOSIS 2.0
 
 Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / DOCUMENTED
-(per spec section 52, STRICT REPORTING RULE)
 
 ## Current repository baseline
 
 - Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
-- `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol for connecting a new AI at any project stage.
-- `docs/USER_ARCHITECTURE.md` is the canonical design document for user/task/context/capability continuity across connected terminals and products.
-- Persistence implementation is present in `main`; older statements saying `storage/` is an empty placeholder are obsolete.
+- `AI_CONTEXT.md` is the operational handoff context.
+- `context/PROJECT_CONTEXT.json` is the machine-readable canonical project snapshot.
+- `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol.
+- `docs/USER_ARCHITECTURE.md` is the canonical design document for user/task/context/capability continuity.
+- `docs/CORE_REFLECTION_ROADMAP.md` is the canonical roadmap for controlled self-reflection.
+- Persistence implementation is present in `main` and accepted after independent verification.
 - Implementation state is kept separate from verification and acceptance state.
 
-| Spec section | Topic | Implementation status | Current evidence / qualification |
-|---|---|---|---|
-| 1 | Ψ=(X,R) single source of truth | IMPLEMENTED | `gnosis/core/types.py::State,Relation` |
-| 2 | Core Generate-Test-Select-Evolve cycle | PARTIAL | `Engine.step` and `Engine.step_select` exist; no population-level generation |
-| 3 | Endogenous evolution | PARTIAL | `GenerateFn` remains caller-supplied |
-| 4 | Safe self-modification | IMPLEMENTED | Candidate verification path implemented and tested |
-| 5 | Protected invariants | PARTIAL | Core invariants implemented; Identity/Memory/crypto layers remain future scope |
-| 6 | Proof-preserving evolution | PARTIAL | `verify()` exists; no theorem-prover binding |
-| 7 | Type safety | IMPLEMENTED | Phase-1 types are distinct and deep-frozen where required |
-| 8 | Resource budget | IMPLEMENTED | Budget implementation and tests exist |
-| 9 | Stop conditions | PARTIAL | Implemented and reserved reasons remain explicitly separated |
-| 10-12 | Clone/Fork/Instance/Lineage | PARTIAL | Instance/lineage implementation exists; persistence is now present, while Identity is future scope |
-| 13-18 | Agent / multi-agent / communication | MISSING | Not started as Gnozis runtime architecture |
-| 19-23 | User copies / Federation / Trust / Delegation | MISSING | Not started |
-| 24-26 | Memory / encryption / Identity | MISSING | Memory artifact exists only outside `main`; it is not accepted or merged |
-| 27-28 | E2E security / capability security | MISSING | Not started |
-| 29-31 | Bridge / world exploration / external AI | MISSING | Not started |
-| 32 | Analytics layer | MISSING | Future phase |
-| 33-36 | Mathematical population model / mutation | THEORETICAL | Described in specification; no corresponding runtime implementation |
-| 37 | Database schema / persistence | IMPLEMENTED / ACCEPTED | SQLite persistence and append-only audit structures are present in `gnosis/storage/`; Persistence is accepted in `main` after independent verification |
-| 38-39 | Logs / auditability | PARTIAL | Persistent `audit_events` and hash-chain verification exist; broader runtime/audit integration remains subject to phase-level verification |
-| 40 | CI | VERIFIED | CI evidence must be tied to the exact tested commit; subsequent commits require their own CI result |
-| 41-42 | Test strategy / security tests | PARTIAL | Core/Persistence tests exist; Memory/Identity/Agent/Federation/Bridge security tiers remain future work |
-| 43 | Reproducibility | PARTIAL | `Candidate.seed` exists; full experiment/event-log harness remains future scope |
-| 44 | Dependencies | IMPLEMENTED | `pyproject.toml` defines the dependency boundary |
-| 45 | External research donors | N/A | Documentation/provenance task, not runtime code |
-| 46 | What not to use | IMPLEMENTED by omission | No OpenRouter/Telegram/global controller/direct-Internet-to-Core path in the current slice |
-| 47 | Architecture / directory layout | PARTIAL | `core/`, `instances/`, and `storage/` are implemented; user/context/capability runtime layers and future layers remain unimplemented |
-| 48 | Phase 0 | IMPLEMENTED | Types/contracts/threat/database documentation exist |
-| 48 | Phase 1 Ψ-Core | IMPLEMENTED | Core implementation and tests exist |
-| 48 | Phase 3 Instance | PARTIAL | Instance/clone/fork/lineage exist; durable persistence now exists, cryptographic Identity remains future scope |
-| 49 | First vertical slice | PARTIAL | Core + Instance + Persistence are progressing; User/Task/Context/Capability runtime, Agent/Identity/Memory/Bridge portions remain unimplemented or not accepted |
-| 50-53 | Critical/reporting/final principles | PROCESS CONSTRAINTS | Applied as governance and acceptance rules, not runtime features |
+## Current implementation state
 
-## User-centered architecture status
+| Area | Status | Qualification |
+|---|---|---|
+| Ψ=(X,R) Core | IMPLEMENTED | Core remains canonical source of state/evolution semantics |
+| Generate/Test/Select/Evolve | PARTIAL | Current generation remains caller-supplied |
+| Safe candidate verification | IMPLEMENTED | Existing verification path remains authoritative |
+| Instance/lineage | PARTIAL | Durable persistence present; cryptographic Identity is future scope |
+| Persistence | IMPLEMENTED / ACCEPTED | SQLite storage and audit structures are in `main` |
+| Append-only audit storage | IMPLEMENTED | Broader runtime integration remains phase-scoped |
+| User/Task/Context/Capability runtime | MISSING | Architecture documented only |
+| Memory | NOT ACCEPTED | Not merged; corrective findings remain |
+| Identity/cryptography | MISSING | Future bounded phase |
+| Agents/federation | MISSING | Future strategy |
+| User/world bridge | MISSING | Future bounded phase |
+| Self-reflection runtime | MISSING | Architecture and roadmap documented; R1 not implemented |
+| Endogenous evolution | THEORETICAL / PARTIAL BOUNDARY | Prohibited from autonomous activation in current phase |
+
+## Current operating scope
+
+**SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT**.
+
+The present experiment is deliberately constrained to the project owner's account and `Gnozis-V2`. ChatGPT, Claude, Manus, Gemini and connected tools may act as different agents against the same canonical project artifacts.
+
+The current goal is to prove durable context/state/provenance continuity across AI terminals and tools, while keeping Ψ-Core semantics protected.
+
+The following are future strategy and are NOT current implementation scope:
+
+- other user accounts;
+- multi-tenant runtime;
+- cross-account identity;
+- public user network;
+- organization-wide permissions;
+- inter-user federation;
+- cross-account trust protocols;
+- shared production workspaces between independent owners.
+
+Do not implement these merely because they appear in long-term architecture documents.
+
+## User-centered architecture
 
 **DOCUMENTED / NOT IMPLEMENTED**.
 
-`docs/USER_ARCHITECTURE.md` records the target architecture for a user to move between authorized AI terminals and connected products while preserving durable project/task continuity.
-
-The core design model is:
+The intended model is:
 
 ```text
 USER
@@ -72,45 +77,78 @@ VERIFIED RESULT
 PROVENANCE / MEMORY
 ```
 
-The intended user spectrum includes managers, programmers, engineers, physicists, researchers, analysts and other users. These are usage contexts, not separate Core engines. Specialization should arise from task, context, data and authorized capabilities.
+A replacement AI terminal should recover durable project/task context, verified state, evidence, provenance, capabilities and allowed next action without reconstructing the project from chat history.
 
-Target continuity:
+Connectors such as GitHub, Google Drive and AI terminals provide capabilities; they are not automatically sources of truth. `Capability ≠ Authority`.
+
+## Core Reflection architecture
+
+**ARCHITECTURE DEFINED / RUNTIME NOT IMPLEMENTED**.
+
+The target controlled-reflection layers are:
 
 ```text
-Terminal A ─┐
-Terminal B ─┼──→ shared canonical context/state ←── connectors
-Terminal C ─┤
-Terminal D ─┘
+L0 Ψ-Core
+    ↓
+L1 Observation / Evidence
+    ↓
+L2 Reflection / Findings / Proposals
+    ↓
+L3 Shadow / Verification / Governance
+    ↓
+L4 Future Endogenous Evolution
 ```
 
-The architecture requires that conversational history remain non-canonical: a replacement terminal must recover the durable task/project context, verified state, evidence, provenance, capabilities and allowed next action from project artifacts.
+Reflection cannot directly mutate canonical Core state. A `RuleProposal` is not a Core transition and cannot activate itself. No AI model belongs inside Ψ-Core.
 
-Google Drive, GitHub, AI terminals and other products are treated as connectors/capability providers, not automatic sources of truth. `Capability ≠ Authority`; resource access does not grant architectural authority.
+### Roadmap
 
-This section records architecture only. It does not authorize implementation of User/Task/Context/Capability runtime layers.
+```text
+R1 Core Reflection Foundation
+    ↓
+R2 Observation + Finding Engine
+    ↓
+R3 Counterexample Engine
+    ↓
+R4 Shadow Rule Evaluation
+    ↓
+R5 Governance / Activation / Rollback
+    ↓
+R6 Endogenous Rule Generation
+    ↓
+R7 Cooperative Self-Reflection Network — future multi-user strategy
+```
+
+`docs/CORE_REFLECTION_ROADMAP.md` contains the bounded scope and acceptance boundary for each stage.
+
+### R1 current handoff
+
+When implementation is explicitly authorized:
+
+```text
+Primary implementer: Claude
+Independent reviewer: Manus
+Final integration gate: ChatGPT
+Phase: R1 only
+```
+
+R1 must not change existing transition semantics, introduce a second state model, activate rules, merge Memory, or implement autonomous self-modification.
 
 ## Persistence status
 
-The current `main` contains:
+Current storage includes:
 
-- `gnosis/storage/database.py`
-- `gnosis/storage/repositories.py`
-- `gnosis/storage/__init__.py`
-- Persistence test suites
+```text
+gnosis/storage/database.py
+gnosis/storage/repositories.py
+gnosis/storage/__init__.py
+```
 
-`database.py` defines `SCHEMA_VERSION = 3`, SQLite foreign-key enforcement, `BEGIN IMMEDIATE` transactions, durable `states`, `relations`, `candidates`, `instances`, `transitions`, and append-only `audit_events` with SQLite update/delete guards.
+The storage layer contains durable state/candidate/instance/transition data and append-only audit events. Persistence is **accepted in `main`**. Do not restart or duplicate this implementation because of stale historical reports.
 
-Persistence is **accepted in `main`** following the project's independent verification gate. Older reports describing `storage/` as an empty placeholder are historical and must not be used as the current implementation state.
+## Multi-agent governance
 
-## Multi-agent governance status
-
-The multi-agent development strategy is recorded in:
-
-- `docs/MULTI_AGENT_BUILD_STRATEGY.md`
-- `AGENT_ROLES.md`
-- `docs/AI_HANDOFF_PROTOCOL.md`
-
-Current working model:
+The working phase chain is:
 
 ```text
 access
@@ -130,17 +168,21 @@ ChatGPT integration gate
 context/status update
 ```
 
-GitHub/Google Drive access is an operational capability, not architectural authority. Phase ownership, allowed scope, forbidden changes, independent reviewer, and final gate must be explicit for each substantive phase.
-
-Multi-agent strategy status: **PASS WITH FINDINGS**. The documented workflow is accepted as the current working model; documentation continuity is formalized by the canonical handoff protocol and user-centered architecture record.
+GitHub/Drive access is operational capability, not architectural authority.
 
 ## Memory status
 
 **NOT ACCEPTED / NOT MERGED**.
 
-A Claude Memory artifact was independently audited outside `main`. That audit found remaining corrective items including cross-scope supersession, supersession-cycle detection, provenance enforcement, version continuity, and retention state-machine enforcement. Therefore Memory must not be reported as implemented in the canonical repository until a corrective pass and independent re-audit are completed.
+Open corrective findings:
 
-Current required sequence:
+- H-01 — reject cross-owner/cross-instance supersession;
+- H-03 — reject self/direct/indirect supersession cycles;
+- H-04 — enforce provenance validation on the write path;
+- M-01 — enforce root/version continuity;
+- M-02 — enforce retention state machine.
+
+Required sequence:
 
 ```text
 STATUS.md / AI_CONTEXT.md synchronization
@@ -154,44 +196,42 @@ independent Memory re-audit
 ChatGPT integration gate
 ```
 
-## Canonical AI continuation
+Memory must remain outside `main` until this sequence passes.
 
-A new or replacement AI must not depend on prior chat history to reconstruct the project.
+## Evidence hierarchy
 
-Read in this order:
+When reports conflict:
+
+1. current source;
+2. reproducible runtime behavior and real tests/CI;
+3. accepted invariants/contracts;
+4. independent audit evidence;
+5. AI reports/proposals.
+
+Every CI claim must identify the exact tested commit SHA. Implementation and verification state remain separate.
+
+## Context recovery
+
+A replacement AI must read:
 
 ```text
 AI_CONTEXT.md
     ↓
 STATUS.md
     ↓
+context/PROJECT_CONTEXT.json
+    ↓
 docs/AI_HANDOFF_PROTOCOL.md
     ↓
 docs/USER_ARCHITECTURE.md
     ↓
-docs/MULTI_AGENT_BUILD_STRATEGY.md
+docs/CORE_REFLECTION_ROADMAP.md
     ↓
-AGENT_ROLES.md
-    ↓
-relevant contracts → source → tests → CI evidence
+relevant contracts → source → tests → CI
 ```
 
-Before modifying anything, the AI must report the exact repository/branch/HEAD, implementation state, verification state, acceptance state, active phase, role assignment, allowed scope, forbidden scope, latest tested commit, open findings, current task/context, available capabilities, and next permitted action.
-
-If a previous AI stopped midway, continue from durable repository artifacts and reproducible evidence. Do not reconstruct unfinished work from memory or treat a report as proof of completion.
-
-## Documentation / verification rule
-
-Never treat a report saying `PASS`, `implemented`, `complete`, or `ready` as sufficient evidence. Prefer, in order:
-
-1. current source;
-2. reproducible runtime behavior and real tests/CI;
-3. accepted project invariants/contracts;
-4. independent audit evidence;
-5. AI reports and proposals.
-
-Every CI claim must identify the tested commit SHA. Implementation state and verification state must remain separate.
+Before modifying anything, report repository/branch/HEAD, implementation state, verification state, acceptance state, active phase, role, allowed scope, forbidden scope, latest tested commit, open findings and next permitted action.
 
 ## Immediate next step
 
-The user-centered architecture is now recorded as the canonical design direction, while its runtime implementation remains a future bounded phase. The previously required documentation synchronization has been completed in this repository state. The next substantive project step remains the **narrow read-only documentation audit**, followed by the already approved Memory corrective sequence.
+The repository is now prepared for the next authorized architectural implementation stage. The intended next substantive Core stage is **R1 Core Reflection Foundation**, but implementation must remain separately authorized and independently verified. The already-open Memory corrective sequence remains a separate blocked track and must not be silently merged into R1.
