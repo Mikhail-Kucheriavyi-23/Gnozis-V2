@@ -14,7 +14,7 @@ def test_attribution_uses_only_recorded_provenance():
     state = State(elements={"n": 0})
     engine = Engine(state=state, test_rule_id="rule:nonnegative")
     rejected = state.with_elements({"n": -1})
-    engine.test_fn = lambda _state, _candidate: __import__("gnosis.core").core.TestResult(False, ("rejected",))
+    engine.test_fn = lambda _state, _candidate: False
     record = engine.step(Candidate(state.state_id, rejected, "test"))
     transition_id = f"transition:0:{record.candidate_id}"
     result = attribute_rule(engine.history, (transition_id,))
