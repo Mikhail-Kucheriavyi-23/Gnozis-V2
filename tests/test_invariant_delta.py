@@ -1,5 +1,5 @@
 from gnosis.core.invariants import DEFAULT_INVARIANTS
-from gnosis.core.types import Candidate, Relation, State, TestResult
+from gnosis.core.types import Candidate, Relation, State
 from gnosis.reflection.invariant_delta import analyze_invariant_delta
 from gnosis.reflection.shadow import evaluate_shadow
 
@@ -18,10 +18,10 @@ def test_shadow_accepting_invariant_violation_is_classified_as_violation():
     )
 
     def active_test(_state, _candidate):
-        return TestResult(False, ("active rejects",))
+        return False
 
     def shadow_test(_state, _candidate):
-        return TestResult(True, ())
+        return True
 
     evaluation = evaluate_shadow((candidate,), active_test, shadow_test)
     delta = analyze_invariant_delta(
@@ -47,10 +47,10 @@ def test_missing_current_state_is_unknown_not_failure():
     )
 
     def active_test(_state, _candidate):
-        return TestResult(False, ())
+        return False
 
     def shadow_test(_state, _candidate):
-        return TestResult(True, ())
+        return True
 
     evaluation = evaluate_shadow((candidate,), active_test, shadow_test)
     delta = analyze_invariant_delta(
