@@ -1,36 +1,41 @@
 {
-  "schema": "gnozis.project-context/v1",
+  "schema": "gnozis.project-context/v2",
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
-  "snapshot_of_canonical_source_head": "c00eb90c0a34b671c73d9f41ebde480d477da033",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
     "persistence": "IMPLEMENTED / ACCEPTED",
+    "audit_storage": "IMPLEMENTED",
     "memory": "NOT ACCEPTED / NOT MERGED",
     "user_centered_architecture": "DOCUMENTED / NOT IMPLEMENTED",
+    "self_reflection": "ARCHITECTURE DEFINED / NOT IMPLEMENTED",
     "agents_federation_bridge": "MISSING"
   },
   "verification_state": {
     "persistence": "INDEPENDENTLY VERIFIED",
     "multi_agent_strategy": "PASS WITH FINDINGS",
     "memory": "BLOCKED - corrective findings remain",
-    "user_architecture_runtime": "UNIMPLEMENTED"
+    "user_architecture_runtime": "UNIMPLEMENTED",
+    "self_reflection_runtime": "UNIMPLEMENTED"
   },
   "acceptance_state": {
     "persistence": "ACCEPTED",
     "memory": "NOT ACCEPTED",
-    "user_context_runtime": "NOT ACCEPTED / NOT IMPLEMENTED"
+    "user_context_runtime": "NOT ACCEPTED / NOT IMPLEMENTED",
+    "self_reflection": "NOT ACCEPTED / ARCHITECTURAL TARGET"
   },
-  "active_phase": "DOCUMENTATION CONTINUITY / ARCHITECTURAL PREPARATION",
-  "active_task": "Keep canonical continuation state usable by a replacement AI terminal; do not begin runtime User/Task/Context/Capability implementation without an explicit bounded task.",
-  "primary_implementer": "ChatGPT for current architectural preparation",
+  "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
+  "active_phase": "ARCHITECTURAL PREPARATION FOR CORE REFLECTION",
+  "active_task": "Prepare the repository so the next authorized AI can continue from durable context and execute the bounded Core Reflection roadmap without reconstructing conversation history.",
+  "primary_implementer": "ChatGPT for current architectural preparation; Claude when explicitly assigned implementation",
   "independent_reviewer": "Manus when available",
   "integration_gate": "ChatGPT under project-owner authorization",
   "allowed_scope": [
     "documentation and architectural contracts required for cross-terminal continuity",
     "read-only repository inspection",
-    "explicitly assigned bounded architecture preparation"
+    "bounded architecture preparation",
+    "reflection roadmap/contracts that do not change Core semantics"
   ],
   "forbidden_scope": [
     "unassigned Core semantic changes",
@@ -38,7 +43,9 @@
     "Identity/authentication implementation without explicit task",
     "encryption implementation without explicit task",
     "Internet Bridge implementation without explicit task",
-    "unreviewed persistence schema changes"
+    "unreviewed persistence schema changes",
+    "multi-user/multi-tenant/federation runtime implementation",
+    "autonomous rule activation or self-modification"
   ],
   "open_findings": [
     "Memory H-01 cross-scope supersession",
@@ -48,7 +55,16 @@
     "Memory M-02 retention state machine",
     "narrow independent audit of synchronized STATUS.md and AI_CONTEXT.md remains required"
   ],
-  "next_permitted_action": "Complete the documentation continuity audit; then execute the already approved Memory corrective sequence when the assigned implementer is available.",
+  "reflection_roadmap": [
+    "R1 Core Reflection Foundation",
+    "R2 Observation + Finding Engine",
+    "R3 Counterexample Engine",
+    "R4 Shadow Rule Evaluation",
+    "R5 Governance / Activation / Rollback",
+    "R6 Endogenous Rule Generation",
+    "R7 Cooperative Self-Reflection Network - future multi-user strategy"
+  ],
+  "next_permitted_action": "When implementation is explicitly authorized, execute R1 only; until then preserve Core semantics and continue architectural/documentation verification.",
   "canonical_documents": [
     "AI_CONTEXT.md",
     "STATUS.md",
@@ -56,7 +72,8 @@
     "docs/USER_ARCHITECTURE.md",
     "docs/CONTEXT_CONTINUITY_CONTRACT.md",
     "docs/MULTI_AGENT_BUILD_STRATEGY.md",
-    "AGENT_ROLES.md"
+    "AGENT_ROLES.md",
+    "docs/CORE_REFLECTION_ROADMAP.md"
   ],
   "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports."
 }
