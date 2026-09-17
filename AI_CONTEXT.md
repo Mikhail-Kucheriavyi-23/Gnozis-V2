@@ -94,38 +94,26 @@ Implemented experimental stages:
 7. bounded recursive re-evaluation — candidate evidence is independently re-run for up to three rounds; failed rounds stop evaluation and prevent stability.
 8. `CoreVersionDescriptor` — immutable description of a proposed next Core version; it does not itself mutate canonical Core.
 9. `gnosis/reflection/context.py` — self-descriptive context claims, versions, and deltas.
+10. `PromotionEngine` — evidence-gated domain materialization of a distinct proposed Core state.
+11. atomic promotion persistence — dedicated promotion provenance record, proposed state persistence, audit event and authoritative head update in one transaction.
 
 ## Current promotion boundary
 
-The next implementation stage is the **Promotion Engine**. It must be the first component allowed to materialize `Core_n → Core_(n+1)`, but only after:
+The promotion boundary is split into two explicit layers:
 
-- a valid `PromotionCandidate`;
+1. `PromotionEngine` — validates evidence and materializes an immutable proposed `Core_(n+1)` at the domain boundary.
+2. `persist_promotion` — atomically persists the promotion and advances the authoritative instance head.
+
+Required gates remain:
+
+- valid `PromotionCandidate`;
 - stable bounded recursive re-evaluation;
 - valid parent Core state;
 - deterministic proposed next state;
-- complete provenance/rollback record.
+- complete provenance/evidence digest;
+- atomic persistence and rollback.
 
-Failure must leave `Core_n` unchanged.
-
-Promotion must therefore be atomic and evidence-gated:
-
-```text
-PromotionCandidate
-        +
-Stable ReEvaluationResult
-        +
-CoreVersionDescriptor
-        ↓
-PromotionEngine
-        ↓
-validate
-        ↓
-construct Core_(n+1)
-        ↓
-write immutable promotion/provenance record
-        ↓
-commit canonical next state
-```
+Failure must leave `Core_n` and the authoritative head unchanged.
 
 Do not implement uncontrolled `patch → activate` behavior.
 
@@ -149,7 +137,10 @@ PromotionCandidate
  ↓ bounded recursive re-evaluation
  ↓ stable evidence
 PromotionEngine
- ↓ atomic Core_n → Core_(n+1)
+ ↓
+atomic promotion persistence
+ ↓
+Core_(n+1)
  ↓ new ContextVersion / ContextDelta
  ↓ Reflection of the new self-description
  ↺
@@ -193,21 +184,54 @@ Commits:
 - implementation: `598bb445637a2004cdc17857c421438e9ae2a40c`
 - tests: `03dae8d507531f32d8ba472acfc31f6d1d863505`
 
+### Promotion persistence
+
+Implemented on `evolution-sandbox`:
+
+- SQLite schema version `4` with dedicated `promotions` provenance table;
+- `gnosis/evolution/promotion_persistence.py`;
+- `tests/test_evolution_promotion_persistence.py`.
+
+The persistence boundary:
+
+```text
+validate
+ ↓
+lock canonical head
+ ↓
+persist proposed state
+ ↓
+persist immutable promotion provenance
+ ↓
+append audit event
+ ↓
+advance authoritative head
+ ↓
+COMMIT
+```
+
+Any injected failure before commit rolls back the proposed state, promotion record, audit event and head update together.
+
+Commits:
+
+- schema: `8a23f99017a01a1ae77eb9bb6e4cf5ad3b113e7d`
+- persistence: `4ff522634e0ddf736713221a3b7e9658e9f8cca0`
+- tests: `0776078640f947d7c3eb8e76a9d908371ceaa159`
+
 **Verification status:** `IMPLEMENTED / TESTS WRITTEN / RUNTIME NOT VERIFIED`.
 
-No GitHub Actions workflow run was available for the test commit, and the local environment could not clone the repository because network/DNS access is unavailable. Therefore the tests MUST NOT be reported as PASS yet.
+No GitHub Actions workflow run is available for these commits, and the local environment cannot clone the repository because network/DNS access is unavailable. Therefore these tests MUST NOT be reported as PASS yet.
 
 ### Next task
 
-`GNV2-PROMOTION-002 — Persist promotion atomically`
+`GNV2-PROMOTION-003 — Promotion recovery verification`
 
-Required before this task is DONE:
+Required:
 
-1. Add a dedicated immutable promotion/provenance record rather than disguising promotion as an ordinary transition.
-2. Persist parent Core state, proposed Core state, candidate/model identity and stable evidence reference.
-3. Atomically update the authoritative instance/Core head only after all validation succeeds.
-4. On any failure, leave `Core_n` and the authoritative head unchanged.
-5. Add rollback/recovery evidence.
-6. Verify through real runtime/CI before marking DONE.
+1. Extend durable-graph recovery to recognize promotion provenance as a valid authoritative-head transition.
+2. Verify restart/recovery reconstructs `Core_(n+1)` after a committed promotion.
+3. Verify an interrupted promotion leaves recoverable `Core_n` with no partially trusted `Core_(n+1)`.
+4. Verify promotion audit/hash-chain evidence remains valid after recovery.
+5. Add real runtime/CI verification before marking DONE.
 
-Do not merge `evolution-sandbox` into `main` until the promotion persistence contract and tests are independently verified.
+Only after this gate is closed should promotion be considered a persistence-safe evolution capability.
