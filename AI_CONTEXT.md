@@ -233,3 +233,32 @@ Then report the current state using `IMPLEMENTED / PARTIAL / MISSING / THEORETIC
 The report must include the current branch, `HEAD` commit, latest CI-tested commit, and any mismatch between them. It must also separate implementation state from verification qualifier.
 
 Never assume that an earlier AI's report is proof of implementation.
+
+## External Gemini audit report — 2026-09-17
+
+An external read-only audit report was collected in the Google Drive folder `Gnozis V2 Audit Workspace`, document `аудит контекст гемини — отчет`. The report declares the following audit target:
+
+- branch: `manus/persistence-hardening`;
+- claimed commit: `28879c8ab56d3c5eb6686c2c168a32fce0b98e7b`;
+- final report status: `BLOCKED — findings remain`.
+
+The report identifies these claimed findings:
+
+- `F-01` FAIL — foreign-key enforcement is not guaranteed on every SQLite connection;
+- `F-02` FAIL — possible orphan transitions or incomplete durable provenance;
+- `F-03` FAIL — fork-after-restart is not detected;
+- `F-04` FAIL — audit hash-chain fields and canonical JSON serialization lack sufficient integrity enforcement;
+- `F-05` PASS — exact replay is filtered by uniqueness constraints;
+- `F-06` FAIL — secret-detection heuristics can miss encoded or custom-structured secrets;
+- `F-07` FAIL — fault boundaries can leave an intermediate state instead of failing closed;
+- `F-08` PASS — optimistic locking rejects concurrent stale-head writes;
+- `F-09` FAIL — budget counters partly depend on process-local `Engine.history`;
+- `F-10` PASS — `gnosis/core` remains isolated from persistence details.
+
+The report states that 34 of 50 adversarial scenarios are executable tests and 16 are documentation-only. It highlights `CRITICAL-01` (fork-after-restart protection), `CRITICAL-02` (strict hash-chain verification at initialization), `HIGH-01` (foreign-key coverage), `HIGH-02` (secret-detection limitations), and `MEDIUM-01` (process-local budget counters).
+
+### Verification qualification
+
+This report is **external evidence, not yet independently verified**. The checked-out branch was `manus/persistence-hardening` at `HEAD` `637f2f4f2b55ca7c4c5cff6f8a950d666eddf30a`, while the report claims it verified commit `28879c8ab56d3c5eb6686c2c168a32fce0b98e7b`. The claimed commit exists in repository history but is not the current branch head. Therefore the findings must not be marked as current implementation facts until they are reproduced against `637f2f4…` or the exact audited commit is checked out and verified.
+
+The current source tree contains `gnosis/storage/__init__.py`, `gnosis/storage/database.py`, and `gnosis/storage/repositories.py`; this differs from the older verification snapshot that described persistent storage as missing. The next review must compare the actual current source, tests, and CI against the external report before any final-gate decision. Until that comparison is complete, persistence remains **BLOCKED / UNVERIFIED**, and the report's PASS/FAIL labels remain provisional.
