@@ -4,126 +4,104 @@
 
 - Canonical repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Canonical branch: `main`
-- Verified baseline commit at checkpoint: `a990a11e81c5a693ed3b2ac45f115954cad5ad5f`
-- All architectural statements in this document refer to this baseline or later commits unless explicitly marked historical.
-- If another agent reports an older commit (for example `47a7e548...`), treat it as historical until reconciled against current `main`.
-- Before architectural changes, reconcile the current `main` HEAD if the working context may be stale.
+- Verified baseline at this checkpoint: `a990a11e81c5a693ed3b2ac45f115954cad5ad5f`.
+- Experimental endogenous-evolution work is on `evolution-sandbox`; it is not canonical main until explicitly reconciled and promoted.
 
-## Canonical repository and scope
+## Current objective
 
-- Canonical development repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- `AI_CONTEXT.md` is the operational handoff document and must remain synchronized with verified source/runtime state.
-- Current scope: SINGLE OWNER / SINGLE ACCOUNT / SINGLE PROJECT.
-- Multi-user, federation, tenant and public-network runtime are future strategy only.
-- Current work is repository modification, testing, persistence, reflection and architecture validation. Do not design the public/federated product yet.
+Gnozis is intended to become capable of autonomous self-improvement through a **recursive evidence-backed evolution loop**. Autonomous modification is an intended capability; mandatory human approval of every mutation is not the architectural goal.
 
-## Why the architecture is being built this way
-
-The original Gnozis direction is not merely an application that executes fixed rules. The long-term objective is a system that can observe its own operation, accumulate evidence, detect limitations in its own rules, formulate falsifiable proposals for rule changes, test those proposals independently, and only much later permit governed evolution.
-
-The project therefore deliberately separates:
+The safety boundary is not "never self-modify". It is:
 
 ```text
-Ψ-Core execution
-    ↓
-observable evidence
-    ↓
-persistence / recovery
-    ↓
-self-diagnostic reflection
-    ↓
-versioned rule-change hypothesis
-    ↓
-shadow evaluation / invariant comparison
-    ↓
-governed evolution
+hypothesis
+ → bounded model generation
+ → sandbox execution
+ → evidence
+ → invariant analysis
+ → governance
+ → recursive re-evaluation
+ → promotion
+ → Core_(n+1)
+ → reflection again
 ```
 
-The current implementation must NOT skip directly from diagnosis to self-editing.
+A candidate must earn promotion through evidence. A score alone is never sufficient evidence.
 
-## Historical architectural chain — DO NOT LOSE THIS
-
-The work progressed through these gates. A later agent must not collapse them into one generic "reflection" feature:
-
-1. **Ψ-Core authority** — Core remains the source of truth for state/evolution semantics. No second state model and no AI model inside Core.
-2. **Persistence first** — durable SQLite storage and append-only audit evidence were introduced so runtime history survives process boundaries.
-3. **Provenance** — `TransitionRecord.test_rule_id` was added so evidence can identify the exact rule that produced a transition. Missing provenance remains `test-rule:unspecified`; causality must never be guessed.
-4. **Recovery** — diagnostic evidence must come from persisted/recovered transition history, not a fresh/empty Engine and not fabricated records.
-5. **Self-Diagnostic** — Reflection was built as a read-only layer outside Core: evidence → observations → findings → causal candidates → counterexamples → RuleProposal.
-6. **Reproducible diagnostic corpus** — `diagnostic_corpus/` was introduced to distinguish controlled executable experiments from production history. The corpus must be generated from actual Core execution and persistence, never hand-authored as findings.
-7. **Executable diagnostic path** — `diagnostic_corpus/generate.py` was developed around the required SQLite round-trip: execution → `persist_transition()` → recovery/`load_transition_records()` → `diagnose(recovered_history)` → artifact.
-8. **Diagnostic contract tests** — tests were added to verify the persistence path and the controlled scenario. These tests must be treated as unverified until actually executed by a real runtime/CI.
-9. **Rule Registry R1** — a versioned, read-only `RuleRegistry`/`RuleMetadata` foundation was added so a proposal can refer to a concrete `rule_id + rule_version` instead of an unversioned abstract rule.
-10. **Versioned RuleProposal** — proposals now represent a hypothesis such as `rule:v1 → proposed:v2`, with evidence references, counterexamples, expected effects, regression risks and validation requirements.
-11. **Current gate** — R1 must be independently executed and verified before moving to Shadow Evaluation or any endogenous evolution mechanism.
-
-## Current verified engineering state
-
-- Ψ-Core remains authoritative for state/evolution semantics.
-- Persistence and append-only audit storage exist in `main`.
-- `TransitionRecord` carries `test_rule_id` provenance.
-- Persistence preserves `test_rule_id` through SQLite round-trip.
-- Backward-compatible persistence migration preserves older data with `test-rule:unspecified` when provenance did not exist.
-- Reflection is a read-only layer outside Ψ-Core.
-- Proposal lineage and diagnostic artifact serialization exist.
-- Reproducible Self-Diagnostic workflow/corpus infrastructure exists.
-- Versioned read-only `RuleRegistry`/`RuleMetadata` exists in `gnosis/reflection/rules.py`.
-- Reflection observations carry `rule_id` + `rule_version`.
-- Findings carry affected versioned rule references.
-- RuleProposals carry `rule_id`, `current_version`, `proposed_version`, finding/counterexample references, expected effects, regression risks and test plan.
-- **R1 RuleRegistry/analyzer tests have been added but are NOT yet considered verified until a real runtime/CI execution is inspected.**
-- **A real GitHub Actions Self-Diagnostic run has NOT been verified.** Never claim `SELF-DIAGNOSTIC-0001` exists or CI passed without inspecting an actual run and artifact.
-
-## Current architectural layers
+## Existing verified architecture
 
 ```text
-L0  Ψ-Core
-    State / Engine / transition semantics
-
-L1  Evidence
-    TransitionRecord / provenance / persistence / recovery
-
-L2  Reflection
-    Observation
-      ↓
-    Finding
-      ↓
-    CausalCandidate
-      ↓
-    CounterexampleCandidate
-      ↓
-    versioned RuleProposal
-
-L3  Governance / validation
-    Shadow Evaluation
-    invariant delta
-    regression analysis
-    acceptance/rejection of proposal hypothesis
-
-L4  Endogenous evolution
-    future only; forbidden until lower layers are independently verified
+Ψ-Core
+  ↓
+Evidence / Persistence / Recovery
+  ↓
+Reflection
+  ↓
+RuleProposal
+  ↓
+ShadowEvaluation
+  ↓
+InvariantDelta
+  ↓
+GovernanceDecision
+  ↓
+AuthorityRequest / provenance
 ```
 
-## Critical distinction: proposal is NOT modification
+Existing Core invariants remain canonical. Do not create a second invariant system inside `evolution/`.
 
-The intended architecture is:
+## Experimental evolution branch
+
+Branch: `evolution-sandbox`
+
+Implemented experimental stages:
+
+1. `EvolutionHypothesis` — bounded hypothesis with target, rationale, expected effects and constraints.
+2. bounded model generation — deterministic candidate models, maximum three per hypothesis.
+3. `SandboxExperiment` — isolated experiment description; canonical Core mutation remains forbidden during sandbox work.
+4. `SandboxEvaluator` — compares actual model evidence and selects the best passing model.
+5. `SandboxExecution` / executable pipeline — runs each sandbox model through an injected runner and converts observations into `ModelEvidence`.
+6. `PromotionCandidate` — descriptive candidate requiring passed evidence and invariant status `PRESERVED` or `IMPROVED`.
+
+The next required bridge is:
 
 ```text
-Rule v1
-  ↓
-evidence
-  ↓
-Finding
-  ↓
-Counterexample
-  ↓
-RuleProposal: v1 → v2
-  ↓
-independent validation
-  ↓
-ACCEPT / REJECT / INSUFFICIENT_EVIDENCE
+ModelEvidence
+   ↓
+existing Core invariant checks
+   ↓
+InvariantDelta
+   ↓
+PromotionCandidate
 ```
 
-`RuleProposal` is a hypothesis. It must not activate itself, edit Python source, mutate canonical Core, or silently replace a rule.
+Do not invent a second invariant model.
 
-`RuleRegistry` is descriptive/version metadata only. It must not become a hidden activation mechanism.
+## Recursive evolution target
+
+```text
+Core_n
+ ↓ Reflection
+EvolutionHypothesis
+ ↓ bounded generation
+Sandbox models A/B/C
+ ↓ execution
+Evidence
+ ↓ evaluation
+InvariantDelta
+ ↓ Governance
+PromotionCandidate
+ ↓ full recursive re-evaluation
+Core_(n+1)
+ ↓ Reflection
+ ↺
+```
+
+Promotion must be a distinct evidence-gated stage. It must not be an uncontrolled direct `patch → activate` operation.
+
+## Verification discipline
+
+- Runtime/CI tests are NOT considered passing until an actual runtime/CI result is inspected.
+- Do not fabricate commits, files, test results, telemetry, or artifacts.
+- Keep `main` and `evolution-sandbox` explicitly separated.
+- Every major architectural checkpoint must update this file with the verified commit SHA.
