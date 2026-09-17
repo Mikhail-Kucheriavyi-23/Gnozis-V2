@@ -7,7 +7,7 @@ from typing import Callable, Sequence
 from .budget import Budget, BudgetExhaustedError
 from .select import SelectionResult, select
 from .types import Candidate, State, StopReason, TestResult, TransitionRecord
-from .verification import TestFn, default_test, verify
+from .verification import TestFn, default_test, evaluate
 
 GenerateFn = Callable[[State], Candidate]
 
@@ -41,7 +41,7 @@ class Engine:
         self._charge_step()
         if candidate.parent_state_id != self.state.state_id:
             raise StopCondition(StopReason.INVALID_STATE, f"candidate parent {candidate.parent_state_id} does not match current state {self.state.state_id}")
-        result = verify(self.state, candidate, self.test_fn)
+        result = evaluate(self.state, candidate, self.test_fn)
         record = TransitionRecord(
             from_state_id=self.state.state_id,
             to_state_id=candidate.proposed_state.state_id,
