@@ -17,11 +17,16 @@
 - Backward-compatible persistence migration preserves older data with `test-rule:unspecified` when provenance did not exist.
 - Proposal lineage and diagnostic artifact serialization exist.
 - A reproducible Self-Diagnostic workflow exists.
+- A versioned read-only `RuleRegistry`/`RuleMetadata` foundation now exists in `gnosis/reflection/rules.py`.
+- Reflection observations now carry `rule_id` + `rule_version`.
+- Findings now carry affected versioned rule references.
+- RuleProposals now carry `rule_id`, `current_version`, `proposed_version`, finding/counterexample references, expected effects, regression risks and test plan.
+- **New R1 registry/analyzer tests have been added but have NOT yet been executed in real CI/runtime.**
 - **A real GitHub Actions Self-Diagnostic run has NOT yet been verified.** Do not claim `SELF-DIAGNOSTIC-0001` exists or that CI passed until an actual run and artifact are inspected.
 
 ## Current critical objective
 
-Obtain the first genuine self-reflection result from Gnozis before adding further reflection architecture.
+Complete and independently verify R1 before moving toward shadow evaluation or endogenous evolution.
 
 ```text
 Core execution
@@ -34,11 +39,11 @@ load/recovery
   ↓
 Self-Diagnostic
   ↓
-SELF-DIAGNOSTIC-0001
+versioned Rule Registry
   ↓
-independent analysis
+RuleProposal(current v → proposed v+1)
   ↓
-architecture corrections
+independent verification
 ```
 
 The diagnostic must use real persisted transition evidence, not an empty/new Engine and not fabricated findings.
@@ -50,7 +55,7 @@ L0 Ψ-Core
     ↓
 L1 Observation / evidence / provenance
     ↓
-L2 Findings / counterexamples / RuleProposals / proposal lineage
+L2 Findings / counterexamples / versioned RuleProposals
     ↓
 L3 Shadow / invariant-delta / governance
     ↓
@@ -61,6 +66,7 @@ Protection rules:
 
 - Reflection cannot mutate canonical Core.
 - RuleProposal cannot activate itself.
+- RuleRegistry is descriptive metadata only; it has no activation API.
 - `NO_COUNTEREXAMPLE_FOUND` is not proof of correctness.
 - No AI model belongs inside Ψ-Core.
 - No second state model may be introduced.
@@ -77,9 +83,9 @@ evidence refs
   ↓
 TransitionRecord.test_rule_id
   ↓
-CausalCandidate
+RuleRegistry(rule_id, v1)
   ↓
-RuleProposal.target
+RuleProposal(current v1 → proposed v2)
 ```
 
 ## Self-Diagnostic experiment
@@ -110,9 +116,10 @@ When `SELF-DIAGNOSTIC-0001.json` becomes available, inspect:
 - Findings;
 - evidence references;
 - exact `test_rule_id` attribution;
+- versioned rule metadata;
 - causal candidates;
 - counterexample results;
-- RuleProposals;
+- RuleProposals and proposed version transitions;
 - proposal lineage;
 - limitations / `UNSPECIFIED` cases;
 - whether each proposal follows from evidence;
@@ -134,12 +141,13 @@ Do not implement a proposed Core change merely because the diagnostic proposes i
 
 ## Immediate next actions
 
-1. Obtain and inspect the actual Self-Diagnostic GitHub Actions run for the latest `main` commit.
-2. Inspect the uploaded `SELF-DIAGNOSTIC-0001.json` artifact.
-3. If workflow fails, fix the concrete failure and rerun; do not bypass the test.
-4. If it succeeds, analyze the diagnostic output before adding new reflection architecture.
-5. Define the smallest next architectural correction from evidence.
-6. Keep AI_CONTEXT.md and STATUS.md synchronized with implementation and verification state.
+1. Execute the new R1 RuleRegistry/analyzer tests in a real runtime or CI.
+2. Obtain and inspect the actual Self-Diagnostic GitHub Actions run for the latest `main` commit.
+3. Inspect the uploaded `SELF-DIAGNOSTIC-0001.json` artifact.
+4. If workflow fails, fix the concrete failure and rerun; do not bypass the test.
+5. If it succeeds, analyze the diagnostic output before adding shadow evaluation.
+6. Define the smallest next architectural correction from evidence.
+7. Keep AI_CONTEXT.md and STATUS.md synchronized with implementation and verification state.
 
 ## Persistence provenance
 
