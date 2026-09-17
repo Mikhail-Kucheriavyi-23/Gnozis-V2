@@ -4,7 +4,9 @@ from gnosis.storage.repositories import StorageCorruptionError, verify_durable_g
 
 
 def test_transition_audit_link_tampering_is_rejected(persisted_transition):
-    conn, instance, record = persisted_transition
+    conn, instance, _record = persisted_transition
+    conn.execute("DROP TRIGGER audit_events_no_update")
+    conn.execute("DROP TRIGGER audit_events_no_delete")
     row = conn.execute(
         "SELECT transition_id FROM transitions WHERE instance_id=? LIMIT 1",
         (instance.instance_id,),
