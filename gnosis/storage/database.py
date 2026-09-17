@@ -19,13 +19,20 @@ CREATE TRIGGER IF NOT EXISTS audit_events_no_update BEFORE UPDATE ON audit_event
 CREATE TRIGGER IF NOT EXISTS audit_events_no_delete BEFORE DELETE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
 """
 def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
-    conn=sqlite3.connect(str(path),isolation_level=None,check_same_thread=False); conn.row_factory=sqlite3.Row; conn.execute("PRAGMA foreign_keys=ON"); conn.execute("PRAGMA busy_timeout=5000");
+    conn=sqlite3.connect(str(path),isolation_level=None,check_same_thread=False); conn.row_factory=sqlite3.Row; conn.execute("PRAGMA foreign_keys=ON"); conn.execute("PRAGMA busy_timeout=5000")
     schema_meta_exists = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_meta'").fetchone()
     if schema_meta_exists:
-        stored_version = conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()
-        if stored_version is not None and stored_version[0] != str(SCHEMA_VERSION):
-            conn.close(); raise RuntimeError(f"incompatible schema version: {stored_version[0]} (expected {SCHEMA_VERSION})")
-    conn.executescript(SCHEMA); conn.execute("INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),));
+        stored = conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()
+        if stored is not None:
+            version=int(stored[0])
+            if version == 3:
+                columns={row[1] for row in conn.execute("PRAGMA table_info(transitions)")}
+                if "test_rule_id" not in columns:
+                    conn.execute("ALTER TABLE transitions ADD COLUMN test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified'")
+                conn.execute("UPDATE schema_meta SET value=? WHERE key='schema_version'",(str(SCHEMA_VERSION),))
+            elif version != SCHEMA_VERSION:
+                conn.close(); raise RuntimeError(f"incompatible schema version: {version} (expected {SCHEMA_VERSION})")
+    conn.executescript(SCHEMA); conn.execute("INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
     if int(conn.execute("PRAGMA foreign_keys").fetchone()[0]) != 1: conn.close(); raise RuntimeError("SQLite foreign_keys pragma is not active")
     return conn
 @contextmanager
