@@ -97,3 +97,13 @@ Required connection behavior includes foreign keys enabled per connection, expli
 ## Implementation gate
 
 Claude should not reinterpret these six questions independently during implementation. Any deviation requires a new ADR amendment and must be reviewed before code is treated as conforming.
+
+## Hardening amendment — implementation candidate
+
+The hardening candidate adds three persistence relationships needed to make the provenance contract executable: `instances.root_state_id` identifies the validated root state; `instances.budget_total` and `instances.budget_spent` preserve restart budget state; and `transitions.instance_id` plus `audit_events.transition_id` make instance/event provenance explicit.
+
+The schema version is `3`. These additions do not change Ψ-Core semantics. They strengthen the storage graph so recovery can verify `Instance → State → Transition → Candidate → AuditEvent` rather than relying on foreign-key existence alone.
+
+`load_instance()` is a low-level loader. The fail-closed recovery entry point is `recover_instance()`, which runs `verify_durable_graph()` before reconstruction. Callers must use `recover_instance()` for restart recovery.
+
+The implementation also defines a narrow test-only `failure_at` seam on `persist_transition()` for transaction-boundary tests. It is not a business rule and does not alter the normal commit path.
