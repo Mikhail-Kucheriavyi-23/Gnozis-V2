@@ -13,6 +13,7 @@ from .analyzer import (
     RuleProposal,
 )
 from .counterexample import CounterexampleEngine, CounterexampleResult
+from .governance import GovernanceDecision, evaluate_governance
 from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
 from .invariant_delta import InvariantDelta, analyze_invariant_delta
 from .rules import RuleMetadata, RuleRegistry
@@ -24,6 +25,7 @@ __all__ = [
     "CounterexampleCandidate",
     "CounterexampleEngine",
     "CounterexampleResult",
+    "GovernanceDecision",
     "Finding",
     "HistoricalFinding",
     "ReflectionAnalyzer",
@@ -40,6 +42,7 @@ __all__ = [
     "evaluate_proposal_shadow",
     "InvariantDelta",
     "analyze_invariant_delta",
+    "evaluate_governance",
     "reflect",
     "summarize_reflection_history",
     "unresolved_findings",
