@@ -9,16 +9,17 @@
 ## Current verified repository baseline
 
 - Branch: `main`
-- Current HEAD after this documentation synchronization: see the latest repository commit; this file is synchronized against the pre-sync baseline `0164e77b0abd422ab4bd5b9b2aa1c53279d7eb77`.
+- Documentation synchronization baseline: `843231638844a298cd23a1fe288c5171e6a0de6d`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
+- Persistence is accepted in `main` following the project's independent verification gate.
 - Current implementation must always be checked against source, tests and CI rather than inferred from historical documentation.
 
 ## Current implementation state
 
 - Ψ-Core: `IMPLEMENTED`.
 - Instance/lineage: `PARTIAL`; durable persistence is now present, while cryptographic Identity is future scope.
-- Persistence: `IMPLEMENTED` in the canonical repository, with verification/acceptance tracked separately.
+- Persistence: `IMPLEMENTED / ACCEPTED` in the canonical repository; implementation and verification evidence remain separately traceable.
 - Append-only audit storage: `IMPLEMENTED` at the storage layer; broader phase-level verification remains subject to the recorded gates.
 - Memory: `NOT ACCEPTED` and not merged into `main`.
 - Identity and cryptography: `MISSING`.
@@ -38,7 +39,7 @@ gnosis/storage/__init__.py
 
 The database layer currently defines `SCHEMA_VERSION = 3`, enables SQLite foreign keys, uses `BEGIN IMMEDIATE` transaction boundaries, persists states/candidates/instances/transitions, and defines append-only `audit_events` with SQLite update/delete guards.
 
-Do not use older snapshots saying `storage/` is an empty placeholder or that Persistence is missing. Those statements are historical and stale.
+Persistence is accepted in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents.
 
 ## Multi-agent project governance — FIXED WORKING MODEL
 
@@ -154,11 +155,11 @@ This is an engineering strategy; it does not mean Gnozis is currently autonomous
 
 ### Persistence
 
-Persistence is already in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents. Its remaining verification questions must be handled against the actual current source and tests.
+Persistence is already in canonical `main` and is accepted after independent verification. Do not restart or duplicate the Persistence implementation because of stale historical documents.
 
 ### Multi-agent strategy
 
-`docs/MULTI_AGENT_BUILD_STRATEGY.md` and `AGENT_ROLES.md` define the current governance model. The strategy has been independently reviewed as `PASS WITH FINDINGS`; the main documentation finding was stale `STATUS.md` / `AI_CONTEXT.md`, which this synchronization addresses.
+`docs/MULTI_AGENT_BUILD_STRATEGY.md` and `AGENT_ROLES.md` define the current governance model. The strategy has been independently reviewed as `PASS WITH FINDINGS`; the principal documentation-drift finding is addressed by the current synchronization.
 
 ### Memory
 
