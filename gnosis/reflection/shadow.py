@@ -1,9 +1,4 @@
-"""Isolated shadow evaluation for reflection proposals.
-
-A shadow rule is evaluated against the same immutable Candidate inputs as the
-active rule. The evaluator never commits state, mutates Engine, or activates a
-proposal. It produces a deterministic comparison artifact for later governance.
-"""
+"""Isolated shadow evaluation for reflection proposals."""
 
 from __future__ import annotations
 
@@ -11,7 +6,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from gnosis.core.types import Candidate, TestResult
-from gnosis.core.verification import TestFn, verify
+from gnosis.core.verification import TestFn, evaluate
 
 
 @dataclass(frozen=True)
@@ -41,22 +36,14 @@ def evaluate_shadow(
     active_test: TestFn,
     shadow_test: TestFn,
 ) -> ShadowEvaluation:
-    """Compare active and proposed Test rules over identical candidates.
-
-    The candidates are treated as immutable evidence. Both rules are invoked
-    through the same canonical verification function. No candidate is
-    committed and no Engine state is touched.
-
-    ``regressions`` means active accepted while shadow rejects.
-    ``improvements`` means active rejected while shadow accepts.
-    """
+    """Compare active and proposed Test rules without Core mutation."""
     cases: list[ShadowCase] = []
     regressions = 0
     improvements = 0
 
     for candidate in candidates:
-        active = verify(candidate.proposed_state, candidate, active_test)
-        shadow = verify(candidate.proposed_state, candidate, shadow_test)
+        active = evaluate(candidate.proposed_state, candidate, active_test)
+        shadow = evaluate(candidate.proposed_state, candidate, shadow_test)
         case = ShadowCase(candidate.candidate_id, active, shadow)
         cases.append(case)
         if active.passed and not shadow.passed:
