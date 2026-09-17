@@ -1,4 +1,4 @@
-from gnosis.core.types import Candidate, State, TestResult
+from gnosis.core.types import Candidate, State
 from gnosis.reflection.analyzer import RuleProposal
 from gnosis.reflection.rules import RuleMetadata, RuleRegistry
 from gnosis.reflection.shadow_adapter import evaluate_proposal_shadow
@@ -38,10 +38,10 @@ def test_rule_proposal_is_evaluated_without_activation() -> None:
     candidates = (_candidate(-1), _candidate(1))
 
     def active_test(state, candidate):
-        return TestResult(state.elements["value"] > 1, ("active-policy",))
+        return state.elements["value"] > 1
 
     def shadow_test(state, candidate):
-        return TestResult(state.elements["value"] >= 1, ("shadow-policy",))
+        return state.elements["value"] >= 1
 
     assessment = evaluate_proposal_shadow(
         proposal,
