@@ -14,6 +14,7 @@ from .analyzer import (
 )
 from .counterexample import CounterexampleEngine, CounterexampleResult
 from .runtime import reflect
+from .shadow import ShadowCase, ShadowEvaluation, evaluate_shadow
 
 __all__ = [
     "CounterexampleCandidate",
@@ -24,5 +25,8 @@ __all__ = [
     "ReflectionObservation",
     "ReflectionReport",
     "RuleProposal",
+    "ShadowCase",
+    "ShadowEvaluation",
+    "evaluate_shadow",
     "reflect",
 ]
