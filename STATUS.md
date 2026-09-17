@@ -5,9 +5,9 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 
 ## Current repository baseline
 
-- Repository: `Mikhail-Kucheriaviy/Gnozis-V2`
+- Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
-- Current documentation/handoff baseline: `3199cf8d12596a2a156b547eea07351800dd2ca6`.
+- Current canonical HEAD: `a3c6e5122de436be33ceac0eb3b26be7d4288341`.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol for connecting a new AI at any project stage.
 - Persistence implementation is present in `main`; older statements saying `storage/` is an empty placeholder are obsolete.
 - Implementation state is kept separate from verification and acceptance state.
