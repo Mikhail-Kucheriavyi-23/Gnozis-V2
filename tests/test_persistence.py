@@ -1,4 +1,5 @@
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -80,3 +81,30 @@ def test_foreign_keys_reject_orphan_instance_state():
         conn.execute(
             "INSERT INTO instances(instance_id, owner_id, current_state_id, generation, status, created_at) VALUES ('i', 'u', 'missing', 0, 'active', 'now')"
         )
+
+
+def test_supported_schema_version_connects(tmp_path: Path):
+    path = tmp_path / "supported.sqlite"
+    conn = connect(path)
+    assert conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0] == "3"
+    conn.close()
+
+
+@pytest.mark.parametrize("version", ["999", "2"])
+def test_incompatible_schema_version_fails_closed_without_modification(tmp_path: Path, version: str):
+    path = tmp_path / f"incompatible-{version}.sqlite"
+    setup = sqlite3.connect(path)
+    setup.execute("CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    setup.execute("INSERT INTO schema_meta(key, value) VALUES ('schema_version', ?)", (version,))
+    setup.commit()
+    before = path.read_bytes()
+    setup.close()
+
+    with pytest.raises(RuntimeError, match="incompatible schema version"):
+        connect(path)
+
+    assert path.read_bytes() == before
+    check = sqlite3.connect(path)
+    assert check.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0] == version
+    assert check.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='states'").fetchone() is None
+    check.close()
