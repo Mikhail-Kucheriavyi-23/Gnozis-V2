@@ -6,14 +6,15 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 
 - Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Branch: `main`
-- Current canonical HEAD: `ba5f0ad3b15be512d985ea22a7698cc2446d3630`
+- Current canonical HEAD: `47ef2463cd9066178fd6f65a68e6b8614880b0c8`
 - `AI_CONTEXT.md` is the operational handoff context.
 - `context/PROJECT_CONTEXT.json` is the machine-readable canonical project snapshot.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation protocol.
 - `docs/USER_ARCHITECTURE.md` is the canonical design document for user/task/context/capability continuity.
 - `docs/CONTEXT_CONTRACT.md` and `docs/CONTEXT_IMPLEMENTATION_TASK.md` define the first runtime continuity slice.
 - `docs/CORE_REFLECTION_ROADMAP.md` and `docs/CORE_REFLECTION_R1_TASK.md` define the controlled self-reflection track.
-- `docs/ARCHITECTURE_SEQUENCING.md` defines the relationship and boundaries between these tracks.
+- `docs/ARCHITECTURE_SEQUENCING.md` defines the relationship and boundaries between the architecture tracks.
+- `gnosis/reflection/` now contains the first operational, read-only reflection foundation.
 - Persistence implementation is present in `main` and accepted after independent verification.
 - Implementation state is kept separate from verification and acceptance state.
 
@@ -33,8 +34,57 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 | Identity/cryptography | MISSING | Future bounded phase |
 | Agents/federation | MISSING | Future strategy |
 | User/world bridge | MISSING | Future bounded phase |
-| Self-reflection runtime | MISSING | Architecture and roadmap documented; R1 not implemented |
-| Endogenous evolution | THEORETICAL / PARTIAL BOUNDARY | Prohibited from autonomous activation in current phase |
+| Reflection observation | IMPLEMENTED / UNVERIFIED | `gnosis/reflection/analyzer.py` observes canonical `TransitionRecord` history |
+| Reflection findings | IMPLEMENTED / UNVERIFIED | Repeated rejection patterns produce evidence-linked Findings |
+| Counterexample registration | IMPLEMENTED / UNVERIFIED | Each Finding creates a non-executing challenge candidate |
+| Rule proposals | IMPLEMENTED / UNVERIFIED | Proposals are hypotheses only; no activation/commit API exists |
+| Reflection persistence | MISSING | Current foundation is in-memory/read-only; persistence is next R1 completion slice |
+| Shadow evaluation | MISSING | R4 future phase |
+| Governance / activation / rollback | MISSING | R5 future phase |
+| Endogenous rule generation | THEORETICAL / PARTIAL BOUNDARY | Current generation remains caller-supplied |
+
+## Important architectural change — reflection gap partially closed
+
+The previous gap was:
+
+```text
+Core executes
+    ↓
+Core history exists
+    ↓
+NO operational self-analysis
+    ↓
+external AI must notice possible defects
+```
+
+The first operational bridge is now:
+
+```text
+canonical Core history
+        ↓
+ReflectionAnalyzer
+        ↓
+observations
+        ↓
+repeated-pattern findings
+        ↓
+counterexample candidates
+        ↓
+non-activating RuleProposal
+```
+
+Runtime entry point:
+
+```python
+from gnosis.reflection import reflect
+report = reflect(engine)
+```
+
+This is intentionally read-only. It does **not** change `Engine.state`, Core invariants, rules or persistence authority. It also does not claim that a repeated pattern is a defect. It records a hypothesis and an explicit falsification route.
+
+The implementation lives outside `gnosis/core`, preserving the Core boundary. `gnosis/reflection/runtime.py` consumes an Engine-like object exposing canonical `history`; it does not create a second state model.
+
+Current verification status is **UNVERIFIED** because this connector has been added with tests but has not yet been run in a verified CI environment in this phase. Do not report it as CI-passed until the exact commit has real test evidence.
 
 ## Current operating scope
 
@@ -42,9 +92,9 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 
 The present experiment is deliberately constrained to the project owner's account and `Gnozis-V2`. ChatGPT, Claude, Manus, Gemini and connected tools may act as different agents against the same canonical project artifacts.
 
-The current goal is to prove durable context/state/provenance continuity across AI terminals and tools, while keeping Ψ-Core semantics protected.
+The current goal is to prove durable context/state/provenance continuity across AI terminals and tools, while keeping Ψ-Core semantics protected and allowing Gnozis itself to begin observing and questioning its execution history.
 
-The following are future strategy and are NOT current implementation scope:
+Future strategy, not current implementation scope:
 
 - other user accounts;
 - multi-tenant runtime;
@@ -55,11 +105,7 @@ The following are future strategy and are NOT current implementation scope:
 - cross-account trust protocols;
 - shared production workspaces between independent owners.
 
-Do not implement these merely because they appear in long-term architecture documents.
-
 ## Architecture tracks
-
-The repository now treats the current architecture as two bounded tracks rather than one large implementation task.
 
 ### Track A — User Continuity
 
@@ -67,69 +113,37 @@ The repository now treats the current architecture as two bounded tracks rather 
 
 Goal: a new authorized terminal can reconstruct a durable task from canonical context without relying on the previous AI conversation.
 
-```text
-TaskContext
-  ↓
-revision-safe persistence
-  ↓
-reconstruction / handoff
-  ↓
-verified continuation
-```
-
-Canonical documents:
-
-```text
-docs/USER_ARCHITECTURE.md
-docs/CONTEXT_CONTRACT.md
-docs/CONTEXT_IMPLEMENTATION_TASK.md
-```
-
-The first runtime slice must remain isolated from Core, Memory and external connector execution.
-
 ### Track B — Core Reflection
 
-**ARCHITECTURE DEFINED / RUNTIME NOT IMPLEMENTED**.
+**R1 FOUNDATION PARTIALLY IMPLEMENTED / UNVERIFIED**.
 
-Goal: controlled reflection over Core evidence without direct self-modification.
+The first executable bridge from Core history to self-analysis now exists. Remaining R1 work is persistence/provenance integration and independent verification.
 
 ```text
 L0 Ψ-Core
     ↓
-L1 Observation / Evidence
+L1 Observation / Evidence     ← operational foundation added
     ↓
-L2 Reflection / Findings / Proposals
+L2 Reflection / Findings       ← operational foundation added
     ↓
-L3 Shadow / Verification / Governance
+RuleProposal                  ← operational foundation added
+    ↓
+L3 Counterexample / Shadow / Verification / Governance
     ↓
 L4 Future Endogenous Evolution
 ```
 
-Canonical documents:
-
-```text
-docs/CORE_REFLECTION_ROADMAP.md
-docs/CORE_REFLECTION_R1_TASK.md
-```
-
 Reflection cannot directly mutate canonical Core state. A `RuleProposal` is not a Core transition and cannot activate itself. No AI model belongs inside Ψ-Core.
-
-### Track relationship
-
-The tracks are complementary but independently bounded. Neither track may silently implement the other.
-
-```text
-User/Task Context  ──────→  Core execution  ──────→  Reflection evidence
-       ↑                                             ↓
-       └──────────── verified result / provenance ──┘
-```
-
-A future orchestration layer may connect them through explicit contracts only after each track is independently verified.
 
 ## Core Reflection roadmap
 
 ```text
 R1 Core Reflection Foundation
+    ├── observation             IMPLEMENTED / UNVERIFIED
+    ├── finding                 IMPLEMENTED / UNVERIFIED
+    ├── counterexample contract IMPLEMENTED / UNVERIFIED
+    ├── proposal                IMPLEMENTED / UNVERIFIED
+    └── persistence             NEXT
     ↓
 R2 Observation + Finding Engine
     ↓
@@ -144,7 +158,7 @@ R6 Endogenous Rule Generation
 R7 Cooperative Self-Reflection Network — future multi-user strategy
 ```
 
-R7 is future strategy only.
+R7 remains future strategy only.
 
 ## Persistence status
 
@@ -229,6 +243,8 @@ docs/CONTEXT_CONTRACT.md
     ↓
 docs/CORE_REFLECTION_ROADMAP.md
     ↓
+gnosis/reflection/analyzer.py
+    ↓
 relevant task contract → source → tests → CI
 ```
 
@@ -236,9 +252,6 @@ Before modifying anything, report repository/branch/HEAD, implementation state, 
 
 ## Immediate next step
 
-The repository is now architecturally prepared for either of two explicitly assigned bounded runtime phases:
+The next concrete engineering step is **R1 persistence/provenance integration + real test/CI verification** for the reflection foundation already present.
 
-1. **Track A — Context Implementation Task**, which directly tests terminal-independent continuity; or
-2. **Track B — R1 Core Reflection Foundation**, which begins controlled self-reflection.
-
-Neither phase is accepted merely because its contract exists. The Memory corrective sequence remains a separate blocked track and must not be silently merged into either phase.
+After that, R3 must make counterexample generation executable rather than merely declarative, followed by R4 shadow evaluation. No autonomous rule activation is authorized.
