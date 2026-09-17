@@ -26,67 +26,11 @@ jobs:
       - name: Install package + dev deps
         run: pip install -e ".[dev]"
       - name: Run reflection and persistence tests
-        run: pytest -q tests/test_rule_provenance.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py tests/test_persistence.py
+        run: pytest -q tests/test_rule_provenance.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py tests/test_persistence.py tests/test_diagnostic_corpus.py
       - name: Generate persisted Core history and diagnose it
-        run: |
-          mkdir -p diagnostic_artifacts
-          python - <<'PY'
-          import json
-          from gnosis.core import Candidate, State, TestResult
-          from gnosis.instances.instance import Instance
-          from gnosis.storage import connect, load_transition_records, persist_transition, save_instance, verify_durable_graph
-          from gnosis.reflection.self_diagnostic import diagnose
-          from gnosis.reflection.diagnostic_artifact import serialize_artifact
-
-          def reject_bad(state, candidate):
-              if "bad" in candidate.proposed_state.elements:
-                  return TestResult(False, ("policy:bad-element",))
-              return TestResult(True, ())
-
-          conn = connect('diagnostic_artifacts/history.sqlite')
-          instance = Instance.create_root('diagnostic-runner', State(elements={'seed': 1}))
-          instance.engine.test_fn = reject_bad
-          instance.engine.test_rule_id = 'test-rule:diagnostic-policy'
-          save_instance(conn, instance)
-
-          for index in range(3):
-              candidate = Candidate(
-                  instance.engine.state.state_id,
-                  instance.engine.state.with_elements({f'bad-{index}': 'bad'}),
-                  'diagnostic-rejection',
-                  index,
-              )
-              record = instance.engine.step(candidate)
-              persist_transition(conn, instance, candidate, record, actor='diagnostic-runner')
-
-          accepted_candidate = Candidate(
-              instance.engine.state.state_id,
-              instance.engine.state.with_elements({'accepted': 1}),
-              'diagnostic-accepted',
-              99,
-          )
-          accepted_record = instance.engine.step(accepted_candidate)
-          persist_transition(conn, instance, accepted_candidate, accepted_record, actor='diagnostic-runner')
-
-          verify_durable_graph(conn)
-          history = load_transition_records(conn, instance.instance_id)
-          diagnostic = diagnose(history)
-          with open('diagnostic_artifacts/SELF-DIAGNOSTIC-0001.json', 'w', encoding='utf-8') as f:
-              f.write(serialize_artifact(diagnostic, artifact_id='SELF-DIAGNOSTIC-0001'))
-          print(json.dumps({
-              'artifact': 'SELF-DIAGNOSTIC-0001',
-              'persisted_history_records': len(history),
-              'findings': len(diagnostic.report.findings),
-              'causal_candidates': len(diagnostic.causal_candidates),
-              'refined_proposals': len(diagnostic.refined_proposals),
-              'limitations': list(diagnostic.limitations),
-          }, ensure_ascii=False, indent=2))
-          conn.close()
-          PY
+        run: python diagnostic_corpus/generate.py
       - name: Upload self-diagnostic artifact
         uses: actions/upload-artifact@v4
         with:
           name: self-diagnostic-${{ matrix.python-version }}
-          path: diagnostic_artifacts/SELF-DIAGNOSTIC-0001.json
-
-# Intentional push-trigger refresh: keep the diagnostic experiment reproducible.
+          path: diagnostic_corpus/SELF-DIAGNOSTIC-0001/diagnostic.json
