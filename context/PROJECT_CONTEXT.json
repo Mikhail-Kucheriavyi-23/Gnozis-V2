@@ -1,15 +1,16 @@
 {
-  "schema": "gnozis.project-context/v2",
+  "schema": "gnozis.project-context/v3",
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
-  "snapshot_of_canonical_source_head": "502a6b9024bb0b9798df57bb0adfb3df64d68fd9",
+  "snapshot_of_canonical_source_head": "ba5f0ad3b15be512d985ea22a7698cc2446d3630",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
     "persistence": "IMPLEMENTED / ACCEPTED",
     "audit_storage": "IMPLEMENTED",
     "memory": "NOT ACCEPTED / NOT MERGED",
     "user_centered_architecture": "DOCUMENTED / NOT IMPLEMENTED",
+    "task_context_runtime": "NOT IMPLEMENTED / CONTRACT DEFINED",
     "self_reflection": "ARCHITECTURE DEFINED / NOT IMPLEMENTED",
     "agents_federation_bridge": "MISSING"
   },
@@ -18,6 +19,7 @@
     "multi_agent_strategy": "PASS WITH FINDINGS",
     "memory": "BLOCKED - corrective findings remain",
     "user_architecture_runtime": "UNIMPLEMENTED",
+    "task_context_runtime": "UNIMPLEMENTED",
     "self_reflection_runtime": "UNIMPLEMENTED"
   },
   "acceptance_state": {
@@ -27,16 +29,18 @@
     "self_reflection": "NOT ACCEPTED / ARCHITECTURAL TARGET"
   },
   "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
-  "active_phase": "ARCHITECTURAL PREPARATION FOR CORE REFLECTION",
-  "active_task": "Prepare a bounded R1 implementation handoff so the next authorized AI can implement the Core Reflection Foundation without reconstructing conversation history or changing Ψ-Core semantics.",
+  "active_architecture_phase": "ARCHITECTURE PREPARED FOR TWO BOUNDED RUNTIME TRACKS",
+  "active_task": "Preserve and implement the user-continuity and controlled self-reflection contracts as separate bounded tracks; do not expand either track into multi-user, federation, Memory, Identity, Bridge, or unrestricted self-modification.",
   "primary_implementer": "Claude when explicitly assigned",
   "independent_reviewer": "Manus when available",
   "integration_gate": "ChatGPT under project-owner authorization",
   "allowed_scope": [
     "documentation and architectural contracts required for cross-terminal continuity",
     "read-only repository inspection",
-    "bounded R1 architecture and contract preparation",
-    "reflection contracts that do not change Core semantics"
+    "bounded TaskContext implementation when explicitly assigned",
+    "bounded R1 reflection implementation when explicitly assigned",
+    "reflection contracts that do not change Core semantics",
+    "tests and verification strictly within the assigned bounded track"
   ],
   "forbidden_scope": [
     "unassigned Core semantic changes",
@@ -46,7 +50,8 @@
     "Internet Bridge implementation without explicit task",
     "unreviewed persistence schema changes",
     "multi-user/multi-tenant/federation runtime implementation",
-    "autonomous rule activation or self-modification"
+    "autonomous rule activation or self-modification",
+    "cross-track implementation expansion without explicit authorization"
   ],
   "open_findings": [
     "Memory H-01 cross-scope supersession",
@@ -56,6 +61,25 @@
     "Memory M-02 retention state machine",
     "narrow independent audit of synchronized STATUS.md and AI_CONTEXT.md remains required"
   ],
+  "architecture_tracks": {
+    "track_a_user_continuity": {
+      "status": "CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED",
+      "contracts": [
+        "docs/USER_ARCHITECTURE.md",
+        "docs/CONTEXT_CONTRACT.md",
+        "docs/CONTEXT_IMPLEMENTATION_TASK.md"
+      ],
+      "runtime_goal": "durable TaskContext with revision-safe updates and terminal-independent reconstruction"
+    },
+    "track_b_core_reflection": {
+      "status": "CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED",
+      "contracts": [
+        "docs/CORE_REFLECTION_ROADMAP.md",
+        "docs/CORE_REFLECTION_R1_TASK.md"
+      ],
+      "runtime_goal": "controlled reflection over Core evidence without direct self-modification"
+    }
+  },
   "reflection_roadmap": [
     "R1 Core Reflection Foundation",
     "R2 Observation + Finding Engine",
@@ -65,17 +89,23 @@
     "R6 Endogenous Rule Generation",
     "R7 Cooperative Self-Reflection Network - future multi-user strategy"
   ],
-  "next_permitted_action": "Explicitly assign R1 to an implementer; implement R1 only after source/tests/CI inspection and preserve all stated forbidden boundaries.",
   "canonical_documents": [
     "AI_CONTEXT.md",
     "STATUS.md",
     "docs/AI_HANDOFF_PROTOCOL.md",
     "docs/USER_ARCHITECTURE.md",
-    "docs/CONTEXT_CONTINUITY_CONTRACT.md",
-    "docs/MULTI_AGENT_BUILD_STRATEGY.md",
-    "AGENT_ROLES.md",
+    "docs/CONTEXT_CONTRACT.md",
+    "docs/CONTEXT_IMPLEMENTATION_TASK.md",
     "docs/CORE_REFLECTION_ROADMAP.md",
-    "docs/CORE_REFLECTION_R1_TASK.md"
+    "docs/CORE_REFLECTION_R1_TASK.md",
+    "docs/ARCHITECTURE_SEQUENCING.md",
+    "docs/MULTI_AGENT_BUILD_STRATEGY.md",
+    "AGENT_ROLES.md"
   ],
-  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports."
+  "next_permitted_actions": [
+    "Explicitly assign Track A Context Implementation Task to an implementer, or",
+    "Explicitly assign Track B R1 Core Reflection Foundation to an implementer.",
+    "Before implementation, inspect current main HEAD, source, tests and CI and report the exact baseline."
+  ],
+  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports. Documentation defines architecture but does not prove runtime implementation."
 }
