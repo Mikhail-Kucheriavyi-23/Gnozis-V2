@@ -12,10 +12,13 @@ from .analyzer import (
     ReflectionReport,
     RuleProposal,
 )
+from .counterexample import CounterexampleEngine, CounterexampleResult
 from .runtime import reflect
 
 __all__ = [
     "CounterexampleCandidate",
+    "CounterexampleEngine",
+    "CounterexampleResult",
     "Finding",
     "ReflectionAnalyzer",
     "ReflectionObservation",
