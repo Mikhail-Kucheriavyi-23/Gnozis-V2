@@ -20,23 +20,24 @@ def _prepare(path):
     conn = connect(path)
     instance = Instance.create_root("u", State(elements={"root": 0}))
     save_instance(conn, instance)
+    old_state_id = instance.engine.state.state_id
     proposed = instance.engine.state.with_elements({"next": 1})
     candidate = Candidate(instance.engine.state.state_id, proposed, "crash-test")
     record = instance.engine.step(candidate)
-    return conn, instance, candidate, record, proposed
+    return conn, instance, candidate, record, proposed, old_state_id
 
 
 @pytest.mark.parametrize("point", CHECKPOINTS)
 def test_crash_checkpoint_reopen_has_only_old_durable_state(tmp_path, point):
     path = tmp_path / f"{point}.sqlite"
-    conn, instance, candidate, record, proposed = _prepare(path)
+    conn, instance, candidate, record, proposed, old_state_id = _prepare(path)
     with pytest.raises(RuntimeError, match="injected failure"):
         persist_transition(conn, instance, candidate, record, actor="u", failure_at=point)
     conn.close()
 
     reopened = connect(path)
     recovered = load_instance(reopened, instance.instance_id)
-    assert recovered.engine.state.state_id == instance.engine.state.state_id
+    assert recovered.engine.state.state_id == old_state_id
     assert recovered.engine.state.state_id != proposed.state_id
     assert reopened.execute("SELECT COUNT(*) FROM transitions").fetchone()[0] == 0
     assert reopened.execute("SELECT COUNT(*) FROM audit_events WHERE transition_id IS NOT NULL").fetchone()[0] == 0
@@ -45,7 +46,7 @@ def test_crash_checkpoint_reopen_has_only_old_durable_state(tmp_path, point):
 
 def test_after_commit_reopen_has_complete_new_state(tmp_path):
     path = tmp_path / "after-commit.sqlite"
-    conn, instance, candidate, record, proposed = _prepare(path)
+    conn, instance, candidate, record, proposed, _old_state_id = _prepare(path)
     with pytest.raises(RuntimeError, match="injected failure"):
         persist_transition(conn, instance, candidate, record, actor="u", failure_at="after_commit")
     conn.close()
