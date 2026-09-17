@@ -3,6 +3,7 @@
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
+  "snapshot_of_canonical_source_head": "502a6b9024bb0b9798df57bb0adfb3df64d68fd9",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
     "persistence": "IMPLEMENTED / ACCEPTED",
@@ -27,15 +28,15 @@
   },
   "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
   "active_phase": "ARCHITECTURAL PREPARATION FOR CORE REFLECTION",
-  "active_task": "Prepare the repository so the next authorized AI can continue from durable context and execute the bounded Core Reflection roadmap without reconstructing conversation history.",
-  "primary_implementer": "ChatGPT for current architectural preparation; Claude when explicitly assigned implementation",
+  "active_task": "Prepare a bounded R1 implementation handoff so the next authorized AI can implement the Core Reflection Foundation without reconstructing conversation history or changing Ψ-Core semantics.",
+  "primary_implementer": "Claude when explicitly assigned",
   "independent_reviewer": "Manus when available",
   "integration_gate": "ChatGPT under project-owner authorization",
   "allowed_scope": [
     "documentation and architectural contracts required for cross-terminal continuity",
     "read-only repository inspection",
-    "bounded architecture preparation",
-    "reflection roadmap/contracts that do not change Core semantics"
+    "bounded R1 architecture and contract preparation",
+    "reflection contracts that do not change Core semantics"
   ],
   "forbidden_scope": [
     "unassigned Core semantic changes",
@@ -64,7 +65,7 @@
     "R6 Endogenous Rule Generation",
     "R7 Cooperative Self-Reflection Network - future multi-user strategy"
   ],
-  "next_permitted_action": "When implementation is explicitly authorized, execute R1 only; until then preserve Core semantics and continue architectural/documentation verification.",
+  "next_permitted_action": "Explicitly assign R1 to an implementer; implement R1 only after source/tests/CI inspection and preserve all stated forbidden boundaries.",
   "canonical_documents": [
     "AI_CONTEXT.md",
     "STATUS.md",
@@ -73,7 +74,8 @@
     "docs/CONTEXT_CONTINUITY_CONTRACT.md",
     "docs/MULTI_AGENT_BUILD_STRATEGY.md",
     "AGENT_ROLES.md",
-    "docs/CORE_REFLECTION_ROADMAP.md"
+    "docs/CORE_REFLECTION_ROADMAP.md",
+    "docs/CORE_REFLECTION_R1_TASK.md"
   ],
   "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports."
 }
