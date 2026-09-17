@@ -8,6 +8,7 @@ from typing import Any
 
 from .analyzer import ReflectionReport
 from .counterexample import CounterexampleResult
+from .invariant_delta import InvariantDelta
 from .shadow import ShadowEvaluation
 
 
@@ -43,10 +44,19 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             payload TEXT NOT NULL,
             FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
         );
+        CREATE TABLE IF NOT EXISTS reflection_invariant_deltas (
+            delta_id TEXT PRIMARY KEY,
+            report_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
+        );
         CREATE INDEX IF NOT EXISTS idx_reflection_counterexamples_report
             ON reflection_counterexamples(report_id);
         CREATE INDEX IF NOT EXISTS idx_reflection_shadow_report
             ON reflection_shadow_assessments(report_id);
+        CREATE INDEX IF NOT EXISTS idx_reflection_invariant_delta_report
+            ON reflection_invariant_deltas(report_id);
         """
     )
 
@@ -89,6 +99,70 @@ def save_shadow_assessment(conn: sqlite3.Connection, report_id: str, assessment:
         (assessment_id, report_id, assessment.status, _json(assessment)),
     )
     return assessment_id
+
+
+def invariant_delta_id(report_id: str, delta: InvariantDelta) -> str:
+    return f"{report_id}:invariant-delta:" + hashlib.sha256(_json(delta).encode("utf-8")).hexdigest()[:24]
+
+
+def save_invariant_delta(
+    conn: sqlite3.Connection,
+    report_id: str,
+    delta: InvariantDelta,
+) -> str:
+    ensure_reflection_schema(conn)
+    delta_id = invariant_delta_id(report_id, delta)
+    conn.execute(
+        "INSERT OR IGNORE INTO reflection_invariant_deltas(delta_id,report_id,status,payload) VALUES(?,?,?,?)",
+        (delta_id, report_id, delta.status, _json(delta)),
+    )
+    return delta_id
+
+
+def load_invariant_delta(
+    conn: sqlite3.Connection,
+    delta_id: str,
+) -> dict[str, Any]:
+    ensure_reflection_schema(conn)
+    row = conn.execute(
+        "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas WHERE delta_id=?",
+        (delta_id,),
+    ).fetchone()
+    if row is None:
+        raise KeyError(delta_id)
+    return {
+        "delta_id": row[0],
+        "report_id": row[1],
+        "status": row[2],
+        "payload": json.loads(row[3]),
+        "raw_payload": row[3],
+    }
+
+
+def list_invariant_deltas(
+    conn: sqlite3.Connection,
+    report_id: str | None = None,
+) -> tuple[dict[str, Any], ...]:
+    ensure_reflection_schema(conn)
+    if report_id is None:
+        rows = conn.execute(
+            "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas ORDER BY rowid"
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas WHERE report_id=? ORDER BY rowid",
+            (report_id,),
+        ).fetchall()
+    return tuple(
+        {
+            "delta_id": row[0],
+            "report_id": row[1],
+            "status": row[2],
+            "payload": json.loads(row[3]),
+            "raw_payload": row[3],
+        }
+        for row in rows
+    )
 
 
 def load_reflection_report(conn: sqlite3.Connection, stored_report_id: str) -> dict[str, Any]:
