@@ -96,7 +96,7 @@ def verify_audit_chain(conn: sqlite3.Connection)->tuple[int,str]:
     previous=GENESIS_HASH; last=(0,previous)
     for row in conn.execute("SELECT event_id,sequence,transition_id,actor,action,resource,result,timestamp,prev_hash,event_hash FROM audit_events ORDER BY sequence"):
         if row[1]!=last[0]+1 or row[8]!=previous: raise StorageCorruptionError("audit sequence/link mismatch")
-        event={"event_id":row[0],"sequence":row[1],"transition_id":row[2],"actor":row[3],"action":row[4],"resource":row[5],"result":row[6],"timestamp":row[7],"prev_hash":row[8]}
+        event={"event_id":row[0],"sequence":row[1],"transition_id":row[2],"actor":row[3],"action":row[4],"resource":row[5],"result":row[6],"timestamp":row[7],"prev_hash":row[8]};
         if _audit_hash(event)!=row[9]: raise StorageCorruptionError(f"audit event hash mismatch: {row[0]}")
         previous=row[9]; last=(row[1],previous)
     return last
@@ -127,12 +127,16 @@ def verify_durable_graph(conn: sqlite3.Connection)->tuple[int,str]:
             if accepted and accepted[-1][3]!=row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
             expected=row[1]
             for t in transitions:
+                expected_tid = transition_id(load_transition_records(conn,row[0])[0]) if False else None
                 cand=load_candidate(conn,t[1])
                 if cand.parent_state_id!=t[2] or cand.proposed_state.state_id!=t[3]: raise StorageCorruptionError("transition/candidate mismatch")
+                record=TransitionRecord(from_state_id=t[2],to_state_id=t[3],candidate_id=t[1],test_result=TestResult(passed=bool(t[4]),reasons=tuple(json.loads(conn.execute("SELECT reasons FROM transitions WHERE transition_id=?",(t[0],)).fetchone()[0]))),accepted=bool(t[4]),reason=("committed" if t[4] else "rejected"),test_rule_id=conn.execute("SELECT test_rule_id FROM transitions WHERE transition_id=?",(t[0],)).fetchone()[0])
+                if transition_id(record)!=t[0]: raise StorageCorruptionError("transition identity mismatch")
                 if t[4] and t[2]!=expected: raise StorageCorruptionError("broken accepted transition continuity")
                 if t[4]: expected=t[3]
                 if conn.execute("SELECT 1 FROM audit_events WHERE transition_id=? AND resource=?",(t[0],row[0])).fetchone() is None: raise StorageCorruptionError("transition lacks audit evidence")
     return chain
+
 def persist_transition(conn: sqlite3.Connection,instance: Instance,candidate: Candidate,record: TransitionRecord,*,actor: str,failure_at: str|None=None)->None:
     def inject(point: str)->None:
         if failure_at==point: raise RuntimeError(f"injected failure at {point}")
