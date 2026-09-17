@@ -1,52 +1,125 @@
-# STATUS — GNOSIS 2.0 vs MASTER_SPEC.md
+# STATUS — GNOSIS 2.0
 
 Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED
 (per spec section 52, STRICT REPORTING RULE)
 
-| Spec section | Topic | Status | Evidence |
+## Current repository baseline
+
+- Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
+- Branch: `main`
+- Current HEAD: `0164e77b0abd422ab4bd5b9b2aa1c53279d7eb77`
+- Current HEAD message: `docs: define multi-agent roles and authority`
+- Persistence implementation is present in the current `main`; the previous status entry claiming `storage/` was an empty placeholder is obsolete.
+- Current status below distinguishes implementation state from verification/acceptance state.
+
+| Spec section | Topic | Implementation status | Current evidence / qualification |
 |---|---|---|---|
 | 1 | Ψ=(X,R) single source of truth | IMPLEMENTED | `gnosis/core/types.py::State,Relation` |
-| 2 | Core config / Generate-Test-Select-Evolve cycle | PARTIAL (Select now real) | `evolution.py::Engine.step` (single-candidate) and `Engine.step_select` (multi-candidate Generate→Test→Select→Evolve, via `gnosis/core/select.py`) both implemented and tested; still no population-level generation |
-| 3 | Endogenous evolution | PARTIAL, honestly labeled | `GenerateFn` is caller-supplied, not endogenous; real endogenous generation remains future scope |
-| 4 | Safe self-modification (Candidate→Test→Verify→Commit) | IMPLEMENTED | `verification.py::verify`, `evolution.py::Engine.step`; proven by `test_rejected_candidate_never_mutates_core_state` |
-| 5 | Protected invariants | PARTIAL | state_integrity, transition_validity, monotonic_version, meaningful_change implemented; capability/identity/crypto/memory/audit invariants MISSING (no Agent/Memory/Identity layer yet) |
-| 6 | Proof-preserving evolution | PARTIAL | `verify()` interface exists; no theorem-prover binding (Lean/Coq/F*) — THEORETICAL |
-| 7 | Type safety | IMPLEMENTED (for Phase 1 types) | `types.py` — State/Relation/Candidate/TestResult/StopReason/TransitionRecord are distinct dataclasses; State/Relation are deep-frozen; Agent/Instance/Capability/Message/MemoryRecord remain reserved/future names |
-| 8 | Resource budget | IMPLEMENTED | `budget.py::Budget`, default 20, `test_budget_cannot_go_negative` |
-| 9 | Stop conditions | PARTIAL, honestly split | `StopReason` explicitly separates currently implemented reasons from reserved/future reasons; no fake implementations added |
-| 10-12 | Clone/Fork/Instance/Lineage | PARTIAL | `gnosis/instances/{instance,clone,fork,lineage}.py`; in-memory only, no DB persistence yet, no cryptographic Identity per instance |
-| 13-18 | Agent model / multi-agent / communication | MISSING | Not started |
-| 19-23 | User-owned copies / Federation / Trust / Delegation | MISSING | Not started |
-| 24-26 | Memory / encryption / Identity | MISSING | Not started |
+| 2 | Core Generate-Test-Select-Evolve cycle | PARTIAL | `Engine.step` and `Engine.step_select` exist; no population-level generation |
+| 3 | Endogenous evolution | PARTIAL | `GenerateFn` remains caller-supplied |
+| 4 | Safe self-modification | IMPLEMENTED | Candidate verification path implemented and tested |
+| 5 | Protected invariants | PARTIAL | Core invariants implemented; Identity/Memory/crypto layers remain future scope |
+| 6 | Proof-preserving evolution | PARTIAL | `verify()` exists; no theorem-prover binding |
+| 7 | Type safety | IMPLEMENTED | Phase-1 types are distinct and deep-frozen where required |
+| 8 | Resource budget | IMPLEMENTED | Budget implementation and tests exist |
+| 9 | Stop conditions | PARTIAL | Implemented and reserved reasons remain explicitly separated |
+| 10-12 | Clone/Fork/Instance/Lineage | PARTIAL | Instance/lineage implementation exists; persistence is now present, while Identity is future scope |
+| 13-18 | Agent / multi-agent / communication | MISSING | Not started as Gnozis runtime architecture |
+| 19-23 | User copies / Federation / Trust / Delegation | MISSING | Not started |
+| 24-26 | Memory / encryption / Identity | MISSING | Memory artifact exists only outside `main`; it is not accepted or merged |
 | 27-28 | E2E security / capability security | MISSING | Not started |
 | 29-31 | Bridge / world exploration / external AI | MISSING | Not started |
 | 32 | Analytics layer | MISSING | Future phase |
-| 33-36 | Mathematical population model / mutation | THEORETICAL | Described in spec only; no code |
-| 37 | Database schema | IMPLEMENTED / specification only | `docs/DATABASE_SCHEMA.md` exists; persistence implementation remains MISSING |
-| 38-39 | Logs / auditability | PARTIAL, honestly labeled | `logs/README.md` states the audit directories are placeholders with no runtime writer; `Engine.history` is in-memory only and is not a persistent/audit-complete log |
-| 40 | CI | VERIFIED_BY_CI | GitHub Actions successfully verified the current `main` commit `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9`; local sandbox pytest was NOT_PERFORMED |
-| 41-42 | Test strategy / minimum security tests | PARTIAL | Unit + Core-invariant + budget/security + Instance-isolation + deep-immutability, meaningful-change, TestResult-contract, and Select tests — 61 tests; GitHub Actions verification is authoritative for the current commit; local sandbox pytest was NOT_PERFORMED. Agent/Federation/Memory/Security-crypto test tiers MISSING because those layers don't exist yet |
-| 43 | Reproducibility | PARTIAL | `Candidate.seed` field exists; no experiment harness that records seed+config+event log yet |
-| 44 | Dependencies | IMPLEMENTED | `pyproject.toml` — zero core deps, analytics deps in an `[analytics]` extra |
-| 45 | External research donors | N/A | Documentation task, not code |
-| 46 | What not to use | IMPLEMENTED (by omission) | No OpenRouter/Telegram/global controller/global memory/direct-Internet-to-Core paths exist in this slice |
-| 47 | Architecture / directory layout | PARTIAL | `core/` and `instances/` match spec; `agents/`, `memory/`, `bridge/`, `federation/`, `analytics/` are NOT yet scaffolded; `storage/` is an empty placeholder |
-| 48 | Phase 0 | IMPLEMENTED | Types/contracts/tests, `docs/THREAT_MODEL.md`, `docs/DATABASE_SCHEMA.md` all written |
-| 48 | Phase 1 (Ψ-Core) | IMPLEMENTED | as above |
-| 48 | Phase 3 (Instance) | PARTIAL | `Instance.create_root`, `clone_state`, `fork_instance`, `ancestry_chain`/`descendants` implemented + isolation-tested; no persistence, no Identity |
-| 49 | First vertical slice (steps 1-18) | PARTIAL | Steps 1, 3-9 done (create Instance, create State, create Candidate, Test, verify invariants, commit, audit-in-memory, clone Instance, preserve lineage); step 2 (real cryptographic Identity generation) and steps 11-18 (Human Agent, Agent Formation, secure Agent comms, bounded action, Memory persistence, reproduce-from-logs) MISSING |
-| 50-53 | Critical/reporting/final principles | Followed as process constraints for this handoff, not code artifacts |
+| 33-36 | Mathematical population model / mutation | THEORETICAL | Described in specification; no corresponding runtime implementation |
+| 37 | Database schema / persistence | IMPLEMENTED / VERIFICATION QUALIFIED | SQLite persistence and append-only audit structures are present in `gnosis/storage/`; current phase acceptance is based on the repository's existing verification history and current source, not on the obsolete pre-Persistence status |
+| 38-39 | Logs / auditability | PARTIAL | Persistent `audit_events` and hash-chain verification exist; broader runtime/audit integration remains subject to phase-level verification |
+| 40 | CI | VERIFICATION QUALIFIED | CI evidence must always be associated with the exact tested commit SHA; do not reuse historical CI claims for a different HEAD |
+| 41-42 | Test strategy / security tests | PARTIAL | Core/Persistence tests exist; Memory/Identity/Agent/Federation/Bridge security tiers remain future work |
+| 43 | Reproducibility | PARTIAL | `Candidate.seed` exists; full experiment/event-log harness remains future scope |
+| 44 | Dependencies | IMPLEMENTED | `pyproject.toml` defines the dependency boundary |
+| 45 | External research donors | N/A | Documentation/provenance task, not runtime code |
+| 46 | What not to use | IMPLEMENTED by omission | No OpenRouter/Telegram/global controller/direct-Internet-to-Core path in the current slice |
+| 47 | Architecture / directory layout | PARTIAL | `core/`, `instances/`, and `storage/` are implemented; future layers remain unimplemented |
+| 48 | Phase 0 | IMPLEMENTED | Types/contracts/threat/database documentation exist |
+| 48 | Phase 1 Ψ-Core | IMPLEMENTED | Core implementation and tests exist |
+| 48 | Phase 3 Instance | PARTIAL | Instance/clone/fork/lineage exist; durable persistence now exists, cryptographic Identity remains future scope |
+| 49 | First vertical slice | PARTIAL | Core + Instance + Persistence are progressing; Agent/Identity/Memory/Bridge portions remain unimplemented or not accepted |
+| 50-53 | Critical/reporting/final principles | PROCESS CONSTRAINTS | Applied as governance and acceptance rules, not runtime features |
 
-## PATCH (audit remediation) — see docs/PATCH_NOTES.md and logs/audit/PHASE_PATCH_AUDIT.md
-Three CONFLICT-level defects found by the audit are fixed and regression-tested:
-deep immutability (State/Relation), identity/no-op transition rejection
-(content-based `meaningful_change` invariant), and strict `TestResult.passed`
-bool enforcement. Select is now implemented (`Engine.step_select`). See
-`docs/PATCH_NOTES.md` for full before/after detail per defect.
+## Persistence status
 
-## Immediate next steps (proposed, not started)
-1. A real audit-log writer (append-only, hash-chained) implementing the `audit_events` table from `docs/DATABASE_SCHEMA.md`, replacing the in-memory `Engine.history` list, to actually satisfy section 39.
-2. `gnosis/storage/database.py` + `repositories.py` — wire up SQLite persistence for `states`, `candidates`, `transitions`, `instances` so lineage survives process restarts (closes the PARTIAL on section 11).
-3. Phase 5 groundwork: a minimal `Identity` (keypair generation + signature verify) so Instance/Agent identity stops being "just a UUID" (spec section 26's explicit warning).
-4. Phase 5: minimal `Agent` abstraction + `Instance -> Agent Candidate -> Verification -> Agent` formation path (spec section 16), reusing the existing `verify()` pattern from Phase 1.
-5. A real endogenous Generate mechanism (future scope) if/when population-based evolution is prioritized — current `GenerateFn` is explicitly documented as caller-supplied, not endogenous.
+The current `main` contains:
+
+- `gnosis/storage/database.py`
+- `gnosis/storage/repositories.py`
+- `gnosis/storage/__init__.py`
+- Persistence test suites
+
+`database.py` currently defines `SCHEMA_VERSION = 3`, SQLite foreign-key enforcement, `BEGIN IMMEDIATE` transactions, durable `states`, `relations`, `candidates`, `instances`, `transitions`, and append-only `audit_events` with SQLite update/delete guards. fileciteturn16file0L2-L2
+
+Persistence is therefore **not MISSING**. Any older report describing `storage/` as an empty placeholder is historical and must not be used as the current implementation state.
+
+## Multi-agent governance status
+
+The multi-agent development strategy is recorded in:
+
+- `docs/MULTI_AGENT_BUILD_STRATEGY.md`
+- `AGENT_ROLES.md`
+
+Current working model:
+
+```text
+access
+  ↓
+explicit task
+  ↓
+bounded implementation
+  ↓
+independent verification
+  ↓
+correction
+  ↓
+re-verification
+  ↓
+ChatGPT integration gate
+  ↓
+context/status update
+```
+
+GitHub/Google Drive access is an operational capability, not architectural authority. Phase ownership, allowed scope, forbidden changes, independent reviewer, and final gate must be explicit for each substantive phase.
+
+## Memory status
+
+**NOT ACCEPTED / NOT MERGED**.
+
+A Claude Memory artifact was independently audited outside `main`. That audit found remaining corrective items including cross-scope supersession, supersession-cycle detection, provenance enforcement, version continuity, and retention state-machine enforcement. Therefore Memory must not be reported as implemented in the canonical repository until a corrective pass and independent re-audit are completed.
+
+Current required sequence:
+
+```text
+STATUS.md / AI_CONTEXT.md synchronization
+        ↓
+Manus read-only audit
+        ↓
+Memory corrective pass
+        ↓
+independent Memory re-audit
+        ↓
+ChatGPT integration gate
+```
+
+## Documentation / verification rule
+
+Never treat a report saying `PASS`, `implemented`, `complete`, or `ready` as sufficient evidence. Prefer, in order:
+
+1. current source;
+2. reproducible runtime behavior and real tests/CI;
+3. accepted project invariants/contracts;
+4. independent audit evidence;
+5. AI reports and proposals.
+
+Every CI claim must identify the tested commit SHA. Implementation state and verification state must remain separate.
+
+## Immediate next step
+
+Complete the **documentation synchronization audit** of `STATUS.md` and `AI_CONTEXT.md`. No Memory corrective implementation is part of this documentation step.
