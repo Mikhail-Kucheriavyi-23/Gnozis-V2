@@ -9,6 +9,10 @@ The canonical Test predicate is strictly:
 return value. `evaluate()` is the diagnostic envelope used by the runtime to
 retain reasons/evidence without weakening the mathematical Test contract.
 
+Protected Core invariants are always evaluated before any custom TestFn.
+A custom TestFn may reject an otherwise valid candidate, but it cannot bypass
+or disable the protected invariants required for Core state evolution.
+
 This phase does NOT integrate a real theorem prover (Lean/Coq/F*). It performs
 invariant checking plus a computable Test predicate. Calling it "formal
 verification" would be a false IMPLEMENTED claim.
@@ -21,7 +25,6 @@ from typing import Callable
 from .invariants import DEFAULT_INVARIANTS, all_pass, run_invariants
 from .types import Candidate, State, TestResult
 
-# Canonical mathematical/runtime contract: Test must return an actual bool.
 TestFn = Callable[[State, Candidate], bool]
 
 
@@ -40,7 +43,7 @@ def default_test(current: State, candidate: Candidate) -> bool:
 
 
 def verify(current: State, candidate: Candidate, test_fn: TestFn = default_test) -> bool:
-    """Run the canonical Test predicate and enforce a strict bool result."""
+    """Run the configured Test predicate and enforce a strict bool result."""
     result = test_fn(current, candidate)
     if not isinstance(result, bool):
         raise TypeError(
@@ -55,15 +58,19 @@ def evaluate(
     candidate: Candidate,
     test_fn: TestFn = default_test,
 ) -> TestResult:
-    """Return diagnostic evidence for a strict Test predicate.
+    """Evaluate a candidate without permitting a custom Test bypass.
 
-    The built-in predicate retains detailed invariant reasons. Custom TestFn
-    implementations expose only their boolean result at this boundary; a
-    failed custom predicate receives a deterministic generic reason rather
-    than introducing a second return-type contract.
+    Protected Core invariants are evaluated unconditionally for every
+    candidate. If any invariant fails, the candidate is rejected before a
+    custom TestFn can run. Once protected invariants pass, the configured
+    TestFn is evaluated and must return an actual bool.
     """
+    invariant_result = _default_test_result(current, candidate)
+    if not invariant_result.passed:
+        return invariant_result
+
     if test_fn is default_test:
-        return _default_test_result(current, candidate)
+        return invariant_result
 
     passed = verify(current, candidate, test_fn)
     return TestResult(
@@ -71,6 +78,6 @@ def evaluate(
         reasons=(
             "custom Test predicate rejected candidate",
         ) if not passed else (
-            "custom Test predicate passed",
+            "protected invariants satisfied; custom Test predicate passed",
         ),
     )
