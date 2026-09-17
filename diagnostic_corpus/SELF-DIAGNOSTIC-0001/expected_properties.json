@@ -1,0 +1,11 @@
+{
+  "artifact_id": "SELF-DIAGNOSTIC-0001",
+  "scenario": "controlled-persisted-runtime-history",
+  "transition_count": 4,
+  "rejected_count": 3,
+  "accepted_count": 1,
+  "test_rule_id": "test-rule:diagnostic-policy",
+  "persistence": "sqlite_round_trip",
+  "status": "expected_properties_only",
+  "note": "These are executable experiment invariants, not findings about the Core."
+}
