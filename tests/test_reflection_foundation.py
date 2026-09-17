@@ -24,7 +24,9 @@ def test_reflection_observes_core_history_and_proposes_without_mutation():
     analyzer = ReflectionAnalyzer(history)
     report = analyzer.analyze()
 
-    assert len(report.observations) == 4
+    assert len(report.observations) == 5
+    assert sum(o.kind == "transition_outcome" for o in report.observations) == 3
+    assert sum(o.kind == "rejection_reason" for o in report.observations) == 2
     assert len(report.findings) == 1
     assert len(report.counterexamples) == 1
     assert len(report.proposals) == 1
