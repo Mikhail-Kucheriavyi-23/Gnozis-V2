@@ -18,6 +18,6 @@ def test_self_diagnostic_generator_executes_end_to_end():
     assert metadata["rejected_count"] == 3
     assert len(transitions) == 4
     assert artifact["artifact_id"] == "SELF-DIAGNOSTIC-0001"
-    assert "findings" in artifact
-    assert "provenance" in artifact
+    assert "causal_candidates" in artifact
+    assert "provenance" in artifact["report"]
     assert "limitations" in artifact
