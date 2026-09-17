@@ -53,7 +53,7 @@ def generate() -> None:
         for i in range(3):
             candidate = Candidate(
                 parent_state_id=instance.engine.state.state_id,
-                proposed_state=State(elements={"bad": i}),
+                proposed_state=State(elements={"bad": i}, version=1),
                 origin="diagnostic-corpus:repeated-rejection",
                 seed=i,
             )
@@ -62,7 +62,7 @@ def generate() -> None:
 
         accepted = Candidate(
             parent_state_id=instance.engine.state.state_id,
-            proposed_state=State(elements={"n": 1}),
+            proposed_state=State(elements={"n": 1}, version=1),
             origin="diagnostic-corpus:accepted-transition",
             seed=99,
         )
