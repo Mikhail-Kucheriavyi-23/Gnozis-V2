@@ -25,22 +25,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install package + dev deps
         run: pip install -e ".[dev]"
-      - name: Run self-diagnostic test suite
-        run: pytest -q tests/test_self_diagnostic.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py
+      - name: Run reflection and persistence tests
+        run: pytest -q tests/test_rule_provenance.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py tests/test_persistence.py
       - name: Generate persisted Core history and diagnose it
         run: |
           mkdir -p diagnostic_artifacts
           python - <<'PY'
           import json
-          import sqlite3
-          from gnosis.core import Candidate, Engine, State, TestResult, TransitionRecord
+          from gnosis.core import Candidate, State, TestResult
           from gnosis.instances.instance import Instance
           from gnosis.storage import connect, load_transition_records, persist_transition, save_instance, verify_durable_graph
           from gnosis.reflection.self_diagnostic import diagnose
           from gnosis.reflection.diagnostic_artifact import serialize_artifact
 
           def reject_bad(state, candidate):
-              return TestResult(False, ("policy:bad-element",)) if "bad" in candidate.proposed_state.elements else TestResult(True, ())
+              if "bad" in candidate.proposed_state.elements:
+                  return TestResult(False, ("policy:bad-element",))
+              return TestResult(True, ())
 
           conn = connect('diagnostic_artifacts/history.sqlite')
           instance = Instance.create_root('diagnostic-runner', State(elements={'seed': 1}))
@@ -49,11 +50,21 @@ jobs:
           save_instance(conn, instance)
 
           for index in range(3):
-              candidate = Candidate(instance.engine.state.state_id, instance.engine.state.with_elements({f'bad-{index}': 'bad'}), 'diagnostic-rejection', index)
+              candidate = Candidate(
+                  instance.engine.state.state_id,
+                  instance.engine.state.with_elements({f'bad-{index}': 'bad'}),
+                  'diagnostic-rejection',
+                  index,
+              )
               record = instance.engine.step(candidate)
               persist_transition(conn, instance, candidate, record, actor='diagnostic-runner')
 
-          accepted_candidate = Candidate(instance.engine.state.state_id, instance.engine.state.with_elements({'accepted': 1}), 'diagnostic-accepted', 99)
+          accepted_candidate = Candidate(
+              instance.engine.state.state_id,
+              instance.engine.state.with_elements({'accepted': 1}),
+              'diagnostic-accepted',
+              99,
+          )
           accepted_record = instance.engine.step(accepted_candidate)
           persist_transition(conn, instance, accepted_candidate, accepted_record, actor='diagnostic-runner')
 
