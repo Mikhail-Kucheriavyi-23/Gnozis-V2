@@ -4,8 +4,9 @@
 
 - Canonical repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Canonical branch: `main`
-- Verified baseline commit at checkpoint: `a990a11e81c5a693ed3b2ac45f115954cad5ad5f`
-- All architectural statements in this document refer to this baseline or later commits unless explicitly marked historical.
+- Verified current main HEAD at this checkpoint: `950915871c1ccdd3512dc816b8814912a60faf22`.
+- Previous pinned baseline `a990a11e81c5a693ed3b2ac45f115954cad5ad5f` is historical.
+- All architectural statements in this document refer to current `main` or explicitly marked historical commits/branches.
 - If another agent reports an older commit (for example `47a7e548...`), treat it as historical until reconciled against current `main`.
 - Before architectural changes, reconcile the current `main` HEAD if the working context may be stale.
 
@@ -15,31 +16,49 @@
 - `AI_CONTEXT.md` is the operational handoff document and must remain synchronized with verified source/runtime state.
 - Current scope: SINGLE OWNER / SINGLE ACCOUNT / SINGLE PROJECT.
 - Multi-user, federation, tenant and public-network runtime are future strategy only.
-- Current work is repository modification, testing, persistence, reflection and architecture validation. Do not design the public/federated product yet.
+- Current work is repository modification, testing, persistence, reflection, autonomous evolution architecture and architecture validation. Do not design the public/federated product yet.
 
 ## Why the architecture is being built this way
 
-The original Gnozis direction is not merely an application that executes fixed rules. The long-term objective is a system that can observe its own operation, accumulate evidence, detect limitations in its own rules, formulate falsifiable proposals for rule changes, test those proposals independently, and only much later permit governed evolution.
+The original Gnozis direction is not merely an application that executes fixed rules. The long-term objective is a system that can observe its own operation, accumulate evidence, detect limitations in its own rules, formulate falsifiable proposals for rule changes, build and test alternative architectural models in an internal sandbox, and autonomously promote a sufficiently justified evolution into its next Core version.
 
-The project therefore deliberately separates:
+Autonomous self-modification is intentional. The safety property is not "a human must press the button"; it is that canonical mutation is downstream of a reproducible recursive evidence loop. A model must be hypothesized, bounded, executed in isolation, evaluated against evidence and Core invariants, compared with alternatives, and only then become eligible for promotion.
+
+The intended recursive contour is:
 
 ```text
-Ψ-Core execution
-    ↓
+Core_n
+  ↓
 observable evidence
-    ↓
+  ↓
 persistence / recovery
-    ↓
+  ↓
 self-diagnostic reflection
-    ↓
-versioned rule-change hypothesis
-    ↓
-shadow evaluation / invariant comparison
-    ↓
-governed evolution
+  ↓
+versioned RuleProposal
+  ↓
+EvolutionHypothesis
+  ↓
+bounded EvolutionSandbox
+  ↓
+ModelGenerator
+  ↓
+Sandbox execution
+  ↓
+Shadow Evaluation
+  ↓
+Invariant Delta
+  ↓
+Governance / evidence threshold
+  ↓
+PromotionCandidate
+  ↓
+Core_(n+1)
+  ↓
+Reflection again
 ```
 
-The current implementation must NOT skip directly from diagnosis to self-editing.
+No single stage is allowed to substitute for the complete evidence chain.
 
 ## Historical architectural chain — DO NOT LOSE THIS
 
@@ -55,7 +74,13 @@ The work progressed through these gates. A later agent must not collapse them in
 8. **Diagnostic contract tests** — tests were added to verify the persistence path and the controlled scenario. These tests must be treated as unverified until actually executed by a real runtime/CI.
 9. **Rule Registry R1** — a versioned, read-only `RuleRegistry`/`RuleMetadata` foundation was added so a proposal can refer to a concrete `rule_id + rule_version` instead of an unversioned abstract rule.
 10. **Versioned RuleProposal** — proposals now represent a hypothesis such as `rule:v1 → proposed:v2`, with evidence references, counterexamples, expected effects, regression risks and validation requirements.
-11. **Current gate** — R1 must be independently executed and verified before moving to Shadow Evaluation or any endogenous evolution mechanism.
+11. **Shadow Adapter** — a proposal can be translated into an explicit shadow assessment contract without activating or mutating Core.
+12. **Invariant Delta** — shadow and active evidence can be compared against the existing Core invariant surface; missing evidence is represented as `unknown` rather than fabricated failure.
+13. **Persistent Invariant Delta** — invariant-delta evidence is persisted through the existing reflection SQLite persistence rather than creating a second storage system.
+14. **Governance Decision** — a read-only decision layer classifies evidence as `BLOCK`, `HOLD`, `REVIEW` or `NO_CHANGE`.
+15. **Authority Boundary** — the previous AuthorityRequest is provenance/approval metadata, not the definition of the autonomous evolution mechanism. It must not be interpreted as a mandatory human-operated activation gate.
+16. **Authority provenance persistence** — AuthorityRequest lineage can be persisted and recovered.
+17. **Autonomous Evolution Sandbox — current branch work** — the `evolution-sandbox` branch introduced bounded `EvolutionHypothesis`, `SandboxModel`, `SandboxExperiment`, `ModelEvidence`, `SandboxEvaluation`, and deterministic bounded `ModelGenerator` contracts. This branch is experimental until explicitly promoted into `main` after runtime verification.
 
 ## Current verified engineering state
 
@@ -71,8 +96,11 @@ The work progressed through these gates. A later agent must not collapse them in
 - Reflection observations carry `rule_id` + `rule_version`.
 - Findings carry affected versioned rule references.
 - RuleProposals carry `rule_id`, `current_version`, `proposed_version`, finding/counterexample references, expected effects, regression risks and test plan.
-- **R1 RuleRegistry/analyzer tests have been added but are NOT yet considered verified until a real runtime/CI execution is inspected.**
+- Shadow evaluation, invariant delta, governance classification and persistence layers exist in the current development line.
+- **R1 RuleRegistry/analyzer tests have been added but are NOT considered verified until a real runtime/CI execution is inspected.**
 - **A real GitHub Actions Self-Diagnostic run has NOT been verified.** Never claim `SELF-DIAGNOSTIC-0001` exists or CI passed without inspecting an actual run and artifact.
+- **Evolution sandbox contracts currently exist on the `evolution-sandbox` branch, not as verified canonical `main` behavior.** The branch contains bounded hypothesis/model generation and evaluator contracts. Runtime execution has not yet been verified.
+- Autonomous promotion into canonical Core is intentionally NOT yet implemented. The intended target is evidence-threshold-based promotion, not mandatory manual approval.
 
 ## Current architectural layers
 
@@ -94,36 +122,60 @@ L2  Reflection
       ↓
     versioned RuleProposal
 
-L3  Governance / validation
+L3  Validation / Governance
+    Shadow Adapter
     Shadow Evaluation
-    invariant delta
-    regression analysis
-    acceptance/rejection of proposal hypothesis
+    Invariant Delta
+    GovernanceDecision
+    persistent provenance
 
-L4  Endogenous evolution
-    future only; forbidden until lower layers are independently verified
+L4  Autonomous Evolution — experimental
+    EvolutionHypothesis
+      ↓
+    EvolutionSandbox
+      ↓
+    ModelGenerator
+      ↓
+    Sandbox Execution
+      ↓
+    ModelEvidence
+      ↓
+    SandboxEvaluation
+      ↓
+    PromotionCandidate
+
+L5  Recursive promotion — NOT YET IMPLEMENTED
+    evidence threshold
+      ↓
+    canonical Core_(n+1)
+      ↓
+    Reflection(Core_(n+1))
 ```
 
-## Critical distinction: proposal is NOT modification
+## Current next engineering gate
 
-The intended architecture is:
+Do NOT jump directly to canonical self-modification.
+
+The next concrete gate is:
 
 ```text
-Rule v1
-  ↓
-evidence
-  ↓
-Finding
-  ↓
-Counterexample
-  ↓
-RuleProposal: v1 → v2
-  ↓
-independent validation
-  ↓
-ACCEPT / REJECT / INSUFFICIENT_EVIDENCE
+Evolution Model
+    ↓
+real sandbox execution
+    ↓
+real observations/evidence
+    ↓
+existing ShadowEvaluation
+    ↓
+existing InvariantDelta
+    ↓
+existing Governance
+    ↓
+PromotionCandidate
 ```
 
-`RuleProposal` is a hypothesis. It must not activate itself, edit Python source, mutate canonical Core, or silently replace a rule.
+The sandbox must produce evidence from actual execution rather than accepting a caller-supplied score as proof. Only after that contract is runtime-verified should a promotion mechanism be designed.
 
-`RuleRegistry` is descriptive/version metadata only. It must not become a hidden activation mechanism.
+## Context integrity rule
+
+If the chat history and repository disagree, the repository HEAD and verified runtime evidence take precedence. Never reconstruct current architecture from memory alone. Update this file whenever a major architectural gate is completed or a canonical HEAD changes materially.
