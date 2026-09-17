@@ -6,11 +6,12 @@
 - Legacy `Gnozis` remains an archival research source and historical provenance.
 - `AI_CONTEXT.md` is the operational handoff document for participating AI systems.
 - `docs/AI_HANDOFF_PROTOCOL.md` is the canonical continuation/recovery protocol for replacing or adding AI agents at any project stage.
+- `docs/CONTEXT_CONTINUITY_CONTRACT.md` defines the cross-product context continuity semantics.
 
 ## Current verified repository baseline
 
-- Branch: `main`
-- Current canonical HEAD: `47edd9527cc546d840119d7db3a63f52a23bc073`.
+- Branch: `main` for canonical state.
+- Current canonical HEAD: `7d40a9c91fd2e69736305141a71b62aeebb99461`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
 - Persistence is accepted in `main` following the project's independent verification gate.
@@ -152,6 +153,44 @@ Build → Execute → Test → Attack → Correct → Re-test → Gate → Recor
 
 This is an engineering strategy; it does not mean Gnozis is currently autonomous or federated.
 
+## Context continuity — current architecture
+
+Gnozis is being built as a user-facing architecture in which the durable project context belongs to Gnozis rather than to a particular AI product, terminal, chat session, GitHub workspace, or Google Drive session.
+
+The durable distinction is:
+
+```text
+Memory   = durable stored information
+Context  = task-relevant projection of durable information
+Evidence = basis for verified claims
+State    = authoritative Ψ-Core state
+Authority = permitted ability to change the project
+```
+
+A connector is an access path, not a source of architectural authority. A new AI must be able to recover the active project context without relying on previous conversation history.
+
+Canonical contract:
+
+`docs/CONTEXT_CONTINUITY_CONTRACT.md`
+
+Canonical recovery path:
+
+```text
+AI product
+  ↓
+connector
+  ↓
+AI_CONTEXT / STATUS / handoff protocol / continuity contract
+  ↓
+current repository evidence
+  ↓
+active task + evidence + authority + next permitted action
+```
+
+The first practical validation is a fresh-session recovery test: a new AI with repository access must reconstruct the current baseline, distinguish implementation/verification/acceptance, identify the active phase and open findings, and state the next permitted action without using prior chat history.
+
+This documentation does not implement Identity, authorization, encryption, Memory, Bridge, federation, or autonomous execution.
+
 ## Current phase status
 
 ### Persistence
@@ -199,10 +238,13 @@ A new AI session must read, in order:
 1. `AI_CONTEXT.md`;
 2. `STATUS.md`;
 3. `docs/AI_HANDOFF_PROTOCOL.md`;
-4. relevant specification/schema documents;
-5. relevant source files;
-6. relevant tests;
-7. latest CI status.
+4. `docs/MULTI_AGENT_BUILD_STRATEGY.md`;
+5. `AGENT_ROLES.md`;
+6. `docs/CONTEXT_CONTINUITY_CONTRACT.md`;
+7. relevant specification/schema documents;
+8. relevant source files;
+9. relevant tests;
+10. latest CI status.
 
 Then report:
 
@@ -211,6 +253,11 @@ Then report:
 - latest CI-tested commit;
 - implementation state using `IMPLEMENTED / PARTIAL / MISSING / THEORETICAL`;
 - verification qualifiers separately;
+- acceptance state separately;
+- active phase and role;
+- allowed and forbidden scope;
+- open findings;
+- next permitted action;
 - any mismatch between current HEAD and tested commit.
 
 Never assume an earlier AI report is proof of implementation.
