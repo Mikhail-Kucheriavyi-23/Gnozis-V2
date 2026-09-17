@@ -19,5 +19,6 @@ def test_self_diagnostic_generator_executes_end_to_end():
     assert len(transitions) == 4
     assert artifact["artifact_id"] == "SELF-DIAGNOSTIC-0001"
     assert "causal_candidates" in artifact
-    assert "provenance" in artifact["report"]
+    assert artifact["report"]["observations"]
+    assert all("provenance" in observation for observation in artifact["report"]["observations"])
     assert "limitations" in artifact
