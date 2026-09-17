@@ -6,12 +6,16 @@ import pytest
 from gnosis.core import Candidate, State
 from gnosis.instances.instance import Instance
 from gnosis.storage import (
+    StorageCorruptionError,
+    append_audit,
     connect,
     load_instance,
     persist_transition,
     save_instance,
     verify_audit_chain,
+    verify_durable_graph,
 )
+from gnosis.storage.repositories import _audit_hash
 
 
 def root():
@@ -108,3 +112,85 @@ def test_incompatible_schema_version_fails_closed_without_modification(tmp_path:
     assert check.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0] == version
     assert check.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='states'").fetchone() is None
     check.close()
+
+
+def _three_event_chain():
+    conn = connect()
+    root_instance = root()
+    save_instance(conn, root_instance)
+    append_audit(conn, actor="test", action="one", resource="r1", result="ok", timestamp="t1", event_key="e1")
+    append_audit(conn, actor="test", action="two", resource="r2", result="ok", timestamp="t2", event_key="e2")
+    append_audit(conn, actor="test", action="three", resource="r3", result="ok", timestamp="t3", event_key="e3")
+    return conn
+
+
+def test_a16_middle_audit_event_corruption_fails_verification():
+    conn = _three_event_chain()
+    conn.execute("DROP TRIGGER audit_events_no_update")
+    conn.execute("UPDATE audit_events SET result='tampered' WHERE event_id='e2'")
+    with pytest.raises(StorageCorruptionError, match="hash mismatch"):
+        verify_audit_chain(conn)
+
+
+def test_a17_prev_hash_tampering_fails_verification():
+    conn = _three_event_chain()
+    conn.execute("DROP TRIGGER audit_events_no_update")
+    conn.execute("UPDATE audit_events SET prev_hash=? WHERE event_id='e2'", ("f" * 64,))
+    with pytest.raises(StorageCorruptionError, match="sequence/link mismatch"):
+        verify_audit_chain(conn)
+
+
+def test_a18_sequence_tampering_fails_verification():
+    conn = _three_event_chain()
+    conn.execute("DROP TRIGGER audit_events_no_update")
+    conn.execute("UPDATE audit_events SET sequence=5 WHERE event_id='e2'")
+    conn.execute("UPDATE audit_events SET sequence=3 WHERE event_id='e3'")
+    conn.execute("UPDATE audit_events SET sequence=4 WHERE event_id='e2'")
+    with pytest.raises(StorageCorruptionError, match="sequence/link mismatch"):
+        verify_audit_chain(conn)
+
+
+def test_a20_inserting_audit_event_into_middle_fails_verification():
+    conn = _three_event_chain()
+    conn.execute(
+        "INSERT INTO audit_events(event_id, sequence, transition_id, actor, action, resource, result, timestamp, prev_hash, event_hash) "
+        "VALUES ('e2.5', 2.5, NULL, 'test', 'inserted', 'middle', 'ok', 't2.5', ?, ?)",
+        ("0" * 64, "1" * 64),
+    )
+    with pytest.raises(StorageCorruptionError, match="sequence/link mismatch"):
+        verify_audit_chain(conn)
+
+
+def _persisted_transition():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    record = instance.engine.step(candidate)
+    persist_transition(conn, instance, candidate, record, actor="test")
+    return conn, instance, record
+
+
+def test_a42_missing_audit_evidence_fails_durable_graph_verification():
+    conn, instance, record = _persisted_transition()
+    conn.execute("DROP TRIGGER audit_events_no_delete")
+    conn.execute("DELETE FROM audit_events WHERE transition_id=?", (record and next(conn.execute("SELECT transition_id FROM transitions WHERE instance_id=?", (instance.instance_id,)))[0],))
+    with pytest.raises(StorageCorruptionError, match="audit"):
+        verify_durable_graph(conn)
+
+
+def test_a50_audit_resource_mismatch_fails_durable_graph_verification():
+    conn, instance, record = _persisted_transition()
+    row = conn.execute(
+        "SELECT event_id, sequence, transition_id, actor, action, resource, result, timestamp, prev_hash FROM audit_events WHERE transition_id IS NOT NULL"
+    ).fetchone()
+    conn.execute("DROP TRIGGER audit_events_no_update")
+    event = {
+        "event_id": row[0], "sequence": row[1], "transition_id": row[2],
+        "actor": row[3], "action": row[4], "resource": "wrong-resource",
+        "result": row[6], "timestamp": row[7], "prev_hash": row[8],
+    }
+    conn.execute("UPDATE audit_events SET resource=?, event_hash=? WHERE event_id=?", ("wrong-resource", _audit_hash(event), row[0]))
+    with pytest.raises(StorageCorruptionError, match="audit evidence"):
+        verify_durable_graph(conn)
