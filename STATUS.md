@@ -28,24 +28,14 @@ Legend: IMPLEMENTED / PARTIAL / THEORETICAL / MISSING / BLOCKED / UNVERIFIED / D
 | Reflection observation | IMPLEMENTED / UNVERIFIED | Reads canonical TransitionRecord history |
 | Reflection findings | IMPLEMENTED / UNVERIFIED | Repeated rejection patterns become Findings |
 | Counterexample candidates | IMPLEMENTED / UNVERIFIED | Each Finding gets an explicit challenge |
-| Counterexample execution | IMPLEMENTED / UNVERIFIED | Conservative historical challenge now executes automatically during `reflect()` |
+| Counterexample execution | IMPLEMENTED / UNVERIFIED | Conservative historical challenge executes during `reflect()` |
 | Rule proposals | IMPLEMENTED / UNVERIFIED | Hypotheses only; no activation API |
 | Reflection persistence | MISSING | Next R1 completion slice |
-| Shadow evaluation | MISSING | Next later phase |
+| Shadow evaluation | IMPLEMENTED / UNVERIFIED | Same immutable candidates can be evaluated by active and proposed Test rules; no commit path |
 | Governance / activation / rollback | MISSING | Future phase |
 | Endogenous rule generation | THEORETICAL / PARTIAL BOUNDARY | Current Generate remains caller-supplied |
 
 ## Self-reflection gap — current state
-
-The previous gap was:
-
-```text
-Core executes
-    ↓
-Core history
-    ↓
-external AI must discover patterns
-```
 
 The operational path is now:
 
@@ -64,21 +54,30 @@ CounterexampleEngine
         ↓
 REFUTED / INCONCLUSIVE
         ↓
-non-activating RuleProposal
+RuleProposal
+        ↓
+Shadow Evaluation
+        ↓
+NO_BEHAVIORAL_CHANGE / BEHAVIOR_CHANGED / REGRESSION
 ```
 
-Runtime entry point:
+Runtime reflection remains read-only. The new shadow evaluator compares active and proposed Test functions over the same immutable Candidate evidence and records behavioral deltas. It does not mutate Engine state, commit candidates, activate proposals, or alter Core invariants.
+
+Public entry point:
 
 ```python
-from gnosis.reflection import reflect
-report = reflect(engine)
+from gnosis.reflection import evaluate_shadow
+result = evaluate_shadow(candidates, active_test, shadow_test)
 ```
 
-`reflect()` now performs both analysis and the conservative historical counterexample challenge. The result remains read-only. It cannot mutate `Engine.state`, rules, invariants or persistence authority.
+The shadow result distinguishes:
 
-The first counterexample strategy is deliberately narrow: for a repeated-rejection finding, historical evidence is checked for an accepted transition carrying a candidate identifier associated with the finding. Such evidence can refute an unconditional-rejection hypothesis. Absence of that evidence is `INCONCLUSIVE`, never proof.
+- `NO_INPUT`;
+- `NO_BEHAVIORAL_CHANGE`;
+- `BEHAVIOR_CHANGED` — active rejected while shadow accepted for at least one case;
+- `REGRESSION` — active accepted while shadow rejected for at least one case.
 
-This is an executable self-critique loop, but it is **not yet autonomous rule evolution**. It does not synthesize or apply source-code patches.
+This is an executable comparison primitive, not governance. A behavioral improvement is not automatically a valid rule change; regression, invariant impact and broader evidence must still be evaluated.
 
 ## Architecture tracks
 
@@ -90,7 +89,7 @@ Goal: another authorized terminal reconstructs durable task context without depe
 
 ### Track B — Core Reflection
 
-**R1 FOUNDATION PARTIALLY IMPLEMENTED / UNVERIFIED**.
+**R1 FOUNDATION PARTIALLY IMPLEMENTED / UNVERIFIED; SHADOW PRIMITIVE ADDED / UNVERIFIED**.
 
 Current operational layer:
 
@@ -112,18 +111,19 @@ Reflection remains outside `gnosis/core`. No AI model belongs inside Ψ-Core. A 
 
 ```text
 R1 Core Reflection Foundation
-    ├── observation             IMPLEMENTED / UNVERIFIED
-    ├── finding                 IMPLEMENTED / UNVERIFIED
-    ├── counterexample contract IMPLEMENTED / UNVERIFIED
+    ├── observation              IMPLEMENTED / UNVERIFIED
+    ├── finding                  IMPLEMENTED / UNVERIFIED
+    ├── counterexample contract  IMPLEMENTED / UNVERIFIED
     ├── counterexample execution IMPLEMENTED / UNVERIFIED
-    ├── proposal                IMPLEMENTED / UNVERIFIED
-    └── persistence             NEXT
+    ├── proposal                 IMPLEMENTED / UNVERIFIED
+    ├── shadow comparison        IMPLEMENTED / UNVERIFIED
+    └── persistence              NEXT
     ↓
 R2 Observation + Finding Engine hardening
     ↓
 R3 richer replay/boundary/mutation counterexamples
     ↓
-R4 Shadow Rule Evaluation
+R4 Shadow Rule Evaluation hardening + invariant delta analysis
     ↓
 R5 Governance / Activation / Rollback
     ↓
@@ -141,9 +141,10 @@ The current system may:
 - observe itself;
 - detect repeated patterns;
 - construct falsification challenges;
-- execute the conservative challenge;
+- execute conservative challenges;
 - report `REFUTED` or `INCONCLUSIVE`;
-- formulate a RuleProposal.
+- formulate a RuleProposal;
+- compare active and proposed Test behavior over identical immutable evidence.
 
 The current system may **not**:
 
@@ -155,7 +156,7 @@ The current system may **not**:
 - silently alter persistence semantics;
 - install an AI model inside Core.
 
-The next meaningful gap is therefore **Shadow Rule Evaluation**: a proposal must be executable against the same evidence as the current rule, with behavioral and invariant differences recorded, while canonical state remains untouched.
+The next meaningful gap is now **governed shadow evolution**: persist reflection evidence, connect proposals to explicit rule versions, compare invariant outcomes, and only then introduce governance/rollback.
 
 ## Memory status
 
@@ -179,7 +180,7 @@ Memory remains a separate blocked track.
 4. independent audit evidence;
 5. AI reports/proposals.
 
-Current reflection implementation is **UNVERIFIED** until a real test/CI run is observed for the exact resulting commit. Do not call it CI-passed merely because test files exist.
+Current reflection and shadow implementation is **UNVERIFIED** until a real test/CI run is observed for the exact resulting commit. Do not call it CI-passed merely because test files exist.
 
 ## Context recovery
 
@@ -204,9 +205,13 @@ gnosis/reflection/analyzer.py
     ↓
 gnosis/reflection/counterexample.py
     ↓
+gnosis/reflection/shadow.py
+    ↓
 gnosis/reflection/runtime.py
     ↓
 tests/test_reflection_counterexample.py
+    ↓
+tests/test_reflection_shadow.py
     ↓
 source → tests → CI
 ```
@@ -215,4 +220,4 @@ Before modifying anything, report repository/branch/HEAD, implementation state, 
 
 ## Immediate next step
 
-**Shadow Rule Evaluation** should be the next architectural implementation target after real verification of the current reflection foundation. It must compare a proposed rule against the active behavior over identical evidence without mutating canonical Core state.
+**Reflection persistence + provenance integration** is now the next bounded target. After real verification, connect shadow evaluations to persisted evidence and explicit rule/proposal versions. Then harden shadow evaluation with invariant-delta analysis before governance/rollback.
