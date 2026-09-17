@@ -11,15 +11,15 @@
 - `gnosis/storage/` is not yet implemented.
 - `logs/` contains audit documentation and CI notes, but no runtime persistent audit-log writer.
 - `Engine.history` is in-process history and is lost on process exit.
-- The latest GitHub Actions CI passed for the commit recorded in the verification snapshot below.
+- The latest GitHub Actions CI passed for the current `main` commit recorded in the verification snapshot below.
 - Current implementation status must always be verified from source, tests and CI rather than inferred from documentation.
 
 ## Current verification snapshot
 - Canonical repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- Current `main` commit at the previous verified snapshot: `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`
-- Latest GitHub Actions CI for that commit: `PASS`
+- Current `main` commit: `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9`
+- Latest GitHub Actions CI for this commit: `PASS`
 - CI matrix: Python 3.11 and 3.12, package installation, pytest and coverage.
-- Local authoring-sandbox pytest execution: `NOT PERFORMED`.
+- Local authoring-sandbox pytest execution: `NOT_PERFORMED`.
 - Ψ-Core: `IMPLEMENTED` / verified by source, tests and GitHub Actions.
 - Instance and lineage layer: `PARTIAL` / in-memory only.
 - Persistent storage: `MISSING`.
@@ -29,7 +29,7 @@
 - Agents and federation: `MISSING`.
 - Endogenous generation: `PARTIAL`/`THEORETICAL` boundary; the current generator is caller-supplied, not endogenous.
 
-The successful GitHub Actions result verifies the commit listed above. It does not imply that the current local sandbox executed pytest independently.
+The successful GitHub Actions result verifies the current `main` commit listed above. It does not imply that the local authoring sandbox executed pytest independently.
 
 ## Status vocabulary
 Use only these implementation states:
@@ -195,7 +195,7 @@ No claim of autonomous self-development should be made until the corresponding m
 
 The AI context was reviewed against the current source tree, `STATUS.md`, `README.md`, `docs/DATABASE_SCHEMA.md`, the phase audit, and GitHub Actions. The architecture and Ψ-Core boundaries are coherent, but the following documentation and process corrections are required:
 
-1. `STATUS.md` and older audit text must distinguish between real GitHub Actions verification and the fact that pytest was not run in the local authoring sandbox. The repository had a successful CI run on commit `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`.
+1. `STATUS.md` and older audit text must distinguish between real GitHub Actions verification and the fact that pytest was not run in the local authoring sandbox. The repository has successful GitHub Actions runs on commits `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`, `07835ed083d3e86dedc144154d0dc465425dad0e`, and `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9`. The current `main` commit `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9` is verified by GitHub Actions.
 2. Status vocabulary must be consistent. Use the four primary implementation states above; use verification qualifiers separately instead of mixing `UNKNOWN`, `EXPERIMENTAL`, `BLOCKED`, and `UNVERIFIED` into the implementation-state column.
 3. Every CI claim must include the tested commit SHA and verification date. A successful run for an older commit does not verify the current source.
 4. `logs/` is not empty, but it is not a runtime audit system. It contains audit/CI documentation only; `Engine.history` remains process-local and is lost on restart.
