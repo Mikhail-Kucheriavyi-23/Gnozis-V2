@@ -3,7 +3,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 3
 GENESIS_HASH = "0" * 64
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -29,7 +29,6 @@ def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
                 columns={row[1] for row in conn.execute("PRAGMA table_info(transitions)")}
                 if "test_rule_id" not in columns:
                     conn.execute("ALTER TABLE transitions ADD COLUMN test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified'")
-                conn.execute("UPDATE schema_meta SET value=? WHERE key='schema_version'",(str(SCHEMA_VERSION),))
             elif version != SCHEMA_VERSION:
                 conn.close(); raise RuntimeError(f"incompatible schema version: {version} (expected {SCHEMA_VERSION})")
     conn.executescript(SCHEMA); conn.execute("INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
