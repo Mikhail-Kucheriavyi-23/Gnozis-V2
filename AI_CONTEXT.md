@@ -10,7 +10,7 @@
 
 ## Current verified repository baseline
 
-- Branch: `main`
+- Branch: `main`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
 - Persistence is accepted in `main` following the project's independent verification gate.
@@ -29,23 +29,52 @@
 - User-centered multi-terminal architecture: `DOCUMENTED / NOT IMPLEMENTED` — see `docs/USER_ARCHITECTURE.md`.
 - Endogenous generation: `PARTIAL` / `THEORETICAL` boundary; current generation remains caller-supplied.
 
-## Persistence source of truth
+## Current working scope — SINGLE OWNER / SINGLE PROJECT
 
-The current storage layer contains:
+**This is the active scope of the present engineering phase.**
+
+All architecture changes, repository modifications, integration work and testing are currently performed within the project owner's account and the single canonical repository `Gnozis-V2`. Multiple connected AI systems may participate as implementation, audit, research or review agents, but they operate against this one owner's project context.
+
+The immediate practical experiment is:
 
 ```text
-gnosis/storage/database.py
-gnosis/storage/repositories.py
-gnosis/storage/__init__.py
+ONE OWNER / ONE ACCOUNT
+│
+├── ChatGPT
+├── Claude
+├── Manus
+├── Gemini / other connected AI
+├── GitHub
+├── Google Drive / other connected tools
+│
+└──────────────→ Gnozis-V2
+                  ↓
+          Ψ-Core + Persistence
+          + Audit + Reflection
+          + future Evolution
 ```
 
-The database layer currently defines `SCHEMA_VERSION = 3`, enables SQLite foreign keys, uses `BEGIN IMMEDIATE` transaction boundaries, persists states/candidates/instances/transitions, and defines append-only `audit_events` with SQLite update/delete guards.
+The purpose of this phase is to prove that a project can retain durable context, state, provenance and work continuity when the user changes AI terminals or tools, and that several AI systems can cooperate without any one conversation being the canonical project memory.
 
-Persistence is accepted in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents.
+**Do not implement multi-user, multi-tenant or federation infrastructure merely because it is described in the long-term architecture.** Those are future strategic layers.
+
+Currently out of implementation scope:
+
+- other user accounts;
+- tenant isolation;
+- cross-account identity;
+- public user network;
+- organization-wide permissions;
+- inter-user federation;
+- cross-account trust protocols;
+- multi-tenant billing/access architecture;
+- shared production workspace between independent account owners.
+
+Future multi-user strategy may be designed later, after the single-owner architecture is implemented and tested. Its future existence must not contaminate the current Ψ-Core contracts.
 
 ## User-centered architecture — FIXED DESIGN DIRECTION
 
-Gnozis is being built as a user-centered architecture in which the continuity of work belongs to the durable project/task context rather than to a particular AI terminal or product.
+Gnozis is being built as a user-centered architecture in which continuity of work belongs to durable project/task context rather than to a particular AI terminal or product.
 
 The canonical design document is `docs/USER_ARCHITECTURE.md`.
 
@@ -71,13 +100,13 @@ PROVENANCE / MEMORY
 
 Key architectural rules:
 
-- any authorized connected terminal should be able to reconstruct the relevant task/project context and continue work;
+- any authorized connected terminal of the current owner should be able to reconstruct the relevant task/project context and continue work;
 - conversational history is not the canonical source of project continuity;
 - GitHub, Google Drive, AI terminals and other products are connectors/interfaces/capability providers, not automatic sources of truth;
 - `Capability ≠ Authority` and `Resource access ≠ Architectural authority`;
-- different user types (manager, programmer, engineer, physicist, researcher, analyst, etc.) use the same architecture; specialization comes from task + context + data + authorized capabilities rather than separate Core engines;
-- individuals may cooperate without belonging to the same organization; an organization is only one possible scope;
-- shared task/context does not merge participant identities or permissions;
+- different user types (manager, programmer, engineer, physicist, researcher, analyst, etc.) are future users of the same architecture; specialization comes from task + context + data + authorized capabilities rather than separate Core engines;
+- individuals may eventually cooperate without belonging to the same organization; this is future strategy, not current runtime implementation;
+- shared task/context must not merge participant identities or permissions;
 - notifications are entry points to durable tasks, not the canonical task state;
 - results must remain distinguishable as verified facts, observations, calculations, proposals, or unresolved claims and retain provenance where applicable;
 - task/context/capability layers must not introduce a second Ψ-Core state model or silently redefine Core semantics;
@@ -257,32 +286,136 @@ The following are architectural targets, not current implementation claims:
 - Rule governance/activation/rollback: `MISSING`
 - Autonomous self-modification: `MISSING / FORBIDDEN FOR CURRENT PHASE`
 
-## Next bounded Core modernization phase
+## Reflection implementation roadmap
 
-### CORE REFLECTION FOUNDATION
+This roadmap is a sequence of bounded engineering phases. Do not collapse the phases into one uncontrolled self-modification implementation.
 
-Purpose: create a read-only, provenance-preserving reflection layer without changing existing Ψ-Core transition semantics.
+```text
+R1 Core Reflection Foundation
+    ↓
+R2 Observation + Finding Engine
+    ↓
+R3 Counterexample Engine
+    ↓
+R4 Shadow Rule Evaluation
+    ↓
+R5 Governance / Activation / Rollback
+    ↓
+R6 Endogenous Rule Generation
+    ↓
+R7 Cooperative Self-Reflection Network (future multi-user strategy)
+```
 
-Allowed scope:
+### R1 — Core Reflection Foundation
+
+Create the read-only, provenance-preserving reflection data/contracts without changing existing Ψ-Core transition semantics.
+
+Allowed:
 
 1. Rule Registry and version metadata.
-2. ReflectionObservation.
-3. ReflectionFinding/Pattern.
-4. Counterexample registration and challenge contracts.
+2. ReflectionObservation contract.
+3. ReflectionFinding/Pattern contract.
+4. Counterexample registration/challenge contracts.
 5. RuleProposal contract and lifecycle metadata.
 6. Provenance links to states, candidates, transitions and audit events.
 7. Persistence for the new reflection artifacts.
 8. Read-only reflection pipeline and tests.
 
-Explicit exclusions:
+Forbidden:
 
-- no autonomous Core modification;
-- no automatic rule activation;
-- no replacement or duplication of Ψ-State;
-- no second state model;
-- no autonomous endogenous generator;
-- no Shadow Core activation yet;
-- no changes to existing transition semantics unless a separate explicit task is issued.
+- autonomous Core modification;
+- automatic rule activation;
+- replacement or duplication of Ψ-State;
+- second state model;
+- autonomous endogenous generator;
+- Shadow Core activation;
+- changes to existing transition semantics unless separately authorized.
+
+### R2 — Observation + Finding Engine
+
+Connect real Core execution history to reflection observations. Detect repeated or unusual patterns without changing Core behavior.
+
+Observation sources include transition records and audit events. Candidate patterns may include repeated rejection reasons, recurring state classes, conflicting outcomes, repeated failures or unusual transition patterns.
+
+A pattern is not proof of a defect. Findings must state reproducibility and falsification conditions.
+
+### R3 — Counterexample Engine
+
+Actively try to refute Findings using reproducible historical replay, boundary cases, synthetic candidates, mutation, competing rules or other explicitly recorded challenge methods.
+
+Possible results:
+
+```text
+REFUTED
+SUPPORTED
+INCONCLUSIVE
+NOT_RUN
+```
+
+`NO_COUNTEREXAMPLE_FOUND` must never be treated as proof of truth.
+
+### R4 — Shadow Rule Evaluation
+
+Compare a proposed rule version with the active version over identical historical, boundary and adversarial inputs.
+
+Shadow execution may observe and compare but cannot:
+
+```text
+commit canonical state
+activate a rule
+modify Rule Registry authority
+bypass invariants
+```
+
+Compare outcomes, invariant deltas, behavioral deltas, resource deltas and evidence.
+
+### R5 — Governance / Activation / Rollback
+
+Introduce explicit governance decisions, atomic activation, monitoring and rollback. Rule versions remain available for provenance and restoration.
+
+Acceptance and activation are distinct states. Rollback is a normal versioned operation, not an ad-hoc repair.
+
+### R6 — Endogenous Rule Generation
+
+Future phase only. Gnozis may eventually generate a candidate rule from accumulated evidence, but generation has no direct authority over canonical Core.
+
+Required sequence:
+
+```text
+SELF-GENERATE
+    ↓
+Rule Candidate
+    ↓
+Counterexample
+    ↓
+Shadow
+    ↓
+Verification
+    ↓
+Governance
+    ↓
+Activation
+```
+
+R6 is prohibited until R1-R5 are implemented and independently verified.
+
+### R7 — Cooperative Self-Reflection Network
+
+Future strategy only. Multiple independent users/Gnozis instances/AI systems may eventually exchange evidence, hypotheses, counterexamples and proposals under explicit identity, capability and trust boundaries. This is not current implementation scope.
+
+## Next bounded Core modernization phase
+
+### CORE REFLECTION FOUNDATION — R1
+
+Current intended phase:
+
+```text
+Primary implementer: Claude when available
+Independent reviewer: Manus
+Final gate: ChatGPT
+External audit: as explicitly assigned
+Scope: R1 only
+```
 
 Acceptance criteria:
 
@@ -296,34 +429,21 @@ RuleProposal cannot activate itself;
 current Ψ-Core invariants remain authoritative.
 ```
 
-Before implementation, record:
-
-```text
-Primary implementer:
-Independent reviewer:
-ChatGPT final gate:
-External audit required: yes/no
-Allowed files/scope:
-Forbidden changes:
-```
-
-The next phases after Foundation are expected to be:
-
-```text
-R1 Core Reflection Foundation
-    ↓
-R2 Rule Registry hardening
-    ↓
-R3 Reflection + Counterexample engine
-    ↓
-R4 Shadow evaluation
-    ↓
-R5 Governance / activation / rollback
-    ↓
-R6 Endogenous evolution
-```
-
 No phase may be assumed complete from documentation alone; source, tests, CI and independent verification remain authoritative.
+
+## Persistence source of truth
+
+The current storage layer contains:
+
+```text
+gnosis/storage/database.py
+gnosis/storage/repositories.py
+gnosis/storage/__init__.py
+```
+
+The database layer currently defines `SCHEMA_VERSION = 3`, enables SQLite foreign keys, uses `BEGIN IMMEDIATE` transaction boundaries, persists states/candidates/instances/transitions, and defines append-only `audit_events` with SQLite update/delete guards.
+
+Persistence is accepted in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents.
 
 ## Multi-agent project governance — FIXED WORKING MODEL
 
