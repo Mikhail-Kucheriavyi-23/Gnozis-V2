@@ -66,13 +66,14 @@ class Engine:
             else:
                 reasons = tuple(f"{c.candidate_id}: " + "; ".join(r.reasons) for c, r in result.evaluated)
             failed_result = TestResult(passed=False, reasons=reasons)
+            detail = "; ".join(reasons) if reasons else "no candidate passed Test/Select"
             record = TransitionRecord(
                 from_state_id=self.state.state_id,
                 to_state_id=self.state.state_id,
                 candidate_id="<none-selected>",
                 test_result=failed_result,
                 accepted=False,
-                reason="no candidate passed Test/Select",
+                reason=f"no candidate passed Test/Select: {detail}",
                 test_rule_id=self.test_rule_id,
             )
             self.history.append(record)
