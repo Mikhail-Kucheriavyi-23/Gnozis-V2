@@ -1,92 +1,140 @@
 # Gnozis-V2 — AI Context
 
-## CANONICAL BASELINE
+## 0. PURPOSE / OPERATING RULE
 
-- Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- Branch: `main`
-- This is the operational AI handoff. Reconcile repository HEAD and runtime evidence before acting.
-- If chat history conflicts with repository/runtime evidence, repository/runtime evidence wins.
+This file is the operational handoff for AI agents working on Gnozis-V2.
 
-## ARCHITECTURAL OBJECTIVE
+Repository:
+- GitHub: Mikhail-Kucheriavyi-23/Gnozis-V2
+- default branch: main
+- current HEAD inspected: 63e1f0b57c591a06fa902fe63cd84369c30bf65c
 
-Gnozis is intended to become an autonomous recursive evolution system. Canonical self-modification must remain downstream of reproducible, bounded evidence.
+Rules:
+1. Repository code, tests and actual runtime/CI evidence outrank chat memory or this document.
+2. This document is architecture/task context, not proof of PASS.
+3. Never claim a test, CI run, artifact, recovery result or security property was verified unless it was actually executed/inspected.
+4. Select exactly one highest-priority READY task at a time.
+5. Do not broaden a task into unrelated architecture.
+6. Preserve evidence: rejected, failed, quarantined and insufficient-evidence outcomes are historical data, not noise.
+7. Never weaken an invariant, persistence constraint or evidence gate merely to make tests green.
 
-```text
+## 1. ARCHITECTURAL PURPOSE
+
+Gnozis-V2 is being developed as an autonomous recursive evolution system whose canonical state/evolution remains controlled by Ψ-Core.
+
+Target evolution chain:
+
 Core_n
- ↓ evidence
+  ↓
+durable evidence
+  ↓
 Persistence / Recovery
- ↓ reflection
-RuleProposal / EvolutionHypothesis
- ↓ bounded Sandbox
-real execution
- ↓ Shadow Evaluation
- ↓ Invariant Delta
- ↓ Governance / evidence threshold
- ↓ PromotionCandidate
- ↓ Core_(n+1)
-```
+  ↓
+Reflection / RuleProposal
+  ↓
+bounded SandboxExecution
+  ↓
+real observations
+  ↓
+Shadow Evaluation
+  ↓
+Invariant Delta
+  ↓
+Governance / evidence threshold
+  ↓
+PromotionCandidate
+  ↓
+ONLY AFTER ALL GATES
+Core_(n+1)
 
-No stage substitutes for the complete evidence chain.
+Canonical self-modification is NOT currently implemented.
 
-## NON-NEGOTIABLE ARCHITECTURAL GATES
+## 2. NON-NEGOTIABLE ARCHITECTURAL PRINCIPLES
 
-1. Ψ-Core is authoritative for state/evolution semantics. No second state model and no AI model inside Core.
-2. Durable SQLite persistence and append-only audit evidence survive process boundaries.
-3. `TransitionRecord.test_rule_id` provides rule provenance; missing provenance is `test-rule:unspecified`.
-4. Diagnostics use persisted/recovered history, never fabricated records or a fresh empty Engine.
-5. Reflection remains outside Core.
-6. Diagnostic experiments derive from actual Core execution and persistence.
-7. Execution → persistence → recovery → diagnosis → artifact is the diagnostic path.
-8. Rule Registry/Metadata is versioned and read-only for proposals.
-9. RuleProposal carries versions, evidence, counterexamples, expected effects, risks and validation requirements.
-10. Shadow evaluation cannot activate or mutate Core.
-11. Invariant Delta uses `unknown` for missing evidence; never fabricate failure.
-12. Invariant-delta evidence uses existing persistence; no parallel evidence database.
-13. Governance is read-only classification: `BLOCK`, `HOLD`, `REVIEW`, `NO_CHANGE`.
-14. Authority metadata is provenance, not the autonomous evolution mechanism.
-15. Evolution sandbox remains experimental until runtime/CI evidence verifies it.
+- Ψ-Core is the authoritative source of state/evolution semantics.
+- No second state model may silently diverge from Core.
+- No AI model belongs inside Ψ-Core.
+- Reflection and diagnostics remain outside Core.
+- External data is untrusted by default.
+- External adapters do not receive unrestricted Core authority.
+- Persistence is evidence, not a parallel state machine.
+- Missing evidence must remain UNKNOWN / INSUFFICIENT_EVIDENCE.
+- Rejection is valid historical evidence.
+- Shadow evaluation must not activate or mutate canonical Core.
+- A trigger is not authorization.
+- Replication is not authority inheritance.
+- Parent credentials/secrets are never inherited by child agents by default.
+- Failed operations prefer REJECT, QUARANTINE or FAIL_CLOSED.
+- Future autonomous mutation must never bypass invariant/evidence gates.
 
-## CURRENT ENGINEERING STATE
+## 3. LAYER MODEL
 
-- Ψ-Core remains authoritative.
-- Persistence, append-only audit storage, Reflection, RuleProposal, Shadow Evaluation, Invariant Delta and governance layers exist in the development line.
-- Evolution sandbox contains bounded hypothesis/model/experiment/evidence/evaluation contracts.
-- Sandbox execution must produce evidence from real execution, not caller-supplied scores.
-- Autonomous canonical promotion is NOT implemented.
-- Never claim PASS, CI success, artifact or self-diagnostic result unless actual execution/CI has been inspected.
+L0 — Ψ-Core
+- state
+- candidate generation
+- Test(candidate) -> bool
+- selection
+- protected invariants
+- evolution semantics
 
-## LAYERS
+L1 — Evidence / Persistence / Recovery
+- SQLite durable history
+- TransitionRecord
+- canonical transition identity
+- append-only audit events
+- hash-chain evidence
+- crash/reopen recovery
 
-```text
-L0 Ψ-Core
-L1 Evidence / Persistence / Recovery
-L2 Reflection / RuleProposal
-L3 Shadow Evaluation / Invariant Delta / Governance
-L4 Autonomous Evolution Sandbox (experimental)
-L5 Promotion to Core_(n+1) — NOT IMPLEMENTED
-```
+L2 — Reflection / RuleProposal
+- persisted-history analysis
+- diagnostic observations
+- rule registry/metadata
+- bounded RuleProposal generation
 
-## PERSISTENCE HARDENING — RUNTIME STATUS
+L3 — Shadow / Invariant Delta / Governance
+- shadow execution/evaluation
+- invariant comparison
+- evidence classification
+- governance classification
 
-The Persistence hardening gates below have now received current CI evidence and are considered **VERIFIED** on the tested development line. Do not reopen or modify them without new regression evidence.
+L4 — Evolution Sandbox
+- hypothesis
+- model generation
+- bounded experiment
+- observed evidence
+- evaluator
+- promotion candidate
 
-- `GNV2-PERSIST-001` — TransitionRecord persistence integrity — VERIFIED.
-- `GNV2-PERSIST-002` — Rejected transition durable semantics — VERIFIED.
-- `GNV2-PERSIST-003` — Recovery/provenance verification — VERIFIED.
-- `GNV2-PERSIST-003A` — Canonical `transition_id` identity verification; verifier rejects tampered transition identity — VERIFIED.
-- `GNV2-PERSIST-003B` — Transition ↔ audit provenance linkage, including adversarial tampering — VERIFIED.
-- `GNV2-PERSIST-004` — Transition replay/idempotency — VERIFIED.
-- `GNV2-PERSIST-005` — Crash/reopen consistency across transaction checkpoints — VERIFIED.
-- Audit tamper tests cover event payload, `event_hash`, and `prev_hash` corruption — VERIFIED.
+L5 — Canonical promotion
+- NOT IMPLEMENTED
+- remains closed until all downstream gates are independently verified
 
-Latest inspected CI evidence: run `35275548474` on commit `5591af042d31500b323e3bbf7d74cceae2268b70`; persistence-related tests passed, including the audit-link tampering test. This run still had unrelated Reflection/Shadow/Diagnostic failures, so the overall CI run was not green.
+## 4. VERIFIED PERSISTENCE BASELINE
 
-### Persistence chain
+The following persistence gates have received inspected runtime/CI evidence on the development line and are frozen unless new regression evidence appears:
 
-```text
+- GNV2-PERSIST-001 — TransitionRecord persistence integrity — VERIFIED
+- GNV2-PERSIST-002 — rejected transition durable semantics — VERIFIED
+- GNV2-PERSIST-003 — recovery/provenance verification — VERIFIED
+- GNV2-PERSIST-003A — canonical transition_id identity / tamper rejection — VERIFIED
+- GNV2-PERSIST-003B — transition ↔ audit provenance linkage / tamper detection — VERIFIED
+- GNV2-PERSIST-004 — transition replay/idempotency — VERIFIED
+- GNV2-PERSIST-005 — crash/reopen consistency across transaction checkpoints — VERIFIED
+- audit tamper coverage for event payload, event_hash and prev_hash — VERIFIED
+
+Inspected historical CI evidence:
+- run 35275548474
+- commit 5591af042d31500b323e3bbf7d74cceae2268b70
+- persistence-related tests passed
+- overall run was NOT green because Reflection/Shadow/Diagnostic failures remained
+
+Do not reopen these gates without a concrete regression.
+
+Persistence chain:
+
 Candidate
  ↓
-Protected invariants
+protected invariants
  ↓
 Test → TransitionRecord
  ↓
@@ -94,7 +142,7 @@ canonical transition_id
  ↓
 SQLite transition
  ↓
-Audit transition_id
+audit transition_id
  ↓
 canonical audit event
  ↓
@@ -107,29 +155,83 @@ crash/reopen recovery
 verify_durable_graph()
  ↓
 recovered durable State
-```
 
-Rejected transitions are historical evidence and must not advance `current_state_id`.
+Rejected transitions are historical evidence and MUST NOT advance current_state_id.
 
-## CURRENT ACTIVE GATE — REFLECTION / SHADOW / INVARIANT DELTA
+## 5. CURRENT DEVELOPMENT HEAD
 
-Persistence is frozen. The remaining active gate is Reflection/Shadow/Invariant Delta. Do not fix failures by weakening Core invariants or Persistence guarantees.
+Current inspected HEAD:
+63e1f0b57c591a06fa902fe63cd84369c30bf65c
 
-The latest inspected CI on `5591af042d31500b323e3bbf7d74cceae2268b70` reported `176 passed / 9 failed`.
+Recent commits immediately preceding/current development include:
 
-Known failure clusters:
+- 63e1f0b5 — test: persist invariant delta under a real reflection report
+- ce51f0ab — test: align reflection observations with rejection evidence
+- f4a9fb3c — test: verify diagnostic provenance at observation level
+- 457c6d94 — core: preserve protected invariant reasons through select rejection
+- 78fff04a — test: align invariant shadow predicates with strict bool contract
 
-1. Diagnostic artifact contract: test expects top-level findings while the current artifact can carry findings through `causal_candidates`; determine whether this is a stale test contract or a serialization loss before changing production code.
-2. Invariant Delta: insufficient evidence and shadow invariant violations are currently being classified too broadly as `PRESERVED`. Missing candidate/state must remain `unknown`/insufficient evidence; absence of a violation record is not itself proof of preservation.
-3. Reflection Delta persistence fixture: saving a delta requires a valid persisted `report_id`; do not weaken storage foreign keys to satisfy an isolated fixture.
-4. Protected invariant gate: invariant rejection itself is correct; diagnostic reason propagation from `TestResult.reasons` into `TransitionRecord.reason` is incomplete.
-5. Reflection foundation: current analyzer produces 5 observations where an older test expects 4; the additional rejected-transition reason is real evidence and must not be deleted merely to satisfy the old count.
-6. Shadow/adapter: inspect actual acceptance-outcome semantics before changing `evaluate_shadow()`. A change in rejection reason alone is not an improvement/regression; active rejected → shadow accepted is an improvement and should be represented as behavioral change.
+Earlier relevant progress:
+- 090ec5bb — align rule-provenance test with strict Test(candidate)->bool contract
+- 72e959f5 — align diagnostic artifact test fixture with machine-readable report contract
+- 5591af04 — diagnostic corpus fixture uses valid monotonic Core versions
 
-### Invariant Delta target semantics
+These commits show active correction of the Reflection/Shadow gate. They do NOT by themselves constitute runtime PASS.
 
-```text
-missing candidate/state or insufficient evidence
+## 6. CURRENT ACTIVE GATE
+
+### GNV2-REFLECTION-GATE
+
+STATUS: IN_PROGRESS
+
+PRIORITY: P1
+
+OBJECTIVE:
+Complete and verify the existing Reflection / Shadow / Invariant Delta / Diagnostic evidence chain without weakening Core or Persistence.
+
+This is currently the maximum justified integrated task because it closes the remaining evidence-processing layer before any autonomous canonical evolution work.
+
+Required vertical path:
+
+real Core execution
+ ↓
+TransitionRecord
+ ↓
+SQLite persistence
+ ↓
+recovery/history
+ ↓
+Reflection
+ ↓
+Shadow Evaluation
+ ↓
+Invariant Delta
+ ↓
+Diagnostic Artifact
+ ↓
+inspectable evidence
+
+Current work must reconcile the implementation with the following semantic contracts.
+
+### 6.1 Diagnostic Artifact
+
+The artifact must retain complete machine-readable evidence.
+
+Do not delete findings merely to satisfy an old test shape.
+
+If findings are represented through causal_candidates or another canonical structure, determine whether the test contract is stale or whether serialization loses information.
+
+Acceptance:
+- no diagnostic evidence is silently dropped
+- provenance is traceable to actual execution/history
+- artifact structure is internally consistent
+
+### 6.2 Invariant Delta
+
+Target semantics:
+
+missing candidate/state
+or insufficient evidence
     → UNKNOWN / INSUFFICIENT_EVIDENCE
 
 verified violation introduced or increased
@@ -138,53 +240,246 @@ verified violation introduced or increased
 verified violation reduced
     → IMPROVED
 
-verified absence/preservation with sufficient evidence
+verified preservation with sufficient evidence
     → PRESERVED
-```
 
-Do not treat an empty violation set as sufficient evidence of preservation when the underlying state/invariant evidence is absent.
+Critical rule:
+An empty violation set is NOT proof of PRESERVED when the underlying state/invariant evidence is missing.
 
-### Shadow target semantics
+### 6.3 Invariant Delta Persistence
 
-```text
+Persisted Delta records must reference a real persisted reflection report.
+
+Do NOT:
+- disable foreign keys
+- fabricate report IDs
+- create a parallel evidence database
+- bypass normal persistence
+
+The correct flow is:
+real reflection execution → persisted report → persisted delta linked to that report.
+
+### 6.4 Protected Invariant Rejection
+
+Protected invariant rejection is correct behavior.
+
+The diagnostic reason must survive:
+
+TestResult.reasons
+    →
+selection/rejection
+    →
+TransitionRecord.reason
+    →
+persisted history
+    →
+Reflection evidence
+
+Do not replace a real rejection with a generic success/failure label.
+
+### 6.5 Reflection Observations
+
+If rejected-transition evidence creates an additional observation, preserve it.
+
+The previous expectation of 4 observations was identified as potentially stale; current commits explicitly align observations with rejection evidence.
+
+Never delete a real observation solely to satisfy an old count.
+
+### 6.6 Shadow Evaluation
+
+Target semantics:
+
 active rejected → shadow accepted
     → improvement + behavioral change
 
 active accepted → shadow rejected
     → regression + behavioral change
 
-active/shadow same acceptance outcome
+same acceptance outcome
     → no improvement/regression
 
-rejection reason changes while both remain rejected
-    → changed diagnostic behavior, not automatically improvement
-```
+both rejected but rejection reason changes
+    → changed diagnostic behavior only
+    → NOT automatically improvement
 
-## RECENT TEST/CORRECTION COMMITS
+Acceptance outcome must be based on actual execution, not caller-supplied scores.
 
-- `090ec5bb9082e7dc0440d005715a7151b537be57` — align rule-provenance test with strict `Test(...)->bool` contract.
-- `72e959f5556d4703e6248d745d9196cb4cb46ab4` — align diagnostic artifact test fixture with machine-readable report contract.
-- `5591af042d31500b323e3bbf7d74cceae2268b70` — diagnostic corpus fixture uses valid monotonic Core versions; current CI inspected at this commit.
+### 6.7 Diagnostic Execution
 
-These commits document implementation/test progress; only inspected runtime evidence determines PASS.
+Diagnostics must use persisted/recovered history.
 
-## NEXT GATE AFTER REFLECTION
+Forbidden shortcuts:
+- fresh empty Engine as a substitute for history
+- synthetic observations
+- caller-supplied evaluation scores treated as evidence
+- fabricated invariant results
+- fabricated transition records
+- bypassing persistence
 
-After Reflection/Shadow/Invariant Delta reaches verified CI evidence, freeze it and continue with the next evidence-backed architecture gate. Memory/Recovery must remain derived from or anchored to durable Core history and must never become a second source of truth.
+## 7. TEST / CI RULE
 
-```text
-Durable Core history
- ↓
-verified recovery
- ↓
-Memory reconstruction/cache
- ↓
-operational context
-```
+Relevant test areas:
 
-## EVOLUTION / SANDBOX GATE
+- tests/test_diagnostic_artifact.py
+- tests/test_diagnostic_corpus.py
+- tests/test_diagnostic_execution.py
+- tests/test_invariant_delta.py
+- tests/test_invariant_delta_persistence.py
+- tests/test_invariants.py
+- tests/test_protected_invariant_gate.py
+- tests/test_reflection_counterexample.py
+- tests/test_reflection_foundation.py
+- tests/test_reflection_history.py
+- tests/test_reflection_rule_registry.py
+- tests/test_reflection_shadow.py
+- tests/test_shadow_adapter.py
 
-```text
+Then execute the COMPLETE pytest suite.
+
+A written test that was not executed is not PASS.
+
+CI:
+- inspect the workflow result for the resulting commit
+- no current workflow result was found for HEAD 63e1f0b5 at the time this context was updated
+- therefore current HEAD must NOT be described as CI-green
+
+## 8. TASK-BLOCK PROTOCOL
+
+Every AI agent must:
+
+1. Read this complete file.
+2. Reconcile current main HEAD.
+3. Inspect relevant implementation and tests.
+4. Determine dependency state.
+5. Select exactly one highest-priority READY task.
+6. Implement only that task and necessary corrections.
+7. Execute relevant tests.
+8. Execute/inspect CI when available.
+9. Record actual evidence.
+10. Mark DONE only when acceptance evidence exists.
+11. Otherwise use IN_PROGRESS or BLOCKED.
+12. Stop and hand off instead of jumping to unrelated capabilities.
+
+Required fields:
+
+TASK-ID
+BLOCK
+STATUS
+PRIORITY
+DEPENDS_ON
+OBJECTIVE
+SCOPE
+DO_NOT_CHANGE
+REQUIRED_TESTS
+ACCEPTANCE
+AUDIT
+NEXT
+
+Statuses:
+PLANNED / READY / IN_PROGRESS / DONE / BLOCKED / REJECTED
+
+Priority:
+P0 = architectural/security blocker
+P1 = foundation
+P2 = subsystem
+P3 = advanced
+P4 = refinement
+
+## 9. CURRENT TASK REGISTRY
+
+### GNV2-REFLECTION-GATE
+BLOCK: Reflection / Shadow / Invariant Delta / Diagnostic Evidence
+STATUS: IN_PROGRESS
+PRIORITY: P1
+DEPENDS_ON:
+- Persistence gates verified
+- durable provenance verified
+- recovery verified
+
+OBJECTIVE:
+Close the full evidence-processing vertical slice.
+
+SCOPE:
+- diagnostic artifact contract
+- invariant delta semantics
+- invariant delta persistence
+- protected rejection reason propagation
+- reflection observation provenance
+- shadow acceptance semantics
+- diagnostic execution provenance
+- complete runtime/CI verification
+
+DO_NOT_CHANGE:
+- Ψ-Core authority semantics
+- protected invariants
+- SQLite foreign-key guarantees
+- append-only audit semantics
+- canonical transition identity
+- recovery semantics
+- evidence-gate semantics
+- autonomous canonical promotion
+- bridge/memory/agent architecture
+
+REQUIRED_TESTS:
+all relevant Reflection/Shadow/Invariant Delta tests + full pytest + CI inspection
+
+ACCEPTANCE:
+- relevant tests pass
+- complete suite passes
+- CI evidence inspected
+- no persistence regression
+- no invariant weakening
+- unknown remains unknown when evidence is insufficient
+- shadow semantics are correct
+- diagnostic evidence is real and traceable
+
+AUDIT:
+Classify each failure before modifying code:
+- stale test contract
+- production defect
+- fixture/integration defect
+- missing evidence
+- architectural contradiction
+
+NEXT:
+Freeze the gate after verified green evidence, then select exactly one dependency-satisfied next task.
+
+## 10. AFTER REFLECTION GATE
+
+The next architectural work must be selected from evidence-backed dependencies.
+
+Priority order:
+
+P1:
+- complete sandbox execution → evaluator → shadow → invariant delta vertical slice
+- verify PromotionCandidate without canonical mutation
+- security/evidence gates for experimental evolution
+
+P2:
+- independent audit/state observer
+- red-team/self-attack engine
+- anomaly classification
+- branch quarantine
+- external ingestion contract
+- ingress sanitization
+- semantic transducer
+- provenance/trust metadata
+
+P3:
+- versioned mutation contract
+- digital-twin hardening
+- invariant matrix
+- resource/gas limits
+- multi-level mutation verification
+- controlled auto-merge
+- agent spawning / bootstrap verification / lineage / drift / failure safety
+
+Canonical promotion remains closed until the entire evidence chain is independently verified.
+
+## 11. EVOLUTION SANDBOX CONTRACT
+
+Target:
+
 EvolutionHypothesis
  ↓
 ModelGenerator
@@ -202,95 +497,100 @@ InvariantDelta
 Governance
  ↓
 PromotionCandidate
-```
 
-Canonical promotion only after real evidence.
+Requirements:
+- bounded execution
+- real observations
+- reproducible evidence
+- no caller-supplied success scores as proof
+- no canonical Core mutation
+- no unrestricted network or authority
+- no hidden side channels
+- failed experiments remain inspectable
 
-## AI TASK-BLOCK PROTOCOL
+## 12. GOVERNANCE CONTRACT
 
-Every agent must:
+Governance is classification, not an autonomous authority source.
 
-1. Read complete `AI_CONTEXT.md`.
-2. Reconcile current `main` HEAD.
-3. Inspect implementation and relevant tests.
-4. Build dependency view.
-5. Select exactly one highest-priority READY task with dependencies satisfied.
-6. Implement only that task plus necessary corrections.
-7. Execute relevant tests/runtime verification.
-8. Record actual evidence.
-9. Mark DONE only with evidence; otherwise IN_PROGRESS/BLOCKED.
-10. Stop and hand off rather than jumping to unrelated capabilities.
+Allowed classifications:
 
-Task Block fields:
-`TASK-ID`, `BLOCK`, `STATUS`, `PRIORITY`, `DEPENDS_ON`, `OBJECTIVE`, `SCOPE`, `DO_NOT_CHANGE`, `REQUIRED_TESTS`, `ACCEPTANCE`, `AUDIT`, `NEXT`.
+BLOCK
+HOLD
+REVIEW
+NO_CHANGE
 
-Statuses: `PLANNED`, `READY`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `REJECTED`.
+Governance metadata does not itself authorize Core mutation.
 
-Priority: `P0` architectural/security blocker; `P1` foundation; `P2` subsystem; `P3` advanced; `P4` refinement.
+Authority metadata is provenance.
 
-## PRIORITY STRUCTURE
+Promotion is only possible after all required evidence/security gates.
 
-### P0 Core integrity
-- Deep State Immutability
-- Strict `Test(candidate) -> bool`
-- Reject no-op evolution
-- Remove hidden evolution state/side channels
+## 13. FUTURE MEMORY / RECOVERY
 
-### P1 Existing evolution
-- Strict Engine `steps` type contract
-- Complete Core evolution vertical slice after persistence gates
+Memory must never become a second source of truth.
 
-### P1 Persistence
-- SQLite foreign-key enforcement
-- Canonical audit serialization
-- Cryptographic audit hash chain
-- Head integrity/fork detection
-- Transactional candidate/state-head update with fail-closed behavior
-- Secret sanitization
-- Recovery verification
+Correct model:
 
-### P1 Autonomous evolution evidence
-- Real SandboxExecution → Evaluator
-- Evaluator → ShadowEvaluation
-- ShadowEvaluation → InvariantDelta
-- Verified PromotionCandidate without canonical mutation
-- Runtime/CI verification of the complete sandbox evidence chain
+Durable Core history
+ ↓
+verified recovery
+ ↓
+memory reconstruction/cache
+ ↓
+operational context
 
-### P2 Architectural immunity
-- Independent audit/state observer
-- Controlled Red-Team/Self-Attack engine
-- Anomaly classification
-- Branch quarantine without destroying evidence
+Memory may accelerate recovery and context access, but canonical state remains grounded in durable Core history.
 
-### P2 Cognitive metabolism
-- External ingestion contract
-- Ingress sanitization
-- Isolated quarantine buffer
-- Semantic transducer
-- Provenance/trust metadata
+## 14. FUTURE BRIDGE / AGENTS / NETWORK
 
-### P3 Sandbox/self-modification
-- Versioned mutation contract
-- Digital-twin hardening
-- Invariant matrix
-- Resource/gas limits
-- Multi-level mutation verification
-- Controlled auto-merge
+These capabilities are future architecture, not current proof of autonomy:
 
-### P3 Agent spawning
-- Spawn policy
-- Versioned Bootstrap State Package
-- Bootstrap verification
-- Isolated child instance
-- Parent/child lineage
-- Genetic drift
-- Spawn failure safety
+- protected user interaction bridge
+- internet/world-learning ingress
+- encrypted persistent memory
+- isolated workspace
+- multi-agent instances
+- connected Gnozis network/federation
+- parent/child lineage
+- agent capability generation
 
-## COMPLETION EVIDENCE
+Any external interface must be treated as untrusted and capability-limited.
+
+No bridge may bypass Core invariants.
+No child agent automatically inherits parent authority or secrets.
+Network connectivity must not become a hidden authority channel.
+
+## 15. PROVENANCE / RESEARCH INTEGRITY
+
+Gnozis architecture and Ψ lineage must remain distinguishable from external projects and references.
+
+External projects may be used as comparison/control points, but their architecture, provenance or claims must not be presented as originating from Gnozis.
+
+Document:
+- source
+- date/version
+- exact borrowed concept if any
+- adaptation
+- independent Gnozis contribution
+
+## 16. SECURITY / FAILURE RULES
+
+- external input = untrusted
+- secrets = never persisted in plaintext unless explicitly required and protected
+- evidence tampering = detectable
+- missing evidence = fail closed / unknown
+- invalid lineage = reject
+- invalid provenance = reject or quarantine
+- sandbox escape = fail closed
+- unauthorized mutation = reject
+- failed experiment = preserve evidence
+- recovery mismatch = stop and investigate
+- silence/non-response is not success
+
+## 17. COMPLETION EVIDENCE FORMAT
 
 For every completed task record:
 
-```text
 Task ID:
 Status:
 Implementation:
@@ -298,46 +598,60 @@ Files changed:
 Tests added/changed:
 Tests actually executed:
 Observed result:
+CI run / commit:
 Known limitations:
 New dependencies discovered:
-```
+Adversarial checks:
+Next task:
 
-A written test that was not executed is not PASS.
+Never write “verified” without evidence.
 
-## SAFETY RULES
+## 18. FINAL SELF-EVOLUTION RULE
 
-- External data is untrusted by default.
-- No external adapter gets unrestricted Core access.
-- No AI model inside Ψ-Core.
-- No second state model may silently diverge from Core.
-- Evolution remains evidence-backed and bounded.
-- A trigger is not authorization.
-- Replication of architecture is not replication of authority.
-- Parent secrets/credentials are never inherited by child agents by default.
-- Failed operations prefer `REJECT`, `QUARANTINE` or `FAIL_CLOSED`.
-- Future autonomous mutation must never bypass invariant/evidence gates.
+The canonical self-evolution gate is CLOSED.
 
-## FINAL SELF-EVOLUTION RULE
+The following chain must be proven before canonical mutation:
 
-The last self-evolution gate remains closed while the evidence chain is incomplete. Preparation first: Core invariants, persistence/recovery, append-only audit evidence, candidate generation/testing, sandbox execution, shadow evaluation, invariant delta, governance/evidence thresholds, security, quarantine and recovery.
-
-```text
 Candidate
  ↓ Generate
  ↓ Test
  ↓ Sandbox execution
- ↓ Observed evidence
+ ↓ observed evidence
  ↓ Shadow evaluation
  ↓ Invariant delta
  ↓ Governance/evidence gate
- ↓ Promotion candidate
+ ↓ PromotionCandidate
+ ↓ security/quarantine/recovery gates
  ↓ ONLY THEN canonical mutation
-```
 
-## CONTEXT INTEGRITY
+A promotion candidate is not a Core mutation.
 
-Update this file whenever a major architectural gate is completed or canonical HEAD changes materially. Never reconstruct current architecture from memory alone.
+A successful sandbox experiment is not autonomous evolution.
 
-## HANDOFF NOTE — NEXT CLAUDE REVIEW
+A passing unit test is not complete architectural verification.
 
-The repository is ready for an external Claude review after the current Reflection/Shadow/Invariant Delta fixes are staged. Claude must read this file first, inspect current `main` HEAD, and independently verify claims against code/tests/runtime evidence. It must not assume that this context file alone constitutes PASS evidence. In particular, Persistence is runtime-verified by the inspected CI above, while Reflection/Shadow/Invariant Delta remains IN_PROGRESS.
+CI-green is necessary evidence for the relevant gate, but does not replace adversarial architectural review.
+
+## 19. HANDOFF
+
+Current handoff:
+- Persistence: VERIFIED on inspected historical CI; frozen.
+- Reflection/Shadow/Invariant Delta: IN_PROGRESS.
+- Current HEAD: 63e1f0b57c591a06fa902fe63cd84369c30bf65c.
+- Current HEAD CI: not yet inspected as green; no workflow run was found for this commit.
+- Current maximum task: GNV2-REFLECTION-GATE.
+- Do not reopen verified persistence without regression evidence.
+- Do not start canonical self-evolution.
+- Do not add OpenRouter, bot infrastructure, or unrelated external-agent orchestration to this gate.
+- After the current gate is actually verified, update this file with the observed evidence and select the next single READY task.
+
+## 20. CONTEXT INTEGRITY
+
+Update this file whenever:
+- a major gate changes status
+- canonical HEAD changes materially
+- test/CI evidence changes the verified state
+- a task is completed/blocked/rejected
+- architecture changes
+
+Do not maintain historical claims that are contradicted by current repository/runtime evidence.
