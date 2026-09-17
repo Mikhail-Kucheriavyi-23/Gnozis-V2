@@ -5,18 +5,16 @@ from gnosis.storage.repositories import StorageCorruptionError, verify_durable_g
 
 def test_transition_audit_link_tampering_is_rejected(persisted_transition):
     conn, instance, _record = persisted_transition
-    conn.execute("DROP TRIGGER audit_events_no_update")
-    conn.execute("DROP TRIGGER audit_events_no_delete")
     row = conn.execute(
         "SELECT transition_id FROM transitions WHERE instance_id=? LIMIT 1",
         (instance.instance_id,),
     ).fetchone()
     assert row is not None
     transition_id = row[0]
-    conn.execute(
-        "UPDATE audit_events SET transition_id=? WHERE transition_id=?",
-        ("e" * 64, transition_id),
-    )
+    other = "f" * 64
+    conn.execute("PRAGMA foreign_keys=OFF")
+    conn.execute("UPDATE audit_events SET transition_id=? WHERE transition_id=?", (other, transition_id))
+    conn.execute("PRAGMA foreign_keys=ON")
     with pytest.raises(StorageCorruptionError):
         verify_durable_graph(conn)
 
