@@ -88,3 +88,5 @@ jobs:
         with:
           name: self-diagnostic-${{ matrix.python-version }}
           path: diagnostic_artifacts/SELF-DIAGNOSTIC-0001.json
+
+# Intentional push-trigger refresh: keep the diagnostic experiment reproducible.
