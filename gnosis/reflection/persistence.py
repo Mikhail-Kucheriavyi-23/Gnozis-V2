@@ -8,6 +8,7 @@ from typing import Any
 
 from .analyzer import ReflectionReport
 from .counterexample import CounterexampleResult
+from .governance import GovernanceDecision
 from .invariant_delta import InvariantDelta
 from .shadow import ShadowEvaluation
 
@@ -51,12 +52,21 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             payload TEXT NOT NULL,
             FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
         );
+        CREATE TABLE IF NOT EXISTS reflection_governance_decisions (
+            decision_id TEXT PRIMARY KEY,
+            report_id TEXT NOT NULL,
+            decision TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
+        );
         CREATE INDEX IF NOT EXISTS idx_reflection_counterexamples_report
             ON reflection_counterexamples(report_id);
         CREATE INDEX IF NOT EXISTS idx_reflection_shadow_report
             ON reflection_shadow_assessments(report_id);
         CREATE INDEX IF NOT EXISTS idx_reflection_invariant_delta_report
             ON reflection_invariant_deltas(report_id);
+        CREATE INDEX IF NOT EXISTS idx_reflection_governance_report
+            ON reflection_governance_decisions(report_id);
         """
     )
 
@@ -105,11 +115,7 @@ def invariant_delta_id(report_id: str, delta: InvariantDelta) -> str:
     return f"{report_id}:invariant-delta:" + hashlib.sha256(_json(delta).encode("utf-8")).hexdigest()[:24]
 
 
-def save_invariant_delta(
-    conn: sqlite3.Connection,
-    report_id: str,
-    delta: InvariantDelta,
-) -> str:
+def save_invariant_delta(conn: sqlite3.Connection, report_id: str, delta: InvariantDelta) -> str:
     ensure_reflection_schema(conn)
     delta_id = invariant_delta_id(report_id, delta)
     conn.execute(
@@ -119,10 +125,7 @@ def save_invariant_delta(
     return delta_id
 
 
-def load_invariant_delta(
-    conn: sqlite3.Connection,
-    delta_id: str,
-) -> dict[str, Any]:
+def load_invariant_delta(conn: sqlite3.Connection, delta_id: str) -> dict[str, Any]:
     ensure_reflection_schema(conn)
     row = conn.execute(
         "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas WHERE delta_id=?",
@@ -130,47 +133,55 @@ def load_invariant_delta(
     ).fetchone()
     if row is None:
         raise KeyError(delta_id)
-    return {
-        "delta_id": row[0],
-        "report_id": row[1],
-        "status": row[2],
-        "payload": json.loads(row[3]),
-        "raw_payload": row[3],
-    }
+    return {"delta_id": row[0], "report_id": row[1], "status": row[2], "payload": json.loads(row[3]), "raw_payload": row[3]}
 
 
-def list_invariant_deltas(
-    conn: sqlite3.Connection,
-    report_id: str | None = None,
-) -> tuple[dict[str, Any], ...]:
+def list_invariant_deltas(conn: sqlite3.Connection, report_id: str | None = None) -> tuple[dict[str, Any], ...]:
     ensure_reflection_schema(conn)
     if report_id is None:
-        rows = conn.execute(
-            "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas ORDER BY rowid"
-        ).fetchall()
+        rows = conn.execute("SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas ORDER BY rowid").fetchall()
     else:
-        rows = conn.execute(
-            "SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas WHERE report_id=? ORDER BY rowid",
-            (report_id,),
-        ).fetchall()
-    return tuple(
-        {
-            "delta_id": row[0],
-            "report_id": row[1],
-            "status": row[2],
-            "payload": json.loads(row[3]),
-            "raw_payload": row[3],
-        }
-        for row in rows
+        rows = conn.execute("SELECT delta_id,report_id,status,payload FROM reflection_invariant_deltas WHERE report_id=? ORDER BY rowid", (report_id,)).fetchall()
+    return tuple({"delta_id": row[0], "report_id": row[1], "status": row[2], "payload": json.loads(row[3]), "raw_payload": row[3]} for row in rows)
+
+
+def governance_decision_id(report_id: str, decision: GovernanceDecision) -> str:
+    return f"{report_id}:governance:" + hashlib.sha256(_json(decision).encode("utf-8")).hexdigest()[:24]
+
+
+def save_governance_decision(conn: sqlite3.Connection, report_id: str, decision: GovernanceDecision) -> str:
+    ensure_reflection_schema(conn)
+    decision_id = governance_decision_id(report_id, decision)
+    conn.execute(
+        "INSERT OR IGNORE INTO reflection_governance_decisions(decision_id,report_id,decision,payload) VALUES(?,?,?,?)",
+        (decision_id, report_id, decision.decision, _json(decision)),
     )
+    return decision_id
+
+
+def load_governance_decision(conn: sqlite3.Connection, decision_id: str) -> dict[str, Any]:
+    ensure_reflection_schema(conn)
+    row = conn.execute(
+        "SELECT decision_id,report_id,decision,payload FROM reflection_governance_decisions WHERE decision_id=?",
+        (decision_id,),
+    ).fetchone()
+    if row is None:
+        raise KeyError(decision_id)
+    return {"decision_id": row[0], "report_id": row[1], "decision": row[2], "payload": json.loads(row[3]), "raw_payload": row[3]}
+
+
+def list_governance_decisions(conn: sqlite3.Connection, report_id: str | None = None) -> tuple[dict[str, Any], ...]:
+    ensure_reflection_schema(conn)
+    if report_id is None:
+        rows = conn.execute("SELECT decision_id,report_id,decision,payload FROM reflection_governance_decisions ORDER BY rowid").fetchall()
+    else:
+        rows = conn.execute("SELECT decision_id,report_id,decision,payload FROM reflection_governance_decisions WHERE report_id=? ORDER BY rowid", (report_id,)).fetchall()
+    return tuple({"decision_id": row[0], "report_id": row[1], "decision": row[2], "payload": json.loads(row[3]), "raw_payload": row[3]} for row in rows)
 
 
 def load_reflection_report(conn: sqlite3.Connection, stored_report_id: str) -> dict[str, Any]:
     ensure_reflection_schema(conn)
-    row = conn.execute(
-        "SELECT report_id,created_at,payload FROM reflection_reports WHERE report_id=?",
-        (stored_report_id,),
-    ).fetchone()
+    row = conn.execute("SELECT report_id,created_at,payload FROM reflection_reports WHERE report_id=?", (stored_report_id,)).fetchone()
     if row is None:
         raise KeyError(stored_report_id)
     return {"report_id": row[0], "created_at": row[1], "payload": json.loads(row[2])}
@@ -178,10 +189,5 @@ def load_reflection_report(conn: sqlite3.Connection, stored_report_id: str) -> d
 
 def list_reflection_reports(conn: sqlite3.Connection) -> tuple[dict[str, Any], ...]:
     ensure_reflection_schema(conn)
-    rows = conn.execute(
-        "SELECT report_id,created_at,payload FROM reflection_reports ORDER BY created_at,report_id"
-    ).fetchall()
-    return tuple(
-        {"report_id": row[0], "created_at": row[1], "payload": json.loads(row[2])}
-        for row in rows
-    )
+    rows = conn.execute("SELECT report_id,created_at,payload FROM reflection_reports ORDER BY created_at,report_id").fetchall()
+    return tuple({"report_id": row[0], "created_at": row[1], "payload": json.loads(row[2])} for row in rows)
