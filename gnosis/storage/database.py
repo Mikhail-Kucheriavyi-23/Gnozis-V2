@@ -3,7 +3,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 GENESIS_HASH = "0" * 64
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS candidates (candidate_id TEXT PRIMARY KEY, parent_sta
 CREATE TABLE IF NOT EXISTS instances (instance_id TEXT PRIMARY KEY, parent_instance_id TEXT, owner_id TEXT NOT NULL, root_state_id TEXT NOT NULL, current_state_id TEXT NOT NULL, generation INTEGER NOT NULL CHECK(generation >= 0), status TEXT NOT NULL CHECK(status IN ('active','stopped','archived')), budget_total INTEGER NOT NULL CHECK(budget_total >= 0), budget_spent INTEGER NOT NULL CHECK(budget_spent >= 0), created_at TEXT NOT NULL, FOREIGN KEY(parent_instance_id) REFERENCES instances(instance_id), FOREIGN KEY(root_state_id) REFERENCES states(state_id), FOREIGN KEY(current_state_id) REFERENCES states(state_id));
 CREATE TABLE IF NOT EXISTS transitions (transition_id TEXT PRIMARY KEY, instance_id TEXT NOT NULL, candidate_id TEXT NOT NULL, from_state_id TEXT NOT NULL, to_state_id TEXT NOT NULL, accepted INTEGER NOT NULL CHECK(accepted IN(0,1)), reasons TEXT NOT NULL, test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified', created_at TEXT NOT NULL, FOREIGN KEY(instance_id) REFERENCES instances(instance_id), FOREIGN KEY(candidate_id) REFERENCES candidates(candidate_id), FOREIGN KEY(from_state_id) REFERENCES states(state_id), FOREIGN KEY(to_state_id) REFERENCES states(state_id));
 CREATE INDEX IF NOT EXISTS idx_transitions_instance ON transitions(instance_id);
+CREATE TABLE IF NOT EXISTS promotions (promotion_id TEXT PRIMARY KEY, instance_id TEXT NOT NULL, parent_state_id TEXT NOT NULL, proposed_state_id TEXT NOT NULL, hypothesis_id TEXT NOT NULL, model_id TEXT NOT NULL, descriptor_version_id TEXT NOT NULL, evidence_digest TEXT NOT NULL, evidence_rounds INTEGER NOT NULL CHECK(evidence_rounds > 0), created_at TEXT NOT NULL, FOREIGN KEY(instance_id) REFERENCES instances(instance_id), FOREIGN KEY(parent_state_id) REFERENCES states(state_id), FOREIGN KEY(proposed_state_id) REFERENCES states(state_id));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_promotions_instance_parent ON promotions(instance_id, parent_state_id);
 CREATE TABLE IF NOT EXISTS audit_events (event_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL UNIQUE CHECK(sequence > 0), transition_id TEXT, actor TEXT NOT NULL, action TEXT NOT NULL, resource TEXT NOT NULL, result TEXT NOT NULL, timestamp TEXT NOT NULL, prev_hash TEXT NOT NULL, event_hash TEXT NOT NULL UNIQUE, FOREIGN KEY(transition_id) REFERENCES transitions(transition_id));
 CREATE TRIGGER IF NOT EXISTS audit_events_no_update BEFORE UPDATE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_events_no_delete BEFORE DELETE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
@@ -29,6 +31,9 @@ def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
                 columns={row[1] for row in conn.execute("PRAGMA table_info(transitions)")}
                 if "test_rule_id" not in columns:
                     conn.execute("ALTER TABLE transitions ADD COLUMN test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified'")
+                conn.execute("CREATE TABLE IF NOT EXISTS promotions (promotion_id TEXT PRIMARY KEY, instance_id TEXT NOT NULL, parent_state_id TEXT NOT NULL, proposed_state_id TEXT NOT NULL, hypothesis_id TEXT NOT NULL, model_id TEXT NOT NULL, descriptor_version_id TEXT NOT NULL, evidence_digest TEXT NOT NULL, evidence_rounds INTEGER NOT NULL CHECK(evidence_rounds > 0), created_at TEXT NOT NULL, FOREIGN KEY(instance_id) REFERENCES instances(instance_id), FOREIGN KEY(parent_state_id) REFERENCES states(state_id), FOREIGN KEY(proposed_state_id) REFERENCES states(state_id))")
+                conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_promotions_instance_parent ON promotions(instance_id, parent_state_id)")
+                conn.execute("UPDATE schema_meta SET value=? WHERE key='schema_version'",(str(SCHEMA_VERSION),))
             elif version != SCHEMA_VERSION:
                 conn.close(); raise RuntimeError(f"incompatible schema version: {version} (expected {SCHEMA_VERSION})")
     conn.executescript(SCHEMA); conn.execute("INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
