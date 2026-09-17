@@ -47,20 +47,20 @@ class CounterexampleEngine:
         related_ids = set(finding.observation_ids)
         rejected_candidate_ids = {
             record.candidate_id
-            for record in self._transitions
-            if f"observation:{self._transitions.index(record)}:reason" in related_ids
+            for index, record in enumerate(self._transitions)
+            if f"observation:{index}:reason" in related_ids
         }
 
         accepted = tuple(
-            record
-            for record in self._transitions
+            (index, record)
+            for index, record in enumerate(self._transitions)
             if record.accepted and record.candidate_id in rejected_candidate_ids
         )
 
         if accepted:
             refs = tuple(
-                f"transition:{self._transitions.index(record)}:{record.candidate_id}"
-                for record in accepted
+                f"transition:{index}:{record.candidate_id}"
+                for index, record in accepted
             )
             return CounterexampleResult(
                 candidate_id=candidate.candidate_id,
