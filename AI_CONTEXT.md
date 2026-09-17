@@ -66,20 +66,20 @@ L4 Autonomous Evolution Sandbox (experimental)
 L5 Promotion to Core_(n+1) — NOT IMPLEMENTED
 ```
 
-## PERSISTENCE HARDENING — IMPLEMENTATION REVIEW STATUS
+## PERSISTENCE HARDENING — RUNTIME STATUS
 
-The following gates have been implemented as contracts/tests or enforcement on `main`. They are **NOT DONE until actual runtime/CI evidence is inspected**:
+The Persistence hardening gates below have now received current CI evidence and are considered **VERIFIED** on the tested development line. Do not reopen or modify them without new regression evidence.
 
-- `GNV2-PERSIST-001` — TransitionRecord persistence integrity.
-- `GNV2-PERSIST-002` — Rejected transition durable semantics.
-- `GNV2-PERSIST-003` — Recovery/provenance verification.
-- `GNV2-PERSIST-003A` — Canonical `transition_id` identity verification; verifier rejects tampered transition identity.
-- `GNV2-PERSIST-003B` — Transition ↔ audit provenance linkage tests.
-- `GNV2-PERSIST-004` — Transition replay/idempotency tests.
-- `GNV2-PERSIST-005` — Crash/reopen consistency tests across transaction checkpoints.
-- Audit tamper tests cover event payload, `event_hash`, and `prev_hash` corruption.
+- `GNV2-PERSIST-001` — TransitionRecord persistence integrity — VERIFIED.
+- `GNV2-PERSIST-002` — Rejected transition durable semantics — VERIFIED.
+- `GNV2-PERSIST-003` — Recovery/provenance verification — VERIFIED.
+- `GNV2-PERSIST-003A` — Canonical `transition_id` identity verification; verifier rejects tampered transition identity — VERIFIED.
+- `GNV2-PERSIST-003B` — Transition ↔ audit provenance linkage, including adversarial tampering — VERIFIED.
+- `GNV2-PERSIST-004` — Transition replay/idempotency — VERIFIED.
+- `GNV2-PERSIST-005` — Crash/reopen consistency across transaction checkpoints — VERIFIED.
+- Audit tamper tests cover event payload, `event_hash`, and `prev_hash` corruption — VERIFIED.
 
-Test files created/modified by an agent are specifications until executed. Source inspection is not a PASS.
+Latest inspected CI evidence: run `35275548474` on commit `5591af042d31500b323e3bbf7d74cceae2268b70`; persistence-related tests passed, including the audit-link tampering test. This run still had unrelated Reflection/Shadow/Diagnostic failures, so the overall CI run was not green.
 
 ### Persistence chain
 
@@ -111,36 +111,66 @@ recovered durable State
 
 Rejected transitions are historical evidence and must not advance `current_state_id`.
 
-## CURRENT ACTIVE GATE — PERSISTENCE RUNTIME VERIFICATION
+## CURRENT ACTIVE GATE — REFLECTION / SHADOW / INVARIANT DELTA
 
-Before adding more Persistence mechanisms, execute and inspect the current suite and resolve actual failures. Required evidence:
+Persistence is frozen. The remaining active gate is Reflection/Shadow/Invariant Delta. Do not fix failures by weakening Core invariants or Persistence guarantees.
 
-1. valid transition identity accepted;
-2. tampered transition identity rejected;
-3. transition/audit linkage tampering rejected;
-4. audit payload/hash/prev-hash tampering rejected;
-5. identical transition replay idempotent;
-6. conflicting replay rejected;
-7. each transaction failure checkpoint survives close/reopen without partial commit;
-8. post-commit failure preserves the fully committed transition;
-9. `verify_durable_graph()` passes valid graphs and fails closed on corruption.
+The latest inspected CI on `5591af042d31500b323e3bbf7d74cceae2268b70` reported `176 passed / 9 failed`.
 
-Relevant recent implementation/test commits include:
+Known failure clusters:
 
-- `3dd8e28af2dad5f8ddd1a853ed6523366632e1ee` — canonical transition identity enforcement.
-- `4fc368d523344f315c673ddca4705827c32e956b` — valid identity regression.
-- `f1d154cc7778beaa5080b7abb46801341ab24300` — transition/audit linkage tests.
-- `c7169e9c710784aec586e2470e13e6277c7c1749` — audit hash tamper tests.
-- `95fb3594ba1112a62f3c664664c4e31ef8db7dc8` — replay/idempotency tests.
-- `a16055671a427bcbb9766bd4d4f89e688fd04b66` — crash/reopen persistence tests.
+1. Diagnostic artifact contract: test expects top-level findings while the current artifact can carry findings through `causal_candidates`; determine whether this is a stale test contract or a serialization loss before changing production code.
+2. Invariant Delta: insufficient evidence and shadow invariant violations are currently being classified too broadly as `PRESERVED`. Missing candidate/state must remain `unknown`/insufficient evidence; absence of a violation record is not itself proof of preservation.
+3. Reflection Delta persistence fixture: saving a delta requires a valid persisted `report_id`; do not weaken storage foreign keys to satisfy an isolated fixture.
+4. Protected invariant gate: invariant rejection itself is correct; diagnostic reason propagation from `TestResult.reasons` into `TransitionRecord.reason` is incomplete.
+5. Reflection foundation: current analyzer produces 5 observations where an older test expects 4; the additional rejected-transition reason is real evidence and must not be deleted merely to satisfy the old count.
+6. Shadow/adapter: inspect actual acceptance-outcome semantics before changing `evaluate_shadow()`. A change in rejection reason alone is not an improvement/regression; active rejected → shadow accepted is an improvement and should be represented as behavioral change.
 
-These commit references document implementation progress only; they do not constitute runtime PASS evidence.
+### Invariant Delta target semantics
 
-## NEXT GATE AFTER PERSISTENCE
+```text
+missing candidate/state or insufficient evidence
+    → UNKNOWN / INSUFFICIENT_EVIDENCE
 
-If the Persistence gate obtains actual passing evidence, freeze Persistence and move to **Memory/Recovery architecture** without creating a second source of truth.
+verified violation introduced or increased
+    → VIOLATION
 
-Memory must be derived from or anchored to durable Core history:
+verified violation reduced
+    → IMPROVED
+
+verified absence/preservation with sufficient evidence
+    → PRESERVED
+```
+
+Do not treat an empty violation set as sufficient evidence of preservation when the underlying state/invariant evidence is absent.
+
+### Shadow target semantics
+
+```text
+active rejected → shadow accepted
+    → improvement + behavioral change
+
+active accepted → shadow rejected
+    → regression + behavioral change
+
+active/shadow same acceptance outcome
+    → no improvement/regression
+
+rejection reason changes while both remain rejected
+    → changed diagnostic behavior, not automatically improvement
+```
+
+## RECENT TEST/CORRECTION COMMITS
+
+- `090ec5bb9082e7dc0440d005715a7151b537be57` — align rule-provenance test with strict `Test(...)->bool` contract.
+- `72e959f5556d4703e6248d745d9196cb4cb46ab4` — align diagnostic artifact test fixture with machine-readable report contract.
+- `5591af042d31500b323e3bbf7d74cceae2268b70` — diagnostic corpus fixture uses valid monotonic Core versions; current CI inspected at this commit.
+
+These commits document implementation/test progress; only inspected runtime evidence determines PASS.
+
+## NEXT GATE AFTER REFLECTION
+
+After Reflection/Shadow/Invariant Delta reaches verified CI evidence, freeze it and continue with the next evidence-backed architecture gate. Memory/Recovery must remain derived from or anchored to durable Core history and must never become a second source of truth.
 
 ```text
 Durable Core history
@@ -151,8 +181,6 @@ Memory reconstruction/cache
  ↓
 operational context
 ```
-
-Memory corruption must never silently override canonical persisted state.
 
 ## EVOLUTION / SANDBOX GATE
 
@@ -309,3 +337,7 @@ Candidate
 ## CONTEXT INTEGRITY
 
 Update this file whenever a major architectural gate is completed or canonical HEAD changes materially. Never reconstruct current architecture from memory alone.
+
+## HANDOFF NOTE — NEXT CLAUDE REVIEW
+
+The repository is ready for an external Claude review after the current Reflection/Shadow/Invariant Delta fixes are staged. Claude must read this file first, inspect current `main` HEAD, and independently verify claims against code/tests/runtime evidence. It must not assume that this context file alone constitutes PASS evidence. In particular, Persistence is runtime-verified by the inspected CI above, while Reflection/Shadow/Invariant Delta remains IN_PROGRESS.
