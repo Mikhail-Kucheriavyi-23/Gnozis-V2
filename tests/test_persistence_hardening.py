@@ -5,6 +5,7 @@ import pytest
 
 from gnosis.core import Candidate, State, TestResult, TransitionRecord
 from gnosis.instances.instance import Instance
+from gnosis.instances.fork import fork_instance
 from gnosis.storage import (
     SecretMaterialError,
     StorageCorruptionError,
@@ -107,3 +108,41 @@ def test_after_commit_failure_leaves_committed_transition_durable():
         persist_transition(conn, instance, candidate, record, actor="u", failure_at="after_commit")
     assert load_instance(conn, instance.instance_id).engine.state.state_id == proposed.state_id
     assert verify_durable_graph(conn)[0] == 2
+
+
+def test_fork_after_restart_preserves_independent_heads_lineage_and_audit():
+    conn = connect()
+    root = Instance.create_root("u", State(elements={"root": 0}))
+    save_instance(conn, root)
+    a1 = root.engine.state.with_elements({"a1": 1})
+    ca1 = Candidate(root.engine.state.state_id, a1, "root-step")
+    ra1 = root.engine.step(ca1)
+    persist_transition(conn, root, ca1, ra1, actor="u")
+
+    # Simulated restart: recover A at A1 before creating the fork.
+    recovered_a = recover_instance(conn, root.instance_id)
+    child = fork_instance(recovered_a)
+    save_instance(conn, child)
+
+    a2 = recovered_a.engine.state.with_elements({"a2": 2})
+    ca2 = Candidate(recovered_a.engine.state.state_id, a2, "a-branch")
+    ra2 = recovered_a.engine.step(ca2)
+    persist_transition(conn, recovered_a, ca2, ra2, actor="u")
+
+    b1 = child.engine.state.with_elements({"b1": 1})
+    cb1 = Candidate(child.engine.state.state_id, b1, "b-branch")
+    rb1 = child.engine.step(cb1)
+    persist_transition(conn, child, cb1, rb1, actor="u")
+
+    recovered_a2 = recover_instance(conn, recovered_a.instance_id)
+    recovered_b1 = recover_instance(conn, child.instance_id)
+    assert recovered_a2.engine.state.state_id == a2.state_id
+    assert recovered_b1.engine.state.state_id == b1.state_id
+    assert recovered_a2.parent_instance_id is None
+    assert recovered_b1.parent_instance_id == recovered_a2.instance_id
+    assert recovered_b1.generation == recovered_a2.generation + 1
+    assert "a2" in recovered_a2.engine.state.elements
+    assert "b1" in recovered_b1.engine.state.elements
+    assert "b1" not in recovered_a2.engine.state.elements
+    assert "a2" not in recovered_b1.engine.state.elements
+    assert verify_durable_graph(conn)[0] == 5
