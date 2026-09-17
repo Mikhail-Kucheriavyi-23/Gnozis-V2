@@ -1,9 +1,10 @@
 {
-  "schema": "gnozis.project-context/v3",
+  "schema": "gnozis.project-context/v4",
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
-  "snapshot_of_canonical_source_head": "c11d68572331939d31bf30f065ec90b29c8ff066",
+  "snapshot_of_canonical_source_head": "b616c2328f1acf52d0ea99cb5cfc57a3d466a2f5",
+  "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
     "persistence": "IMPLEMENTED / ACCEPTED",
@@ -11,56 +12,26 @@
     "memory": "NOT ACCEPTED / NOT MERGED",
     "user_centered_architecture": "DOCUMENTED / NOT IMPLEMENTED",
     "task_context_runtime": "NOT IMPLEMENTED / CONTRACT DEFINED",
-    "self_reflection": "ARCHITECTURE DEFINED / NOT IMPLEMENTED",
+    "reflection_observation": "IMPLEMENTED / UNVERIFIED",
+    "reflection_findings": "IMPLEMENTED / UNVERIFIED",
+    "counterexample_contract": "IMPLEMENTED / UNVERIFIED",
+    "rule_proposals": "IMPLEMENTED / UNVERIFIED",
+    "reflection_persistence": "MISSING",
+    "shadow_evaluation": "MISSING",
+    "governance_activation_rollback": "MISSING",
+    "endogenous_rule_generation": "THEORETICAL / NOT ACTIVE",
     "agents_federation_bridge": "MISSING"
   },
-  "verification_state": {
-    "persistence": "INDEPENDENTLY VERIFIED",
-    "multi_agent_strategy": "PASS WITH FINDINGS",
-    "memory": "BLOCKED - corrective findings remain",
-    "user_architecture_runtime": "UNIMPLEMENTED",
-    "task_context_runtime": "UNIMPLEMENTED",
-    "self_reflection_runtime": "UNIMPLEMENTED"
+  "reflection_runtime": {
+    "module": "gnosis/reflection/",
+    "entry_point": "gnosis.reflection.reflect(engine)",
+    "mode": "READ_ONLY",
+    "input": "canonical Engine.history / TransitionRecord evidence",
+    "output": ["ReflectionObservation", "Finding", "CounterexampleCandidate", "RuleProposal"],
+    "authority": "NONE OVER CANONICAL CORE",
+    "activation": "FORBIDDEN",
+    "status": "IMPLEMENTED / UNVERIFIED"
   },
-  "acceptance_state": {
-    "persistence": "ACCEPTED",
-    "memory": "NOT ACCEPTED",
-    "user_context_runtime": "NOT ACCEPTED / NOT IMPLEMENTED",
-    "self_reflection": "NOT ACCEPTED / ARCHITECTURAL TARGET"
-  },
-  "current_operating_scope": "SINGLE OWNER / SINGLE ACCOUNT / SINGLE CANONICAL PROJECT",
-  "active_architecture_phase": "ARCHITECTURE PREPARED FOR TWO BOUNDED RUNTIME TRACKS",
-  "active_task": "Preserve and implement the user-continuity and controlled self-reflection contracts as separate bounded tracks; do not expand either track into multi-user, federation, Memory, Identity, Bridge, or unrestricted self-modification.",
-  "primary_implementer": "Claude when explicitly assigned",
-  "independent_reviewer": "Manus when available",
-  "integration_gate": "ChatGPT under project-owner authorization",
-  "allowed_scope": [
-    "documentation and architectural contracts required for cross-terminal continuity",
-    "read-only repository inspection",
-    "bounded TaskContext implementation when explicitly assigned",
-    "bounded R1 reflection implementation when explicitly assigned",
-    "reflection contracts that do not change Core semantics",
-    "tests and verification strictly within the assigned bounded track"
-  ],
-  "forbidden_scope": [
-    "unassigned Core semantic changes",
-    "Memory merge before corrective pass and independent re-audit",
-    "Identity/authentication implementation without explicit task",
-    "encryption implementation without explicit task",
-    "Internet Bridge implementation without explicit task",
-    "unreviewed persistence schema changes",
-    "multi-user/multi-tenant/federation runtime implementation",
-    "autonomous rule activation or self-modification",
-    "cross-track implementation expansion without explicit authorization"
-  ],
-  "open_findings": [
-    "Memory H-01 cross-scope supersession",
-    "Memory H-03 supersession cycles",
-    "Memory H-04 provenance validation on write path",
-    "Memory M-01 version continuity",
-    "Memory M-02 retention state machine",
-    "narrow independent audit of synchronized STATUS.md and AI_CONTEXT.md remains required"
-  ],
   "architecture_tracks": {
     "track_a_user_continuity": {
       "status": "CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED",
@@ -68,44 +39,62 @@
         "docs/USER_ARCHITECTURE.md",
         "docs/CONTEXT_CONTRACT.md",
         "docs/CONTEXT_IMPLEMENTATION_TASK.md"
-      ],
-      "runtime_goal": "durable TaskContext with revision-safe updates and terminal-independent reconstruction"
+      ]
     },
     "track_b_core_reflection": {
-      "status": "CONTRACT DEFINED / RUNTIME NOT IMPLEMENTED",
+      "status": "R1 FOUNDATION IMPLEMENTED / UNVERIFIED",
       "contracts": [
         "docs/CORE_REFLECTION_ROADMAP.md",
         "docs/CORE_REFLECTION_R1_TASK.md"
-      ],
-      "runtime_goal": "controlled reflection over Core evidence without direct self-modification"
+      ]
     }
   },
   "reflection_roadmap": [
-    "R1 Core Reflection Foundation",
-    "R2 Observation + Finding Engine",
-    "R3 Counterexample Engine",
-    "R4 Shadow Rule Evaluation",
-    "R5 Governance / Activation / Rollback",
-    "R6 Endogenous Rule Generation",
-    "R7 Cooperative Self-Reflection Network - future multi-user strategy"
+    "R1 persistence/provenance integration and verification",
+    "R2 richer observation/finding engine",
+    "R3 executable counterexample engine",
+    "R4 shadow rule evaluation",
+    "R5 governance / activation / rollback",
+    "R6 endogenous rule generation",
+    "R7 cooperative self-reflection network - future multi-user strategy"
+  ],
+  "primary_implementer": "Claude when explicitly assigned",
+  "independent_reviewer": "Manus when available",
+  "integration_gate": "ChatGPT under project-owner authorization",
+  "forbidden_scope": [
+    "autonomous rule activation",
+    "direct self-modification",
+    "second Core State model",
+    "Memory merge before independent re-audit",
+    "multi-user/multi-tenant/federation runtime",
+    "Identity/encryption/Bridge without explicit bounded task",
+    "unreviewed Core semantic changes"
+  ],
+  "open_findings": [
+    "Memory H-01 cross-scope supersession",
+    "Memory H-03 supersession cycles",
+    "Memory H-04 provenance validation on write path",
+    "Memory M-01 version continuity",
+    "Memory M-02 retention state machine",
+    "reflection foundation requires real pytest/CI verification"
   ],
   "canonical_documents": [
     "AI_CONTEXT.md",
     "STATUS.md",
+    "context/PROJECT_CONTEXT.json",
     "docs/AI_HANDOFF_PROTOCOL.md",
     "docs/USER_ARCHITECTURE.md",
     "docs/CONTEXT_CONTRACT.md",
     "docs/CONTEXT_IMPLEMENTATION_TASK.md",
-    "docs/CORE_REFLECTION_ROADMAP.md",
-    "docs/CORE_REFLECTION_R1_TASK.md",
     "docs/ARCHITECTURE_SEQUENCING.md",
-    "docs/MULTI_AGENT_BUILD_STRATEGY.md",
-    "AGENT_ROLES.md"
+    "docs/CORE_REFLECTION_ROADMAP.md",
+    "docs/CORE_REFLECTION_R1_TASK.md"
   ],
   "next_permitted_actions": [
-    "Explicitly assign Track A Context Implementation Task to an implementer, or",
-    "Explicitly assign Track B R1 Core Reflection Foundation to an implementer.",
-    "Before implementation, inspect current main HEAD, source, tests and CI and report the exact baseline."
+    "Run real pytest/CI against the reflection foundation",
+    "complete R1 persistence/provenance integration for reflection artifacts",
+    "then implement R3 executable counterexample challenges",
+    "do not activate or self-modify rules"
   ],
-  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports. Documentation defines architecture but does not prove runtime implementation."
+  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts and independent audit evidence outrank AI reports. A RuleProposal is evidence-backed hypothesis only and has no activation authority."
 }
