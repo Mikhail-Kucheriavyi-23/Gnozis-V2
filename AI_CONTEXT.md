@@ -10,7 +10,7 @@
 ## Current verified repository baseline
 
 - Branch: `main`
-- Current documentation baseline after handoff-protocol addition: `8a8f0c1f22942bc6e5df21386525f4b753824499`.
+- Current canonical HEAD: `47edd9527cc546d840119d7db3a63f52a23bc073`.
 - Ψ-Core remains the source of truth for state/evolution semantics.
 - `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
 - Persistence is accepted in `main` following the project's independent verification gate.
