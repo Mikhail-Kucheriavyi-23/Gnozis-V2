@@ -164,3 +164,50 @@ This creates the required second-order loop: Gnozis does not only evolve its Cor
 - Keep `main` and `evolution-sandbox` explicitly separated.
 - `AI_CONTEXT` claims are evidence-bearing claims, not automatic truth.
 - Every major architectural checkpoint must update this file with the verified commit SHA.
+
+## Current implementation checkpoint — 2026-09-17
+
+### Promotion Engine
+
+Implemented on `evolution-sandbox`:
+
+- `gnosis/evolution/promotion_engine.py`
+- `tests/test_evolution_promotion_engine.py`
+
+The engine validates, before materialization:
+
+- `PromotionCandidate.can_promote`;
+- stable bounded re-evaluation;
+- descriptor readiness;
+- parent-state identity;
+- proposed-state identity;
+- model identity;
+- evidence-round count;
+- non-no-op Core transition;
+- candidate/evidence model consistency.
+
+The engine has no persistence, subprocess, Git, or external authority side effect. It returns the already-constructed immutable proposed `State` only after all gates pass. A failed promotion leaves the supplied parent `State` untouched.
+
+Commits:
+
+- implementation: `598bb445637a2004cdc17857c421438e9ae2a40c`
+- tests: `03dae8d507531f32d8ba472acfc31f6d1d863505`
+
+**Verification status:** `IMPLEMENTED / TESTS WRITTEN / RUNTIME NOT VERIFIED`.
+
+No GitHub Actions workflow run was available for the test commit, and the local environment could not clone the repository because network/DNS access is unavailable. Therefore the tests MUST NOT be reported as PASS yet.
+
+### Next task
+
+`GNV2-PROMOTION-002 — Persist promotion atomically`
+
+Required before this task is DONE:
+
+1. Add a dedicated immutable promotion/provenance record rather than disguising promotion as an ordinary transition.
+2. Persist parent Core state, proposed Core state, candidate/model identity and stable evidence reference.
+3. Atomically update the authoritative instance/Core head only after all validation succeeds.
+4. On any failure, leave `Core_n` and the authoritative head unchanged.
+5. Add rollback/recovery evidence.
+6. Verify through real runtime/CI before marking DONE.
+
+Do not merge `evolution-sandbox` into `main` until the promotion persistence contract and tests are independently verified.
