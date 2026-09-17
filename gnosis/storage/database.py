@@ -1,8 +1,10 @@
-from __future__
+from __future__ import annotations
+
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
+
 SCHEMA_VERSION = 3
 GENESIS_HASH = "0" * 64
 SCHEMA = """
@@ -18,26 +20,57 @@ CREATE TABLE IF NOT EXISTS audit_events (event_id TEXT PRIMARY KEY, sequence INT
 CREATE TRIGGER IF NOT EXISTS audit_events_no_update BEFORE UPDATE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_events_no_delete BEFORE DELETE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
 """
+
 def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
-    conn=sqlite3.connect(str(path),isolation_level=None,check_same_thread=False); conn.row_factory=sqlite3.Row; conn.execute("PRAGMA foreign_keys=ON"); conn.execute("PRAGMA busy_timeout=5000")
-    schema_meta_exists = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_meta'").fetchone()
+    conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=5000")
+    schema_meta_exists = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_meta'"
+    ).fetchone()
     if schema_meta_exists:
-        stored = conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()
+        stored = conn.execute(
+            "SELECT value FROM schema_meta WHERE key='schema_version'"
+        ).fetchone()
         if stored is not None:
-            version=int(stored[0])
+            version = int(stored[0])
             if version == 3:
-                columns={row[1] for row in conn.execute("PRAGMA table_info(transitions)")}
+                columns = {
+                    row[1]
+                    for row in conn.execute("PRAGMA table_info(transitions)")
+                }
                 if "test_rule_id" not in columns:
-                    conn.execute("ALTER TABLE transitions ADD COLUMN test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified'")
+                    conn.execute(
+                        "ALTER TABLE transitions ADD COLUMN test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified'"
+                    )
             elif version != SCHEMA_VERSION:
-                conn.close(); raise RuntimeError(f"incompatible schema version: {version} (expected {SCHEMA_VERSION})")
-    conn.executescript(SCHEMA); conn.execute("INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
-    if int(conn.execute("PRAGMA foreign_keys").fetchone()[0]) != 1: conn.close(); raise RuntimeError("SQLite foreign_keys pragma is not active")
+                conn.close()
+                raise RuntimeError(
+                    f"incompatible schema version: {version} (expected {SCHEMA_VERSION})"
+                )
+    conn.executescript(SCHEMA)
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version',?)",
+        (str(SCHEMA_VERSION),),
+    )
+    if int(conn.execute("PRAGMA foreign_keys").fetchone()[0]) != 1:
+        conn.close()
+        raise RuntimeError("SQLite foreign_keys pragma is not active")
     return conn
+
+
 @contextmanager
 def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
     conn.execute("BEGIN IMMEDIATE")
-    try: yield conn
-    except BaseException: conn.rollback(); raise
-    else: conn.commit()
-def close(conn: sqlite3.Connection) -> None: conn.close()
+    try:
+        yield conn
+    except BaseException:
+        conn.rollback()
+        raise
+    else:
+        conn.commit()
+
+
+def close(conn: sqlite3.Connection) -> None:
+    conn.close()
