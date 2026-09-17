@@ -14,6 +14,7 @@ from .analyzer import (
 )
 from .counterexample import CounterexampleEngine, CounterexampleResult
 from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
+from .rules import RuleMetadata, RuleRegistry
 from .runtime import reflect
 from .shadow import ShadowCase, ShadowEvaluation, evaluate_shadow
 
@@ -27,7 +28,9 @@ __all__ = [
     "ReflectionHistorySummary",
     "ReflectionObservation",
     "ReflectionReport",
+    "RuleMetadata",
     "RuleProposal",
+    "RuleRegistry",
     "ShadowCase",
     "ShadowEvaluation",
     "evaluate_shadow",
