@@ -4,7 +4,8 @@ from gnosis.storage.repositories import StorageCorruptionError, transition_id, v
 
 
 def test_durable_graph_rejects_transition_id_tampering(persisted_transition):
-    conn, instance, record = persisted_transition
+    conn, instance, _record = persisted_transition
+    conn.execute("PRAGMA foreign_keys=OFF")
     row = conn.execute(
         "SELECT transition_id FROM transitions WHERE instance_id=? ORDER BY created_at, transition_id LIMIT 1",
         (instance.instance_id,),
