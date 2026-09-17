@@ -1,0 +1,55 @@
+name: Self-Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'gnosis/reflection/**'
+      - 'gnosis/core/**'
+      - 'tests/**'
+      - '.github/workflows/self-diagnostic.yml'
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package + dev deps
+        run: pip install -e ".[dev]"
+      - name: Run self-diagnostic test suite
+        run: pytest -q tests/test_self_diagnostic.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py
+      - name: Generate diagnostic artifact
+        run: |
+          mkdir -p diagnostic_artifacts
+          python - <<'PY'
+          import json
+          from gnosis.core.engine import Engine
+          from gnosis.reflection.self_diagnostic import diagnose
+          from gnosis.reflection.diagnostic_artifact import serialize_artifact
+
+          engine = Engine()
+          diagnostic = diagnose(engine.history)
+          with open('diagnostic_artifacts/SELF-DIAGNOSTIC-0001.json', 'w', encoding='utf-8') as f:
+              f.write(serialize_artifact(diagnostic, artifact_id='SELF-DIAGNOSTIC-0001'))
+          print(json.dumps({
+              'artifact': 'SELF-DIAGNOSTIC-0001',
+              'history_records': len(engine.history),
+              'findings': len(diagnostic.report.findings),
+              'causal_candidates': len(diagnostic.causal_candidates),
+              'refined_proposals': len(diagnostic.refined_proposals),
+              'limitations': list(diagnostic.limitations),
+          }, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload self-diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-diagnostic-${{ matrix.python-version }}
+          path: diagnostic_artifacts/SELF-DIAGNOSTIC-0001.json
