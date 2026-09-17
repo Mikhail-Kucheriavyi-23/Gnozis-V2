@@ -26,7 +26,7 @@ jobs:
       - name: Install package + dev deps
         run: pip install -e ".[dev]"
       - name: Run reflection and persistence tests
-        run: pytest -q tests/test_rule_provenance.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py tests/test_persistence.py tests/test_diagnostic_corpus.py tests/test_diagnostic_execution.py
+        run: pytest -q tests/test_rule_provenance.py tests/test_causal_attribution.py tests/test_diagnostic_artifact.py tests/test_persistence.py tests/test_transition_identity_integrity.py tests/test_transition_identity_integrity_valid.py tests/test_transition_audit_link_integrity.py tests/test_audit_hash_tamper_integrity.py tests/test_transition_replay_idempotency.py tests/test_persistence_crash_reopen.py tests/test_diagnostic_corpus.py tests/test_diagnostic_execution.py
       - name: Generate persisted Core history and diagnose it
         run: python diagnostic_corpus/generate.py
       - name: Upload self-diagnostic artifact
