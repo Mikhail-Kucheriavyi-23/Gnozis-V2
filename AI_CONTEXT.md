@@ -1,225 +1,183 @@
-# GNOSIS-V2 — Shared AI Working Context
+# Gnozis-V2 — AI Context
 
-> Canonical handoff document for AI tools working on this repository.
-> This file records project context and collaboration rules; it is not a substitute for source code, tests, CI, or formal specifications.
+## Canonical repository
+- Canonical development repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
+- Legacy `Gnozis` remains an archival research source and historical provenance.
+- `AI_CONTEXT.md` is the operational handoff document for participating AI systems.
 
-## 1. Project identity
+## Current verified baseline
+- Ψ-Core is the source of truth for state/evolution semantics.
+- `docs/DATABASE_SCHEMA.md` defines the intended persistence shape but is not itself implementation.
+- `gnosis/storage/` is not yet implemented.
+- `logs/` currently contains only a placeholder; it is not a functioning persistent audit system.
+- `Engine.history` is in-process history and is lost on process exit.
+- The latest synchronization commit passed GitHub Actions CI successfully.
+- Current implementation status must always be verified from source, tests and CI rather than inferred from documentation.
 
-- Repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- Project: GNOSIS 2.0
-- This repository is the canonical development line for V2.
-- The older `Mikhail-Kucheriavyi-23/Gnozis` repository is an archived/research line and must not be treated as the automatic source of code for V2.
+## Status vocabulary
+Use only these implementation states:
+- `IMPLEMENTED` — verified in source and tests where applicable.
+- `PARTIAL` — some implementation exists but required behavior is incomplete.
+- `MISSING` — specified but not implemented.
+- `THEORETICAL` — design/research only; no implementation claim.
 
-## 2. Current architectural direction
+Documentation, schemas, enums, placeholders, interfaces, or planned directories must never be presented as implemented functionality.
 
-Core mathematical state:
+## Trust boundary
+Do not weaken the separation between:
+- Ψ-Core and external interfaces;
+- analysis and decision layers;
+- immutable/core semantics and mutable workspace;
+- identity/capability/policy and privileged operations.
 
-`Ψ = (X, R)`
+No AI model belongs inside Ψ-Core. No external selector/operator/global clock may silently become part of Core semantics.
 
-The Core is the authoritative source of truth for state transitions.
+## Current development direction
+The immediate engineering sequence begins with:
+1. Persistence;
+2. Append-only audit log with hash chaining;
+3. Instance/lifecycle persistence;
+4. Memory;
+5. Identity/capability/trust boundary;
+6. User/world bridge;
+7. Multi-agent network;
+8. Evolution/autopoiesis and system integration.
 
-Current verified Core transition pattern:
+This sequence is a working roadmap, not an immutable architecture. Each phase must be validated before the next phase expands its scope.
 
-`Candidate → Test → Verify → Commit → State′`
+## Multi-AI project governance — FIXED WORKING MODEL
 
-The multi-candidate path additionally supports:
+The project is developed collaboratively by multiple AI systems. The following governance model is now the default operating model.
 
-`Generate(caller-supplied) → Test → Select → Evolve → State′`
+### ChatGPT — architecture, integration and final gate
+ChatGPT is responsible for:
+- maintaining the architectural direction and Ψ/Core invariants;
+- decomposing work into bounded phases/tasks;
+- defining acceptance criteria and forbidden changes;
+- reconciling Claude/Manus/auditor findings;
+- reviewing completed implementations against source, tests and project theory;
+- deciding whether a phase is accepted, rejected, or returned for correction;
+- maintaining the canonical project context and preventing architectural drift.
 
-Important boundaries:
+ChatGPT should not duplicate large implementation tasks unnecessarily when another assigned AI is already implementing them.
 
-- Core must not depend directly on SQLite, GitHub, terminal tools, workers, or external AI services.
-- Persistence is a representation/storage layer for Core state, not a second mutable state machine.
-- External interfaces must not receive unrestricted authority to mutate Core.
-- Current `GenerateFn` is caller-supplied. Endogenous/population-level Generate is future research work and is NOT implemented.
-- Do not introduce OpenRouter, Telegram/bot infrastructure, a global controller, direct Internet-to-Core paths, or global mutable memory unless the project owner explicitly changes the architecture.
+### Claude — primary implementation engineer
+Claude is the default primary implementer for large, well-bounded engineering tasks unless a phase is explicitly assigned elsewhere.
 
-## 3. Verified repository status
+Claude should:
+- implement the requested phase;
+- add/maintain tests;
+- update relevant technical documentation;
+- report exactly what is IMPLEMENTED/PARTIAL/MISSING/THEORETICAL;
+- avoid unrelated refactors and architecture changes;
+- provide a concise handoff for independent review.
 
-This section is a handoff snapshot based on repository evidence. It must still be re-verified before making new claims.
+### Manus — independent engineer and adversarial reviewer
+Manus is used for:
+- independent implementation of phases explicitly assigned to Manus;
+- independent review of Claude implementations;
+- architectural consistency checks;
+- security/trust-boundary review;
+- finding hidden coupling, incomplete implementations, and unsupported claims;
+- proposing corrective changes after review.
 
-### IMPLEMENTED
+Manus should not silently replace or fork the architecture. Changes must remain within the assigned task and current project invariants.
 
-- Ψ=(X,R) Core state model with `State` and `Relation`.
-- Deep-freeze protection for nested `State`/`Relation` data.
-- Candidate / TestResult / Verify / Commit flow.
-- Content-based meaningful-change/no-op protection.
-- Multi-candidate `Select` via `Engine.step_select`.
-- Resource budget constraints (default budget 20).
-- Clone/fork/lineage mechanisms with instance isolation tests.
-- Phase 0/1 Core contracts and tests.
-- Threat model and database schema documents.
-- Dependency separation: zero core dependencies; analytics dependencies isolated as an optional extra.
-- Current `logs/` directory structure exists as an explicit audit/logging placeholder.
+### Gemini and other AI systems without repository access — external audit
+Systems without repository access are treated as external/read-only auditors.
 
-### PARTIAL
+They may receive:
+- repository snapshots;
+- relevant source files;
+- `AI_CONTEXT.md`;
+- `STATUS.md`;
+- schemas and audit reports.
 
-- Generate→Test→Select→Evolve: multi-candidate Select exists, but Generate remains caller-supplied and there is no population-level endogenous generation.
-- Protected invariants: Core/state/transition/monotonic-version/meaningful-change invariants exist; identity, capability, cryptographic, memory and persistent-audit invariants are not implemented.
-- Proof-preserving evolution: verification interface exists, but no Lean/Coq/F* theorem-prover binding.
-- Stop conditions: implemented conditions include budget exhaustion and invalid state; additional stop reasons remain reserved/future.
-- Instance/clone/fork/lineage: implemented in memory, but no persistent DB recovery and no cryptographic per-instance identity.
-- Logs/auditability: `Engine.history` is in-memory only; `logs/` contains placeholders/documentation and has no persistent audit writer yet.
-- Test strategy/security: Core and adversarial tests exist, but Agent/Federation/Memory/cryptographic security tiers cannot be complete before those layers exist.
-- Reproducibility: candidate seed exists, but no complete experiment harness recording seed/config/event log.
-- Architecture layout: Core/instances are implemented; Agent, Memory, Bridge, Federation and Analytics implementation layers are not yet established; `storage/` is currently a placeholder.
+They should focus on independent criticism, counterexamples, security issues, mathematical consistency, architectural contradictions, and claims that are not supported by implementation. They do not directly modify the canonical repository.
 
-### MISSING
+## Handoff protocol
+For every substantial phase:
 
-- Persistent SQLite storage implementation.
-- Append-only, hash-chained audit-log writer and complete chain verification.
-- Restart recovery of state and lineage.
-- Cryptographic Instance/Agent identity and signatures.
-- Persistent Memory layer and encryption layer.
-- Agent and multi-agent layers.
-- User-owned copies, Federation, Trust and Delegation implementation.
-- Secure external Bridge/world-exploration layer.
-- Analytics implementation.
+`Task definition → primary implementation → independent review → ChatGPT integration/final gate → context/status update → next phase`
 
-### THEORETICAL / FUTURE
-
-- Endogenous/population-level Generate inside the verified evolution system.
-- Mathematical population/mutation implementation described by the specification.
-- Formal theorem-prover integration.
-
-### CI / test evidence
-
-- The repository contains GitHub Actions CI configuration.
-- Current sandbox/connector evidence does **not** establish that CI has actually executed successfully; do not report CI as green merely because the workflow file exists.
-- `STATUS.md` records 61 tests executed through an offline runner, with a caveat that real dependency installation/network-backed CI was not executed in that environment.
-- Never convert static workflow correctness into a claim of successful CI execution.
-
-## 4. Current next development stage
-
-The immediate engineering focus is:
-
-**Persistence + Append-Only Audit Log**
-
-Target architecture:
-
-`Core → Storage Adapter → SQLite`
-
-and:
-
-`Commit → Audit Event → Hash Chain`
-
-The database schema is already drafted in `docs/DATABASE_SCHEMA.md`; implementation is not complete.
-
-Required outcomes:
-
-1. Persist State, Candidate, Transition and Instance/lineage.
-2. Use deterministic canonical serialization.
-3. Implement a real append-only audit API/writer.
-4. Hash-chain audit events with SHA-256.
-5. Verify the complete audit chain.
-6. Make logical commit persistence transactional.
-7. Recover current state and lineage after restart.
-8. Preserve all existing Core invariants and tests.
-
-After this stage, stop and report remaining gaps. Do not automatically start Agent, Memory, Federation, Bridge, endogenous Generate, or theorem-prover work without an explicitly authorized next task.
-
-## 5. AI collaboration protocol
-
-Multiple AI tools may work on this repository. They are independent collaborators, not competing sources of truth.
-
-### Before work
-
-1. Read `AI_CONTEXT.md`.
-2. Read `STATUS.md` if present.
-3. Inspect the relevant source code and tests.
-4. Check current `main`, recent commits, and CI when the task depends on repository state.
-5. Never assume another AI's description is correct without checking repository evidence.
-
-### During work
-
-- Make the smallest change that satisfies the agreed task.
-- Preserve existing architectural boundaries.
-- Do not silently broaden scope.
-- Do not rewrite working Core code merely for style.
-- Add or update tests for behavior changes.
-- Do not weaken, delete, skip, or falsify tests to obtain green CI.
-- Do not claim a feature is implemented because a placeholder, interface, enum, filename, or documentation exists.
-
-### After work
-
-Every AI that changes the repository should report:
-
-- exact files changed;
-- exact behavior added/changed;
+A phase handoff must contain:
+- files changed;
+- behavior implemented;
 - tests added/changed;
-- tests actually run and their results;
-- CI result if actually available;
-- remaining limitations;
-- whether the change affects the mathematical Core or only an adapter/infrastructure layer;
-- one recommended next task, without starting it automatically.
+- test/CI result;
+- known limitations;
+- security/trust-boundary implications;
+- remaining `PARTIAL/MISSING/THEORETICAL` items;
+- recommended next step.
 
-## 6. Conflict resolution between AI tools
+Parallel edits to the same architectural area should be avoided unless explicitly coordinated.
 
-If two AI tools disagree:
+## Conflict resolution between AI systems
+When AI conclusions differ, use this precedence:
 
-1. Source code is stronger evidence than prose.
-2. Passing behavioral tests are stronger evidence than comments.
-3. Actual CI results are stronger evidence than claimed local results.
-4. The mathematical/architectural specification is the reference for intended behavior.
-5. If implementation and specification disagree, do not silently choose one; document the discrepancy and record the required decision.
+1. actual source code;
+2. reproducible tests and CI;
+3. explicit project invariants/specification;
+4. verified audit evidence;
+5. design proposals and AI opinions.
 
-Never merge incompatible architectural interpretations merely to remove a conflict.
+No AI assertion overrides executable evidence merely because it appears in a report.
 
-## 7. Status vocabulary
+If two implementations are plausible, do not merge both by default. Stop, compare their architectural consequences, and resolve the conflict before proceeding.
 
-Use only these implementation labels when reporting implementation state:
+## Phase ownership is provisional per phase
+The global governance model is fixed, but the implementation owner may change from phase to phase.
 
-- `IMPLEMENTED` — behavior exists and is supported by code plus appropriate tests/evidence.
-- `PARTIAL` — some implementation exists but acceptance criteria are incomplete.
-- `MISSING` — no working implementation exists.
-- `THEORETICAL` — described as an idea/specification but not implemented.
+Before each major phase, explicitly record:
+- primary implementer;
+- reviewer;
+- ChatGPT acceptance role;
+- external audit requirement, if any.
 
-Do not use documentation, filenames, TODOs, enum members, class declarations, or placeholders alone to justify `IMPLEMENTED`.
+The same AI should not automatically implement and independently certify its own work.
 
-## 8. Provenance and external research
+## Mandatory quality gates
+No phase is considered complete solely because code exists.
 
-External projects, papers, biological analogies, AI-agent systems, and third-party architectures may be used as comparison or research material.
+A phase must be evaluated for:
+- functional correctness;
+- tests;
+- CI where applicable;
+- persistence/recovery behavior where applicable;
+- security and trust-boundary preservation;
+- compatibility with Ψ-Core;
+- absence of undocumented architectural coupling;
+- accurate status classification.
 
-They must not silently become part of GNOSIS architecture or be presented as the origin of the Ψ/Gnozis line.
+## Open evolution question
+As Gnozis approaches autonomous/self-directed evolution, this governance model must be revisited. In particular, future work must determine how human authority, AI-agent authority, proof/invariant checks, rollback, capability limits, and auditability interact when the system can propose or perform its own modifications.
 
-Record significant external architectural influences explicitly when they are adopted.
+No claim of autonomous self-development should be made until the corresponding mechanisms are implemented and independently verified.
 
-## 9. Sensitive boundaries
+## Immediate next task
+The next engineering phase is **Persistence + Append-Only Audit Log**.
 
-- Do not add OpenRouter or a bot to V2 unless the project owner explicitly changes this decision.
-- Do not expose internal Core implementation merely for convenience of external tools.
-- Security features must not be claimed until their threat model, implementation, and tests exist.
-- `logs/` is for inspectable evolution/audit evidence; do not represent its current placeholders as a working persistent audit system.
+Required direction:
+- SQLite local persistence;
+- repository/storage boundary outside Ψ-Core;
+- state save/load and restart recovery;
+- append-only audit events;
+- SHA-256 hash chaining and integrity verification;
+- transaction/crash behavior tests;
+- no raw private keys/passwords/secrets in the database;
+- tests proving that audit history cannot be silently rewritten through the normal API.
 
-## 10. Context recovery procedure
+The implementation must follow `docs/DATABASE_SCHEMA.md` rather than inventing a divergent schema.
 
-If an AI tool enters this repository with no prior conversation context, reconstruct working context in this order:
+## Context recovery procedure
+A new AI session must read, in order:
+1. `AI_CONTEXT.md`;
+2. `STATUS.md`;
+3. `docs/DATABASE_SCHEMA.md`;
+4. relevant source files;
+5. relevant tests;
+6. latest CI status.
 
-1. Read `AI_CONTEXT.md`.
-2. Read `STATUS.md`.
-3. Read the relevant `docs/` specifications, especially `docs/DATABASE_SCHEMA.md` and `docs/THREAT_MODEL.md`.
-4. Inspect the Core source.
-5. Inspect the relevant tests.
-6. Inspect recent Git history and CI.
-7. Determine actual status using `IMPLEMENTED/PARTIAL/MISSING/THEORETICAL`.
-8. Continue only with the currently authorized task.
+Then report the current state using `IMPLEMENTED / PARTIAL / MISSING / THEORETICAL` before proposing changes.
 
-The AI must not infer unfinished work from old conversation history when the repository contains newer evidence.
-
-## 11. Context update rule
-
-When a major architectural decision or implementation status changes, update this file in the same change set or immediately after the decision.
-
-Do not turn this file into a chronological chat transcript. Keep it as a compact operational handoff document.
-
-## 12. Current handoff
-
-- Canonical repository: `Gnozis-V2`.
-- Older `Gnozis`: archival/research reference only.
-- Current Core: Phase 0/1 substantially implemented and tested; Instance layer partially implemented in memory.
-- Immediate engineering focus: persistent SQLite storage + append-only hash-chained audit log.
-- `docs/DATABASE_SCHEMA.md` already defines the intended database structure; implementation remains incomplete.
-- `logs/` currently provides the inspection/documentation boundary, not a completed persistent audit backend.
-- CI must be reported as `UNVERIFIED` unless an actual CI run/result is available.
-- Next stages remain gated by verification of the current persistence/audit stage.
-- Any AI tool joining the project should begin by validating this document against the repository.
+Never assume that an earlier AI's report is proof of implementation.
