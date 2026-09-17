@@ -16,7 +16,7 @@ def test_shadow_compares_same_candidate_without_mutating_state():
     state = State(elements={"x": 0})
     candidates = (_candidate(state, 1, 1), _candidate(state, -1, 2))
 
-    def shadow_rule(candidate):
+    def shadow_rule(_state, candidate):
         return candidate.proposed_state.elements.get("x", 0) >= 0
 
     before = state.state_id
@@ -33,7 +33,7 @@ def test_shadow_reports_regression_without_activation():
     state = State(elements={"x": 0})
     candidate = _candidate(state, 1, 3)
 
-    def rejecting_rule(_candidate):
+    def rejecting_rule(_state, _candidate):
         return False
 
     result = evaluate_shadow((candidate,), default_test, rejecting_rule)
