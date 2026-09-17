@@ -62,6 +62,7 @@ Implemented experimental stages:
 4. `SandboxEvaluator` — compares actual model evidence and selects the best passing model.
 5. `SandboxExecution` / executable pipeline — runs each sandbox model through an injected runner and converts observations into `ModelEvidence`.
 6. `PromotionCandidate` — descriptive candidate requiring passed evidence and invariant status `PRESERVED` or `IMPROVED`.
+7. bounded recursive re-evaluation — candidate evidence is independently re-run for up to three rounds; failed rounds stop evaluation and prevent stability.
 
 The next required bridge is:
 
@@ -91,7 +92,8 @@ Evidence
 InvariantDelta
  ↓ Governance
 PromotionCandidate
- ↓ full recursive re-evaluation
+ ↓ bounded recursive re-evaluation
+ ↓ stable evidence
 Core_(n+1)
  ↓ Reflection
  ↺
