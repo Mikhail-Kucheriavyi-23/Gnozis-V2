@@ -127,6 +127,14 @@ class TransitionRecord:
     reason: str
     test_rule_id: str = "test-rule:unspecified"
 
+    def __post_init__(self) -> None:
+        if self.accepted is not self.test_result.passed:
+            raise ValueError(
+                "TransitionRecord.accepted must exactly match test_result.passed"
+            )
+        if not self.reason.strip():
+            raise ValueError("TransitionRecord.reason must not be empty")
+
 
 Agent = None
 Instance = None
