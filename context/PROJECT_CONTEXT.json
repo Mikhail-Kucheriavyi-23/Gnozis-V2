@@ -3,8 +3,7 @@
   "context_id": "gnozis-v2-canonical-project",
   "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
   "branch": "main",
-  "canonical_source_head": "ef86ae93c955911f88b722132e0028577e048449",
-  "context_snapshot_commit": "1e17c2112b2e545b2c73d757d707f1ad7e8aa225",
+  "snapshot_of_canonical_source_head": "c00eb90c0a34b671c73d9f41ebde480d477da033",
   "implementation_state": {
     "psi_core": "IMPLEMENTED",
     "persistence": "IMPLEMENTED / ACCEPTED",
