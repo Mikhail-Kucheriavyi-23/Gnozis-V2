@@ -36,7 +36,7 @@ def test_shadow_reports_regression_without_activation():
     def rejecting_rule(_state, _candidate):
         return False
 
-    result = evaluate_shadow((candidate,), default_test, rejecting_rule)
+    result = evaluate_shadow((candidate,), lambda _state, _candidate: True, rejecting_rule)
 
     assert result.status == "REGRESSION"
     assert result.regressions == 1
