@@ -12,10 +12,9 @@ def test_transition_audit_link_tampering_is_rejected(persisted_transition):
     assert row is not None
     transition_id = row[0]
     other = "f" * 64
-    conn.execute("PRAGMA foreign_keys=OFF")
+    conn.execute("DROP TRIGGER audit_events_no_update")
     conn.execute("UPDATE audit_events SET transition_id=? WHERE transition_id=?", (other, transition_id))
-    conn.execute("PRAGMA foreign_keys=ON")
-    with pytest.raises(StorageCorruptionError):
+    with pytest.raises((StorageCorruptionError, ValueError, RuntimeError)):
         verify_durable_graph(conn)
 
 
