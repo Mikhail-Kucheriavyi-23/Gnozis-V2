@@ -1,0 +1,62 @@
+{
+  "schema": "gnozis.project-context/v1",
+  "context_id": "gnozis-v2-canonical-project",
+  "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
+  "branch": "main",
+  "canonical_head": "90d58c0fb6d387a795d2968c5fef275798881a96",
+  "implementation_state": {
+    "psi_core": "IMPLEMENTED",
+    "persistence": "IMPLEMENTED / ACCEPTED",
+    "memory": "NOT ACCEPTED / NOT MERGED",
+    "user_centered_architecture": "DOCUMENTED / NOT IMPLEMENTED",
+    "agents_federation_bridge": "MISSING"
+  },
+  "verification_state": {
+    "persistence": "INDEPENDENTLY VERIFIED",
+    "multi_agent_strategy": "PASS WITH FINDINGS",
+    "memory": "BLOCKED - corrective findings remain",
+    "user_architecture_runtime": "UNIMPLEMENTED"
+  },
+  "acceptance_state": {
+    "persistence": "ACCEPTED",
+    "memory": "NOT ACCEPTED",
+    "user_context_runtime": "NOT ACCEPTED / NOT IMPLEMENTED"
+  },
+  "active_phase": "DOCUMENTATION CONTINUITY / ARCHITECTURAL PREPARATION",
+  "active_task": "Keep canonical continuation state usable by a replacement AI terminal; do not begin runtime User/Task/Context/Capability implementation without an explicit bounded task.",
+  "primary_implementer": "ChatGPT for current architectural preparation",
+  "independent_reviewer": "Manus when available",
+  "integration_gate": "ChatGPT under project-owner authorization",
+  "allowed_scope": [
+    "documentation and architectural contracts required for cross-terminal continuity",
+    "read-only repository inspection",
+    "explicitly assigned bounded architecture preparation"
+  ],
+  "forbidden_scope": [
+    "unassigned Core semantic changes",
+    "Memory merge before corrective pass and independent re-audit",
+    "Identity/authentication implementation without explicit task",
+    "encryption implementation without explicit task",
+    "Internet Bridge implementation without explicit task",
+    "unreviewed persistence schema changes"
+  ],
+  "open_findings": [
+    "Memory H-01 cross-scope supersession",
+    "Memory H-03 supersession cycles",
+    "Memory H-04 provenance validation on write path",
+    "Memory M-01 version continuity",
+    "Memory M-02 retention state machine",
+    "narrow independent audit of synchronized STATUS.md and AI_CONTEXT.md remains required"
+  ],
+  "next_permitted_action": "Complete the documentation continuity audit; then execute the already approved Memory corrective sequence when the assigned implementer is available.",
+  "canonical_documents": [
+    "AI_CONTEXT.md",
+    "STATUS.md",
+    "docs/AI_HANDOFF_PROTOCOL.md",
+    "docs/USER_ARCHITECTURE.md",
+    "docs/CONTEXT_CONTINUITY_CONTRACT.md",
+    "docs/MULTI_AGENT_BUILD_STRATEGY.md",
+    "AGENT_ROLES.md"
+  ],
+  "rule": "Conversation history is non-canonical. Current source, reproducible tests/CI, accepted contracts, and independent audit evidence outrank AI reports."
+}
