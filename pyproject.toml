@@ -15,7 +15,7 @@ dev = ["pytest>=7.0", "pytest-cov>=4.0"]
 analytics = ["numpy", "networkx", "scipy"]
 
 [tool.setuptools.packages.find]
-include = ["gnosis*"]
+include = ["gnosis*", "diagnostic_corpus*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
