@@ -141,13 +141,19 @@ def verify_durable_graph(conn: sqlite3.Connection) -> tuple[int,str]:
             raise StorageCorruptionError("instance lacks creation audit evidence")
         transitions=list(conn.execute("SELECT transition_id,candidate_id,from_state_id,to_state_id,accepted FROM transitions WHERE instance_id=? ORDER BY created_at,transition_id",(row[0],)))
         if row[3] is None and row[4] != 0: raise StorageCorruptionError("invalid root generation")
+        if row[3] is not None:
+            parent=conn.execute("SELECT generation FROM instances WHERE instance_id=?", (row[3],)).fetchone()
+            if parent is None or row[4] != parent[0] + 1: raise StorageCorruptionError("invalid fork lineage")
         if not transitions and row[2] != row[1]: raise StorageCorruptionError("current head lacks transition provenance")
         if transitions:
             accepted=[t for t in transitions if t[4]]
             if not accepted or accepted[-1][3] != row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
+            expected=row[1]
             for t in transitions:
                 cand=load_candidate(conn,t[1])
                 if cand.parent_state_id != t[2] or cand.proposed_state.state_id != t[3]: raise StorageCorruptionError("transition/candidate mismatch")
+                if t[4] and t[2] != expected: raise StorageCorruptionError("broken accepted transition continuity")
+                if t[4]: expected=t[3]
                 events=conn.execute("SELECT 1 FROM audit_events WHERE transition_id=? AND resource=?",(t[0],row[0])).fetchone()
                 if events is None: raise StorageCorruptionError("transition lacks audit evidence")
     return chain
