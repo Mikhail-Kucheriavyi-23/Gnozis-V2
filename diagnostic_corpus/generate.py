@@ -6,8 +6,7 @@ import tempfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
-from gnosis.core import Candidate, State, TestResult
-from gnosis.core.engine import Engine
+from gnosis.core import Candidate, Engine, State
 from gnosis.instances.instance import Instance
 from gnosis.reflection.diagnostic_artifact import serialize_artifact
 from gnosis.reflection.self_diagnostic import diagnose
@@ -15,7 +14,6 @@ from gnosis.storage import (
     connect,
     load_transition_records,
     persist_transition,
-    save_candidate,
     save_instance,
     verify_durable_graph,
 )
@@ -33,10 +31,8 @@ def _plain(value):
     return value
 
 
-def _test(state: State, candidate: Candidate) -> TestResult:
-    if "bad" in candidate.proposed_state.elements:
-        return TestResult(False, ("policy:bad-element",))
-    return TestResult(True, ("controlled acceptance",))
+def _test(state: State, candidate: Candidate) -> bool:
+    return "bad" not in candidate.proposed_state.elements
 
 
 def generate() -> None:
