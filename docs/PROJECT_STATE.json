@@ -1,0 +1,68 @@
+{
+  "schema": "gnozis-project-state/v1",
+  "repository": "Mikhail-Kucheriavyi-23/Gnozis-V2",
+  "canonical_branch": "main",
+  "canonical_head": "7d40a9c91fd2e69736305141a71b62aeebb99461",
+  "context_sources": [
+    "AI_CONTEXT.md",
+    "STATUS.md",
+    "docs/AI_HANDOFF_PROTOCOL.md",
+    "docs/MULTI_AGENT_BUILD_STRATEGY.md",
+    "AGENT_ROLES.md"
+  ],
+  "governance": {
+    "human_owner_authority": true,
+    "connector_access_is_architectural_authority": false,
+    "implementation_requires_explicit_task": true,
+    "independent_verification_required": true,
+    "integration_gate_required": true
+  },
+  "state": {
+    "persistence": {
+      "implementation": "IMPLEMENTED",
+      "verification": "VERIFIED",
+      "acceptance": "ACCEPTED"
+    },
+    "multi_agent_strategy": {
+      "implementation": "DOCUMENTED",
+      "verification": "PASS_WITH_FINDINGS",
+      "acceptance": "CURRENT_WORKING_MODEL"
+    },
+    "memory": {
+      "implementation": "EXTERNAL_ARTIFACT_ONLY",
+      "verification": "BLOCKED_PENDING_CORRECTIVE_REAUDIT",
+      "acceptance": "NOT_ACCEPTED"
+    },
+    "context_continuity": {
+      "implementation": "DOCUMENTED",
+      "verification": "NOT_YET_EXECUTED_CROSS_PRODUCT_TEST",
+      "acceptance": "ARCHITECTURAL_LAYER_ONLY"
+    }
+  },
+  "active_phase": {
+    "name": "context-continuity architecture",
+    "status": "DOCUMENTATION_AND_ARCHITECTURE",
+    "primary_implementer": "ChatGPT",
+    "independent_reviewer": "Manus when available",
+    "integration_gate": "ChatGPT under human owner authorization",
+    "allowed_scope": [
+      "context recovery contracts",
+      "handoff protocol",
+      "machine-readable project state",
+      "phase/evidence ledger design",
+      "documentation required for cross-product continuation"
+    ],
+    "forbidden_scope": [
+      "Memory corrective implementation",
+      "Core semantic changes",
+      "Identity/authentication/authorization implementation",
+      "encryption implementation",
+      "Internet Bridge implementation",
+      "federation implementation",
+      "autonomous self-modification"
+    ]
+  },
+  "next_permitted_action": "Independent read-only audit of the context-continuity documentation/state layer, then proceed to the already approved Memory corrective pass.",
+  "evidence_rule": "Current repository source and reproducible tests outrank AI reports or conversation history.",
+  "staleness_rule": "This file records a pinned snapshot. A new session must verify canonical_head against the live repository before relying on it."
+}
