@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from gnosis.core import Candidate, Relation, State
+from gnosis.core import Candidate, Relation, State, TestResult, TransitionRecord
 from gnosis.instances.instance import Instance
 from gnosis.storage import (
     StorageCorruptionError,
@@ -199,6 +199,61 @@ def test_a50_audit_resource_mismatch_fails_durable_graph_verification():
     conn.execute("UPDATE audit_events SET resource=?, event_hash=? WHERE event_id=?", ("wrong-resource", _audit_hash(event), row[0]))
     with pytest.raises(StorageCorruptionError, match="audit evidence"):
         verify_durable_graph(conn)
+
+
+def _rejected_transition_fixture(conn):
+    instance = root()
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "rejected")
+    record = TransitionRecord(
+        instance.engine.state.state_id,
+        proposed.state_id,
+        candidate.candidate_id,
+        TestResult(False, ("rejected",)),
+        False,
+        "rejected",
+    )
+    return instance, candidate, record
+
+
+def test_a08_rejected_candidate_survives_close_reopen_without_head_advance(tmp_path):
+    path = tmp_path / "rejected.sqlite"
+    conn = connect(path)
+    instance, candidate, record = _rejected_transition_fixture(conn)
+    persist_transition(conn, instance, candidate, record, actor="u")
+    original = instance.engine.state.state_id
+    conn.close()
+    reopened = connect(path)
+    recovered = recover_instance(reopened, instance.instance_id)
+    assert recovered.engine.state.state_id == original
+    assert verify_durable_graph(reopened)[0] == 2
+
+
+def test_a28_noop_transition_remains_valid_on_persistence_path():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    noop = State(elements=instance.engine.state.elements, relations=instance.engine.state.relations, version=instance.engine.state.version + 1)
+    candidate = Candidate(instance.engine.state.state_id, noop, "noop")
+    record = instance.engine.step(candidate)
+    assert record.accepted is False
+    persist_transition(conn, instance, candidate, record, actor="u")
+    assert recover_instance(conn, instance.instance_id).engine.state.state_id == instance.engine.state.state_id
+    assert verify_durable_graph(conn)[0] == 2
+
+
+def test_a29_rejected_candidate_cannot_become_head_after_close_reopen(tmp_path):
+    path = tmp_path / "rejected-head.sqlite"
+    conn = connect(path)
+    instance, candidate, record = _rejected_transition_fixture(conn)
+    persist_transition(conn, instance, candidate, record, actor="u")
+    proposed_id = candidate.proposed_state.state_id
+    conn.close()
+    reopened = connect(path)
+    recovered = recover_instance(reopened, instance.instance_id)
+    assert recovered.engine.state.state_id != proposed_id
+    assert recovered.engine.state.state_id == instance.engine.state.state_id
 
 
 def test_a02_orphan_relation_is_rejected_by_foreign_key():

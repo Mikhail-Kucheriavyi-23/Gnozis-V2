@@ -147,7 +147,8 @@ def verify_durable_graph(conn: sqlite3.Connection) -> tuple[int,str]:
         if not transitions and row[2] != row[1]: raise StorageCorruptionError("current head lacks transition provenance")
         if transitions:
             accepted=[t for t in transitions if t[4]]
-            if not accepted or accepted[-1][3] != row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
+            if not accepted and row[2] != row[1]: raise StorageCorruptionError("current head lacks transition provenance")
+            if accepted and accepted[-1][3] != row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
             expected=row[1]
             for t in transitions:
                 cand=load_candidate(conn,t[1])
