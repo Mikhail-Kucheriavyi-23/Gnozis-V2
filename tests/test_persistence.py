@@ -1,9 +1,12 @@
 import sqlite3
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
-from gnosis.core import Candidate, State
+from gnosis.core import Candidate, Relation, State
 from gnosis.instances.instance import Instance
 from gnosis.storage import (
     StorageCorruptionError,
@@ -11,6 +14,8 @@ from gnosis.storage import (
     connect,
     load_instance,
     persist_transition,
+    recover_instance,
+    save_candidate,
     save_instance,
     verify_audit_chain,
     verify_durable_graph,
@@ -194,3 +199,158 @@ def test_a50_audit_resource_mismatch_fails_durable_graph_verification():
     conn.execute("UPDATE audit_events SET resource=?, event_hash=? WHERE event_id=?", ("wrong-resource", _audit_hash(event), row[0]))
     with pytest.raises(StorageCorruptionError, match="audit evidence"):
         verify_durable_graph(conn)
+
+
+def test_a02_orphan_relation_is_rejected_by_foreign_key():
+    conn = connect()
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO relations(state_id, relation_order, relation_id, source_id, target_id, relation_type, value, created_at) VALUES ('missing', 0, 'r', 's', 't', 'x', NULL, 'now')"
+        )
+
+
+def test_a03_orphan_candidate_is_rejected_by_foreign_key():
+    conn = connect()
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO candidates(candidate_id, parent_state_id, candidate_state_id, origin, seed, created_at) VALUES ('c', 'missing', 'missing', 'test', NULL, 'now')"
+        )
+
+
+def test_a05_state_payload_tamper_fails_closed():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    conn.execute("UPDATE states SET payload=? WHERE state_id=?", ('{"elements":{"tampered":true},"version":0}', instance.engine.state.state_id))
+    with pytest.raises(StorageCorruptionError, match="state hash mismatch"):
+        load_instance(conn, instance.instance_id)
+
+
+def test_a06_relation_tamper_fails_closed():
+    conn = connect()
+    state = State(elements={"a": 1, "b": 2}, relations=[Relation("a", "b", "link")])
+    instance = Instance.create_root("u", state)
+    save_instance(conn, instance)
+    conn.execute("UPDATE relations SET target_id='tampered' WHERE state_id=?", (state.state_id,))
+    with pytest.raises(StorageCorruptionError, match="relation hash mismatch"):
+        load_instance(conn, instance.instance_id)
+
+
+def test_a09_root_atomicity_rolls_back_failed_root_transaction(monkeypatch):
+    conn = connect()
+    instance = Instance.create_root("u", State(elements={"root": 0}))
+
+    def fail_audit(*args, **kwargs):
+        raise RuntimeError("injected root failure")
+
+    monkeypatch.setattr("gnosis.storage.repositories.append_audit", fail_audit)
+    with pytest.raises(RuntimeError, match="injected root failure"):
+        save_instance(conn, instance)
+    assert conn.execute("SELECT count(*) FROM instances").fetchone()[0] == 0
+    assert conn.execute("SELECT count(*) FROM states").fetchone()[0] == 0
+
+
+def test_a13_process_exit_after_commit_reopens_valid_database(tmp_path):
+    path = tmp_path / "crash.sqlite"
+    script = """
+from gnosis.core import Candidate, State
+from gnosis.instances.instance import Instance
+from gnosis.storage import connect, persist_transition, save_instance
+conn = connect(r'{path}')
+instance = Instance.create_root('u', State(elements={{'a': 1}}))
+save_instance(conn, instance)
+proposed = instance.engine.state.with_elements({{'b': 2}})
+candidate = Candidate(instance.engine.state.state_id, proposed, 'crash')
+record = instance.engine.step(candidate)
+persist_transition(conn, instance, candidate, record, actor='u')
+conn.close()
+""".format(path=path)
+    completed = subprocess.run([sys.executable, "-c", script], cwd=Path(__file__).parents[1], check=False)
+    assert completed.returncode == 0
+    reopened = connect(path)
+    rows = reopened.execute("SELECT count(*) FROM transitions").fetchone()[0]
+    assert rows == 1
+    assert verify_durable_graph(reopened)[0] == 2
+
+
+def test_a19_delete_final_audit_event_fails_recovery():
+    conn, instance, record = _persisted_transition()
+    conn.execute("DROP TRIGGER audit_events_no_delete")
+    transition_id_value = conn.execute("SELECT transition_id FROM transitions WHERE instance_id=?", (instance.instance_id,)).fetchone()[0]
+    conn.execute("DELETE FROM audit_events WHERE transition_id=?", (transition_id_value,))
+    with pytest.raises(StorageCorruptionError, match="audit evidence"):
+        recover_instance(conn, instance.instance_id)
+
+
+def test_a25_duplicate_state_id_with_different_payload_is_rejected():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO states(state_id, version, payload, created_at) VALUES (?, ?, ?, ?)", (instance.engine.state.state_id, 0, '{"elements":{"different":true},"version":0}', 'now'))
+
+
+def test_a26_duplicate_candidate_id_with_different_payload_is_rejected():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    save_candidate(conn, candidate)
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO candidates(candidate_id, parent_state_id, candidate_state_id, origin, seed, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (candidate.candidate_id, candidate.parent_state_id, candidate.proposed_state.state_id, "other", None, "now"),
+        )
+
+
+def test_a39_unsupported_instance_status_fails_load():
+    conn = connect()
+    instance = root()
+    save_instance(conn, instance)
+    conn.execute("PRAGMA foreign_keys=OFF")
+    with pytest.raises(sqlite3.IntegrityError, match="CHECK constraint failed"):
+        conn.execute("UPDATE instances SET status='unknown' WHERE instance_id=?", (instance.instance_id,))
+
+
+def test_a46_duplicate_relation_is_rejected_by_primary_key():
+    conn = connect()
+    state = State(elements={"a": 1, "b": 2}, relations=[Relation("a", "b", "link")])
+    instance = Instance.create_root("u", state)
+    save_instance(conn, instance)
+    relation = state.relations[0]
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO relations(state_id, relation_order, relation_id, source_id, target_id, relation_type, value, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (state.state_id, 1, relation.relation_id, relation.source, relation.target, relation.relation_type, None, "now"),
+        )
+
+
+def test_a47_read_snapshot_during_active_writer(tmp_path):
+    path = tmp_path / "snapshot.sqlite"
+    writer = connect(path)
+    reader = connect(path)
+    instance = root()
+    save_instance(writer, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    writer.execute("BEGIN IMMEDIATE")
+    writer.execute("INSERT INTO states(state_id, version, payload, created_at) VALUES (?, ?, ?, ?)", (proposed.state_id, proposed.version, '{"elements":{"b":2},"version":1}', 'now'))
+    assert load_instance(reader, instance.instance_id).engine.state.state_id == instance.engine.state.state_id
+    writer.rollback()
+
+
+def test_a48_rollback_reopen_restores_prior_chain(tmp_path):
+    path = tmp_path / "rollback-reopen.sqlite"
+    conn = connect(path)
+    instance = root()
+    save_instance(conn, instance)
+    original_state_id = instance.engine.state.state_id
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "rollback")
+    record = instance.engine.step(candidate)
+    with pytest.raises(RuntimeError, match="injected failure"):
+        persist_transition(conn, instance, candidate, record, actor="u", failure_at="after_transition")
+    conn.close()
+    reopened = connect(path)
+    assert recover_instance(reopened, instance.instance_id).engine.state.state_id == original_state_id
+    assert verify_durable_graph(reopened)[0] == 1
