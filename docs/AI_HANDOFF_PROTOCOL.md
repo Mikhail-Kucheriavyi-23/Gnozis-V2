@@ -6,6 +6,8 @@ This document defines the canonical mechanism for attaching a new AI system to G
 
 The repository is the durable project state. An AI session is replaceable.
 
+`docs/CONTEXT_CONTINUITY_CONTRACT.md` defines the architectural semantics of this continuation model across AI products and connectors.
+
 ## Canonical entry point
 
 A newly connected AI must treat these files as the minimum recovery set:
@@ -15,6 +17,7 @@ A newly connected AI must treat these files as the minimum recovery set:
 3. `docs/AI_HANDOFF_PROTOCOL.md` — this continuation protocol.
 4. `docs/MULTI_AGENT_BUILD_STRATEGY.md` — governance and evidence model.
 5. `AGENT_ROLES.md` — role and authority boundaries.
+6. `docs/CONTEXT_CONTINUITY_CONTRACT.md` — cross-product context continuity semantics.
 
 After these, read only the specifications, source files and tests relevant to the assigned task.
 
@@ -26,6 +29,8 @@ READ AI_CONTEXT
 READ STATUS
     ↓
 READ HANDOFF PROTOCOL + GOVERNANCE
+    ↓
+READ CONTEXT CONTINUITY CONTRACT
     ↓
 READ CURRENT HEAD
     ↓
@@ -171,6 +176,38 @@ A replacement AI may continue an existing phase only after establishing:
 
 If a previous agent stopped midway, continue from the last durable repository artifact and test evidence. Do not recreate work from memory and do not assume that an unfinished report means the code was completed.
 
+## Context continuity rule
+
+The goal is not merely to hand an AI a document. The goal is that the same user can move between connected AI products without losing the durable project context.
+
+For the same authorized user/project/task scope, different AI products should recover semantically equivalent:
+
+```text
+current state
+active task
+implementation state
+verification state
+acceptance state
+relevant evidence
+authority scope
+open findings
+next permitted action
+```
+
+The AI product may change presentation, but it must not invent a different project reality because it has a different conversation history.
+
+Context recovery is read/recovery behavior by default. It does not grant write authority and does not itself mutate Ψ-Core state.
+
+## Fresh-session validation
+
+The first practical validation is a new AI session with no prior Gnozis conversation history.
+
+Use:
+
+> Continue Gnozis from the current confirmed state. Read the canonical handoff/context documents and repository evidence first. Do not rely on previous conversation history. Report the baseline, active phase, implementation/verification/acceptance states, your role and scope, open findings, and the next permitted action. Do not modify anything until the explicit task is established.
+
+A successful recovery test must reconstruct the project from durable repository evidence and must not restart accepted Persistence, claim Memory acceptance, or invent authority from connector access.
+
 ## Core protection
 
 The following are never changed merely to make an agent's task easier:
@@ -202,4 +239,4 @@ The preferred evidence order is:
 
 A new AI can be attached with the following operational instruction:
 
-> Read `AI_CONTEXT.md`, `STATUS.md`, `docs/AI_HANDOFF_PROTOCOL.md`, `docs/MULTI_AGENT_BUILD_STRATEGY.md`, and `AGENT_ROLES.md`. Determine the exact current HEAD, implementation/verification/acceptance states, active phase, allowed and forbidden scope, latest tested commit, and open findings from repository evidence. Do not infer missing state from conversation history. Report the baseline first, then wait for or execute only the explicitly assigned bounded task.
+> Read `AI_CONTEXT.md`, `STATUS.md`, `docs/AI_HANDOFF_PROTOCOL.md`, `docs/MULTI_AGENT_BUILD_STRATEGY.md`, `AGENT_ROLES.md`, and `docs/CONTEXT_CONTINUITY_CONTRACT.md`. Determine the exact current HEAD, implementation/verification/acceptance states, active phase, allowed and forbidden scope, latest tested commit, and open findings from repository evidence. Do not infer missing state from conversation history. Report the baseline first, then wait for or execute only the explicitly assigned bounded task.
