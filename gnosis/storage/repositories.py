@@ -113,25 +113,37 @@ def recover_instance(conn: sqlite3.Connection,instance_id: str)->Instance: verif
 def verify_durable_graph(conn: sqlite3.Connection)->tuple[int,str]:
     chain=verify_audit_chain(conn)
     for row in conn.execute("SELECT instance_id,root_state_id,current_state_id,parent_instance_id,generation FROM instances"):
-        load_state(conn,row[1]);
-        if conn.execute("SELECT 1 FROM audit_events WHERE action='instance.create' AND resource=?",(row[0],)).fetchone() is None: raise StorageCorruptionError("instance lacks creation audit evidence")
-        transitions=list(conn.execute("SELECT transition_id,candidate_id,from_state_id,to_state_id,accepted FROM transitions WHERE instance_id=? ORDER BY created_at,transition_id",(row[0],)))
-        if row[3] is None and row[4]!=0: raise StorageCorruptionError("invalid root generation")
-        if row[3] is not None:
-            parent=conn.execute("SELECT generation FROM instances WHERE instance_id=?",(row[3],)).fetchone()
-            if parent is None or row[4]!=parent[0]+1: raise StorageCorruptionError("invalid fork lineage")
-        if not transitions and row[2]!=row[1]: raise StorageCorruptionError("current head lacks transition provenance")
-        if transitions:
-            accepted=[t for t in transitions if t[4]]
-            if not accepted and row[2]!=row[1]: raise StorageCorruptionError("current head lacks transition provenance")
-            if accepted and accepted[-1][3]!=row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
-            expected=row[1]
-            for t in transitions:
-                cand=load_candidate(conn,t[1])
-                if cand.parent_state_id!=t[2] or cand.proposed_state.state_id!=t[3]: raise StorageCorruptionError("transition/candidate mismatch")
-                if t[4] and t[2]!=expected: raise StorageCorruptionError("broken accepted transition continuity")
-                if t[4]: expected=t[3]
-                if conn.execute("SELECT 1 FROM audit_events WHERE transition_id=? AND resource=?",(t[0],row[0])).fetchone() is None: raise StorageCorruptionError("transition lacks audit evidence")
+        instance_id,root_state_id,current_state_id,parent_instance_id,generation=row
+        load_state(conn,root_state_id)
+        if conn.execute("SELECT 1 FROM audit_events WHERE action='instance.create' AND resource=?",(instance_id,)).fetchone() is None: raise StorageCorruptionError("instance lacks creation audit evidence")
+        if parent_instance_id is None and generation!=0: raise StorageCorruptionError("invalid root generation")
+        if parent_instance_id is not None:
+            parent=conn.execute("SELECT generation FROM instances WHERE instance_id=?",(parent_instance_id,)).fetchone()
+            if parent is None or generation!=parent[0]+1: raise StorageCorruptionError("invalid fork lineage")
+        transitions=list(conn.execute("SELECT transition_id,candidate_id,from_state_id,to_state_id,accepted FROM transitions WHERE instance_id=? ORDER BY created_at,transition_id",(instance_id,)))
+        promotions=list(conn.execute("SELECT promotion_id,parent_state_id,proposed_state_id FROM promotions WHERE instance_id=? ORDER BY created_at,promotion_id",(instance_id,)))
+        for t in transitions:
+            cand=load_candidate(conn,t[1])
+            if cand.parent_state_id!=t[2] or cand.proposed_state.state_id!=t[3]: raise StorageCorruptionError("transition/candidate mismatch")
+            if conn.execute("SELECT 1 FROM audit_events WHERE transition_id=? AND resource=?",(t[0],instance_id)).fetchone() is None: raise StorageCorruptionError("transition lacks audit evidence")
+        for p in promotions:
+            load_state(conn,p[1]); load_state(conn,p[2])
+            if conn.execute("SELECT 1 FROM audit_events WHERE action='core.promote' AND resource=? AND event_id=?",(instance_id,f"promotion:{p[0]}")).fetchone() is None: raise StorageCorruptionError("promotion lacks audit evidence")
+        expected=root_state_id
+        events=conn.execute("SELECT sequence,action,event_id,transition_id FROM audit_events WHERE resource=? AND ((action='transition.commit' AND transition_id IS NOT NULL) OR action='core.promote') ORDER BY sequence",(instance_id,))
+        for event in events:
+            if event[1]=='transition.commit':
+                t=conn.execute("SELECT from_state_id,to_state_id,accepted FROM transitions WHERE transition_id=? AND instance_id=?",(event[3],instance_id)).fetchone()
+                if t is None or not t[2]: raise StorageCorruptionError("transition audit references invalid transition")
+                if t[0]!=expected: raise StorageCorruptionError("broken accepted transition continuity")
+                expected=t[1]
+            else:
+                promotion_id=event[2].removeprefix("promotion:")
+                p=conn.execute("SELECT parent_state_id,proposed_state_id FROM promotions WHERE promotion_id=? AND instance_id=?",(promotion_id,instance_id)).fetchone()
+                if p is None: raise StorageCorruptionError("promotion audit references missing provenance")
+                if p[0]!=expected: raise StorageCorruptionError("broken promotion continuity")
+                expected=p[1]
+        if expected!=current_state_id: raise StorageCorruptionError("current head lacks durable lineage provenance")
     return chain
 def persist_transition(conn: sqlite3.Connection,instance: Instance,candidate: Candidate,record: TransitionRecord,*,actor: str,failure_at: str|None=None)->None:
     def inject(point: str)->None:
