@@ -13,6 +13,7 @@ from .analyzer import (
     RuleProposal,
 )
 from .counterexample import CounterexampleEngine, CounterexampleResult
+from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
 from .runtime import reflect
 from .shadow import ShadowCase, ShadowEvaluation, evaluate_shadow
 
@@ -21,7 +22,9 @@ __all__ = [
     "CounterexampleEngine",
     "CounterexampleResult",
     "Finding",
+    "HistoricalFinding",
     "ReflectionAnalyzer",
+    "ReflectionHistorySummary",
     "ReflectionObservation",
     "ReflectionReport",
     "RuleProposal",
@@ -29,4 +32,6 @@ __all__ = [
     "ShadowEvaluation",
     "evaluate_shadow",
     "reflect",
+    "summarize_reflection_history",
+    "unresolved_findings",
 ]
