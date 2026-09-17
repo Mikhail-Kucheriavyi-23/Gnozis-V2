@@ -8,13 +8,21 @@ history.
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Any
 
 from .analyzer import ReflectionAnalyzer, ReflectionReport
 from .counterexample import CounterexampleEngine
-from .persistence import save_reflection_report
+from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
+from .persistence import list_reflection_reports, reflection_id, save_reflection_report
+
+
+@dataclass(frozen=True)
+class CumulativeReflectionReport:
+    current: ReflectionReport
+    history: ReflectionHistorySummary
+    recurring_unresolved: tuple[HistoricalFinding, ...]
 
 
 def reflect(engine: Any, minimum_repetitions: int = 2) -> ReflectionReport:
@@ -29,18 +37,44 @@ def reflect(engine: Any, minimum_repetitions: int = 2) -> ReflectionReport:
     return replace(report, counterexample_results=results)
 
 
+def reflect_with_history(
+    engine: Any,
+    conn: Any,
+    *,
+    minimum_repetitions: int = 2,
+) -> CumulativeReflectionReport:
+    """Run a pass while exposing durable prior reflection evidence.
+
+    Historical evidence is context for analysis only. It does not activate
+    proposals, mutate Core, or change the authority of canonical state.
+    """
+    previous = list_reflection_reports(conn)
+    history = summarize_reflection_history(previous)
+    recurring = unresolved_findings(previous)
+    current = reflect(engine, minimum_repetitions=minimum_repetitions)
+    return CumulativeReflectionReport(
+        current=current,
+        history=history,
+        recurring_unresolved=recurring,
+    )
+
+
 def reflect_and_persist(
     engine: Any,
     conn: Any,
     minimum_repetitions: int = 2,
 ) -> tuple[ReflectionReport, str]:
-    """Run reflection and durably store its complete evidence artifact.
-
-    This function deliberately has no activation or mutation path. Persistence
-    records what reflection observed and concluded; it does not grant those
-    conclusions authority over Core.
-    """
-    report = reflect(engine, minimum_repetitions=minimum_repetitions)
+    """Run reflection, incorporate prior evidence, and persist the new pass."""
+    cumulative = reflect_with_history(
+        engine,
+        conn,
+        minimum_repetitions=minimum_repetitions,
+    )
     created_at = datetime.now(timezone.utc).isoformat()
-    report_key = save_reflection_report(conn, report, created_at=created_at)
-    return report, report_key
+    report_key = save_reflection_report(conn, cumulative.current, created_at=created_at)
+    return cumulative.current, report_key
+
+
+def reflection_history_context(conn: Any) -> tuple[dict[str, Any], ...]:
+    """Expose persisted reflection evidence for a future analysis layer."""
+    return list_reflection_reports(conn)
