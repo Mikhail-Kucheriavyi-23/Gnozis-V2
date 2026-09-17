@@ -12,7 +12,7 @@ from gnosis.evolution.recursive import ReEvaluationResult
 from gnosis.evolution.hypothesis import EvolutionHypothesis
 from gnosis.instances.instance import Instance
 from gnosis.storage.database import connect
-from gnosis.storage.repositories import save_instance, save_state
+from gnosis.storage.repositories import save_instance, save_state, verify_durable_graph, recover_instance, StorageCorruptionError
 from gnosis.reflection.invariant_delta import InvariantDelta
 
 
@@ -89,6 +89,49 @@ def test_promotion_updates_head_and_writes_provenance_atomically():
     assert tuple(audit) == ("core.promote", "accepted")
 
 
+def test_committed_promotion_survives_durable_recovery():
+    conn = connect()
+    current, proposed, candidate, reevaluation, descriptor = fixture()
+    instance = Instance.create_root("owner", current)
+    save_instance(conn, instance)
+    persist_promotion(
+        conn,
+        instance_id=instance.instance_id,
+        current_state=current,
+        proposed_state=proposed,
+        candidate=candidate,
+        reevaluation=reevaluation,
+        descriptor=descriptor,
+        actor="promotion-test",
+    )
+
+    recovered = recover_instance(conn, instance.instance_id)
+
+    assert recovered.engine.state.state_id == proposed.state_id
+    assert verify_durable_graph(conn)[0] >= 2
+
+
+def test_recovery_rejects_promotion_without_audit_provenance():
+    conn = connect()
+    current, proposed, candidate, reevaluation, descriptor = fixture()
+    instance = Instance.create_root("owner", current)
+    save_instance(conn, instance)
+    promotion_id = persist_promotion(
+        conn,
+        instance_id=instance.instance_id,
+        current_state=current,
+        proposed_state=proposed,
+        candidate=candidate,
+        reevaluation=reevaluation,
+        descriptor=descriptor,
+        actor="promotion-test",
+    )
+    conn.execute("DELETE FROM audit_events WHERE event_id=?", (f"promotion:{promotion_id}",))
+
+    with pytest.raises(StorageCorruptionError, match="audit sequence/link mismatch|promotion lacks audit evidence"):
+        verify_durable_graph(conn)
+
+
 def test_failure_rolls_back_state_promotion_audit_and_head():
     conn = connect()
     current, proposed, candidate, reevaluation, descriptor = fixture()
@@ -114,6 +157,7 @@ def test_failure_rolls_back_state_promotion_audit_and_head():
     assert conn.execute(
         "SELECT current_state_id FROM instances WHERE instance_id=?", (instance.instance_id,)
     ).fetchone()[0] == current.state_id
+    assert verify_durable_graph(conn)[0] >= 1
 
 
 def test_stale_parent_is_rejected_without_write():
