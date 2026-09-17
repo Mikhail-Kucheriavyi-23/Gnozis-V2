@@ -20,7 +20,7 @@ from .types import (
     TransitionRecord,
     deep_freeze,
 )
-from .verification import TestFn, default_test, verify
+from .verification import TestFn, default_test, evaluate, verify
 
 __all__ = [
     "Budget",
@@ -48,5 +48,6 @@ __all__ = [
     "deep_freeze",
     "TestFn",
     "default_test",
+    "evaluate",
     "verify",
 ]
