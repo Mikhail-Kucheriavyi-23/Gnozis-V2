@@ -1,264 +1,230 @@
 # Gnozis-V2 — AI Context
 
 ## Canonical repository
+
 - Canonical development repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
 - Legacy `Gnozis` remains an archival research source and historical provenance.
 - `AI_CONTEXT.md` is the operational handoff document for participating AI systems.
 
-## Current verified baseline
-- Ψ-Core is the source of truth for state/evolution semantics.
-- `docs/DATABASE_SCHEMA.md` defines the intended persistence shape but is not itself implementation.
-- `gnosis/storage/` is not yet implemented.
-- `logs/` contains audit documentation and CI notes, but no runtime persistent audit-log writer.
-- `Engine.history` is in-process history and is lost on process exit.
-- The latest GitHub Actions CI passed for the current `main` commit recorded in the verification snapshot below.
-- Current implementation status must always be verified from source, tests and CI rather than inferred from documentation.
+## Current verified repository baseline
 
-## Current verification snapshot
-- Canonical repository: `Mikhail-Kucheriavyi-23/Gnozis-V2`
-- Current `main` commit: `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9`
-- Latest GitHub Actions CI for this commit: `PASS`
-- CI matrix: Python 3.11 and 3.12, package installation, pytest and coverage.
-- Local authoring-sandbox pytest execution: `NOT_PERFORMED`.
-- Ψ-Core: `IMPLEMENTED` / verified by source, tests and GitHub Actions.
-- Instance and lineage layer: `PARTIAL` / in-memory only.
-- Persistent storage: `MISSING`.
-- Runtime append-only audit writer: `MISSING`.
-- Memory: `MISSING`.
+- Branch: `main`
+- Current HEAD after this documentation synchronization: see the latest repository commit; this file is synchronized against the pre-sync baseline `0164e77b0abd422ab4bd5b9b2aa1c53279d7eb77`.
+- Ψ-Core remains the source of truth for state/evolution semantics.
+- `gnosis/storage/` is implemented in the current `main`; older context claiming that it is missing is obsolete.
+- Current implementation must always be checked against source, tests and CI rather than inferred from historical documentation.
+
+## Current implementation state
+
+- Ψ-Core: `IMPLEMENTED`.
+- Instance/lineage: `PARTIAL`; durable persistence is now present, while cryptographic Identity is future scope.
+- Persistence: `IMPLEMENTED` in the canonical repository, with verification/acceptance tracked separately.
+- Append-only audit storage: `IMPLEMENTED` at the storage layer; broader phase-level verification remains subject to the recorded gates.
+- Memory: `NOT ACCEPTED` and not merged into `main`.
 - Identity and cryptography: `MISSING`.
-- Agents and federation: `MISSING`.
-- Endogenous generation: `PARTIAL`/`THEORETICAL` boundary; the current generator is caller-supplied, not endogenous.
+- Agents and federation: `MISSING` as Gnozis runtime architecture.
+- User/world bridge: `MISSING`.
+- Endogenous generation: `PARTIAL` / `THEORETICAL` boundary; current generation remains caller-supplied.
 
-The successful GitHub Actions result verifies the current `main` commit listed above. It does not imply that the local authoring sandbox executed pytest independently.
+## Persistence source of truth
 
-## Status vocabulary
-Use only these implementation states:
-- `IMPLEMENTED` — verified in source and tests where applicable.
-- `PARTIAL` — some implementation exists but required behavior is incomplete.
-- `MISSING` — specified but not implemented.
-- `THEORETICAL` — design/research only; no implementation claim.
+The current storage layer contains:
 
-Documentation, schemas, enums, placeholders, interfaces, or planned directories must never be presented as implemented functionality.
+```text
+gnosis/storage/database.py
+gnosis/storage/repositories.py
+gnosis/storage/__init__.py
+```
 
-These are primary implementation states. Verification qualifiers such as `VERIFIED_BY_TESTS`, `VERIFIED_BY_CI`, `UNVERIFIED`, `BLOCKED`, and `NOT_APPLICABLE` describe evidence or execution conditions and must not be confused with implementation state.
+The database layer currently defines `SCHEMA_VERSION = 3`, enables SQLite foreign keys, uses `BEGIN IMMEDIATE` transaction boundaries, persists states/candidates/instances/transitions, and defines append-only `audit_events` with SQLite update/delete guards.
 
-## Trust boundary
-Do not weaken the separation between:
-- Ψ-Core and external interfaces;
-- analysis and decision layers;
-- immutable/core semantics and mutable workspace;
-- identity/capability/policy and privileged operations.
+Do not use older snapshots saying `storage/` is an empty placeholder or that Persistence is missing. Those statements are historical and stale.
 
-No AI model belongs inside Ψ-Core. No external selector/operator/global clock may silently become part of Core semantics.
+## Multi-agent project governance — FIXED WORKING MODEL
 
-## Current development direction
-The immediate engineering sequence begins with:
-1. Persistence;
-2. Append-only audit log with hash chaining;
-3. Instance/lifecycle persistence;
-4. Memory;
-5. Identity/capability/trust boundary;
-6. User/world bridge;
-7. Multi-agent network;
-8. Evolution/autopoiesis and system integration.
+Gnozis is developed through multiple AI systems working against the same canonical project artifacts. Access to project data is broader than authority to modify the canonical architecture.
 
-This sequence is a working roadmap, not an immutable architecture. Each phase must be validated before the next phase expands its scope.
+**GitHub / Google Drive access does not by itself grant architectural authority.**
 
-## Multi-AI project governance — FIXED WORKING MODEL
+### Mandatory phase chain
 
-The project is developed collaboratively by multiple AI systems. The following governance model is now the default operating model.
+```text
+access
+  ↓
+explicit task
+  ↓
+bounded implementation
+  ↓
+independent verification
+  ↓
+correction
+  ↓
+re-verification
+  ↓
+ChatGPT integration gate
+  ↓
+context/status update
+```
 
-### ChatGPT — architecture, integration and final gate
-ChatGPT is responsible for:
-- maintaining the architectural direction and Ψ/Core invariants;
-- decomposing work into bounded phases/tasks;
-- defining acceptance criteria and forbidden changes;
-- reconciling Claude/Manus/auditor findings;
-- reviewing completed implementations against source, tests and project theory;
-- deciding whether a phase is accepted, rejected, or returned for correction;
-- maintaining the canonical project context and preventing architectural drift.
+### ChatGPT — architecture / integration / final gate
 
-ChatGPT should not duplicate large implementation tasks unnecessarily when another assigned AI is already implementing them.
+- maintains architectural direction and Ψ-Core invariants;
+- defines bounded tasks, acceptance criteria and forbidden changes;
+- reconciles Claude/Manus/auditor findings;
+- performs the integration/final gate under the project owner's authorization;
+- synchronizes canonical context and status.
 
 ### Claude — primary implementation engineer
-Claude is the default primary implementer for large, well-bounded engineering tasks unless a phase is explicitly assigned elsewhere.
 
-Claude should:
-- implement the requested phase;
-- add/maintain tests;
-- update relevant technical documentation;
-- report exactly what is IMPLEMENTED/PARTIAL/MISSING/THEORETICAL;
-- avoid unrelated refactors and architecture changes;
-- provide a concise handoff for independent review.
+- implements explicitly assigned bounded engineering phases;
+- adds and runs tests available in its environment;
+- documents implementation and limitations;
+- performs corrective passes after independent findings;
+- does not self-certify final acceptance.
 
-### Manus — independent engineer and adversarial reviewer
-Manus is used for:
-- independent implementation of phases explicitly assigned to Manus;
-- independent review of Claude implementations;
-- architectural consistency checks;
-- security/trust-boundary review;
-- finding hidden coupling, incomplete implementations, and unsupported claims;
-- proposing corrective changes after review.
+### Manus — independent reviewer / adversarial engineer
 
-Manus should not silently replace or fork the architecture. Changes must remain within the assigned task and current project invariants.
+- reads actual source or artifacts;
+- reproduces tests where possible;
+- searches for hidden coupling, missing invariants, security defects and unsupported claims;
+- may perform an explicitly assigned corrective pass;
+- does not grant final project acceptance.
 
-### Gemini and other AI systems without repository access — external audit
-Systems without repository access are treated as external/read-only auditors.
+### Gemini / other connected AI systems
 
-They may receive:
-- repository snapshots;
-- relevant source files;
-- `AI_CONTEXT.md`;
-- `STATUS.md`;
-- schemas and audit reports.
+Depending on explicit assignment, a connected AI may act as implementation contributor, auditor, adversarial tester, research/comparison source, or runtime observer. Its output is evidence or a proposal, not automatic architectural authority.
 
-They should focus on independent criticism, counterexamples, security issues, mathematical consistency, architectural contradictions, and claims that are not supported by implementation. They do not directly modify the canonical repository.
+## Phase authority
 
-## Handoff protocol
-For every substantial phase:
+Before each substantive phase, record:
 
-`Task definition → primary implementation → independent review → ChatGPT integration/final gate → context/status update → next phase`
+```text
+Primary implementer:
+Independent reviewer:
+ChatGPT final gate:
+External audit required: yes/no
+Allowed files/scope:
+Forbidden changes:
+```
 
-A phase handoff must contain:
-- files changed;
-- behavior implemented;
-- tests added/changed;
-- test/CI result;
-- known limitations;
-- security/trust-boundary implications;
-- remaining `PARTIAL/MISSING/THEORETICAL` items;
-- recommended next step.
+The same AI should not implement and independently certify the same phase unless an explicit exception is documented by the project owner.
 
-Parallel edits to the same architectural area should be avoided unless explicitly coordinated.
+## Evidence hierarchy
 
-## Conflict resolution between AI systems
-When AI conclusions differ, use this precedence:
+When reports conflict:
 
-1. actual source code;
-2. reproducible tests and CI;
-3. explicit project invariants/specification;
-4. verified audit evidence;
-5. design proposals and AI opinions.
+1. actual current source code;
+2. reproducible runtime behavior and real tests/CI;
+3. accepted project invariants/contracts;
+4. independent audit evidence;
+5. AI reports and design proposals.
 
-No AI assertion overrides executable evidence merely because it appears in a report.
+A textual `PASS`, `implemented`, `complete`, or `ready` claim is never sufficient evidence by itself.
 
-When documentation conflicts with the current repository, use this evidence order: current source tree; latest successful CI run for the current commit; reproducible tests; `STATUS.md`; then README and historical audit reports. Before trusting CI, compare its tested commit SHA with the current branch and `HEAD`; if they differ, mark the current state `UNVERIFIED`.
+Every CI claim must identify the exact tested commit SHA. Implementation state and verification state must remain separate.
 
-If two implementations are plausible, do not merge both by default. Stop, compare their architectural consequences, and resolve the conflict before proceeding.
+## Core protection
 
-## Phase ownership is provisional per phase
-The global governance model is fixed, but the implementation owner may change from phase to phase.
+The following require explicit task scope and final review:
 
-Before each major phase, explicitly record:
-- primary implementer;
-- reviewer;
-- ChatGPT acceptance role;
-- external audit requirement, if any.
+- `gnosis/core/*`;
+- persistence semantics;
+- Identity and capability boundaries;
+- security/encryption boundaries;
+- Memory/Core boundary;
+- Bridge/Core boundary;
+- federation/trust semantics;
+- self-modification/evolution rules.
 
-The same AI should not automatically implement and independently certify its own work.
+No connected AI may silently redefine these through implementation convenience. No AI model belongs inside Ψ-Core.
 
-## Mandatory quality gates
-No phase is considered complete solely because code exists.
+## Runtime → architecture feedback
 
-A phase must be evaluated for:
-- functional correctness;
-- tests;
-- CI where applicable;
-- persistence/recovery behavior where applicable;
-- security and trust-boundary preservation;
-- compatibility with Ψ-Core;
-- absence of undocumented architectural coupling;
-- accurate status classification.
+The project intentionally builds the core while exercising it in real runtime conditions. Runtime observations may reveal missing requirements, invariants or useful interfaces. They become canonical architectural requirements only after explicit review and documentation.
 
-## Current synchronized operating decision — 2026-09-17
+The engineering loop is:
 
-The multi-AI governance model above is now fixed as the project's working model after synchronization between ChatGPT and the repository context, including the Manus audit findings.
+```text
+Build → Execute → Test → Attack → Correct → Re-test → Gate → Record → Build next
+```
 
-Current operational chain:
+This is an engineering strategy; it does not mean Gnozis is currently autonomous or federated.
 
-`Task definition → assigned implementation AI → independent review by a different AI → ChatGPT final gate → AI_CONTEXT/STATUS update → next task`
+## Current phase status
 
-The division of labor is intentionally flexible at the phase level:
-- ChatGPT remains the architecture/integration/final-gate role.
-- Claude is the default primary implementation engineer for large bounded engineering tasks.
-- Manus is the independent implementation/review/adversarial role and may own a phase when explicitly assigned.
-- Gemini and other systems without repository access remain external read-only auditors.
+### Persistence
 
-This is a process governance decision, not a claim that any AI is intrinsically more capable. The assignment for each phase must be recorded before implementation begins.
+Persistence is already in canonical `main`. Do not restart or duplicate the Persistence implementation because of stale historical documents. Its remaining verification questions must be handled against the actual current source and tests.
 
-## Open evolution question
-As Gnozis approaches autonomous/self-directed evolution, this governance model must be revisited. In particular, future work must determine how human authority, AI-agent authority, proof/invariant checks, rollback, capability limits, and auditability interact when the system can propose or perform its own modifications.
+### Multi-agent strategy
 
-No claim of autonomous self-development should be made until the corresponding mechanisms are implemented and independently verified.
+`docs/MULTI_AGENT_BUILD_STRATEGY.md` and `AGENT_ROLES.md` define the current governance model. The strategy has been independently reviewed as `PASS WITH FINDINGS`; the main documentation finding was stale `STATUS.md` / `AI_CONTEXT.md`, which this synchronization addresses.
 
-## Audit observations recorded by Manus — 2026-09-17
+### Memory
 
-The AI context was reviewed against the current source tree, `STATUS.md`, `README.md`, `docs/DATABASE_SCHEMA.md`, the phase audit, and GitHub Actions. The architecture and Ψ-Core boundaries are coherent, but the following documentation and process corrections are required:
+Memory is **NOT ACCEPTED** and is not present in canonical `main`.
 
-1. `STATUS.md` and older audit text must distinguish between real GitHub Actions verification and the fact that pytest was not run in the local authoring sandbox. The repository has successful GitHub Actions runs on commits `5589100a8b0390514366ceedb7f5d0c65ad5ec3c`, `07835ed083d3e86dedc144154d0dc465425dad0e`, and `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9`. The current `main` commit `77554d2ceeba1d60e9f21aab1c7d0c0aaedd65e9` is verified by GitHub Actions.
-2. Status vocabulary must be consistent. Use the four primary implementation states above; use verification qualifiers separately instead of mixing `UNKNOWN`, `EXPERIMENTAL`, `BLOCKED`, and `UNVERIFIED` into the implementation-state column.
-3. Every CI claim must include the tested commit SHA and verification date. A successful run for an older commit does not verify the current source.
-4. `logs/` is not empty, but it is not a runtime audit system. It contains audit/CI documentation only; `Engine.history` remains process-local and is lost on restart.
-5. The Persistence + Append-Only Audit Log phase needs explicit acceptance criteria: restart recovery, hash-chain verification, behavior after a damaged final event, transaction/crash handling, duplicate-event behavior, append-only enforcement through the normal API, and proof that secrets are not stored.
-6. Phase ownership should be recorded per phase as primary implementer, reviewer, ChatGPT final gate, and external-audit requirement. Governance is a process rule and is not technically proven merely by a handoff statement.
+A separately delivered Claude Memory artifact was independently audited and found to require a corrective pass. The currently assigned corrective items are:
 
-These observations do not identify an architectural blocker for the persistence phase. They identify synchronization and verification requirements that must be closed before treating that phase as complete.
+- H-01 — reject cross-owner/cross-instance supersession;
+- H-03 — reject self/direct/indirect supersession cycles;
+- H-04 — enforce provenance validation on the write path;
+- M-01 — enforce root/version continuity;
+- M-02 — enforce the retention state machine.
 
-## Immediate next task
-The next engineering phase is **Persistence + Append-Only Audit Log**.
+The corrective Memory artifact must remain outside `main` until the independent re-audit passes and ChatGPT performs the integration gate.
 
-Required direction:
-- SQLite local persistence;
-- repository/storage boundary outside Ψ-Core;
-- state save/load and restart recovery;
-- append-only audit events;
-- SHA-256 hash chaining and integrity verification;
-- transaction/crash behavior tests;
-- no raw private keys/passwords/secrets in the database;
-- tests proving that audit history cannot be silently rewritten through the normal API.
+## Current mandatory sequence
 
-The implementation must follow `docs/DATABASE_SCHEMA.md` rather than inventing a divergent schema.
+```text
+STATUS.md / AI_CONTEXT.md synchronization
+        ↓
+Manus read-only documentation audit
+        ↓
+Memory corrective pass
+        ↓
+Manus full Memory re-audit with real pytest
+        ↓
+ChatGPT integration gate
+```
+
+No Memory corrective implementation is part of the documentation synchronization step.
 
 ## Context recovery procedure
+
 A new AI session must read, in order:
+
 1. `AI_CONTEXT.md`;
 2. `STATUS.md`;
-3. `docs/DATABASE_SCHEMA.md`;
+3. relevant specification/schema documents;
 4. relevant source files;
 5. relevant tests;
 6. latest CI status.
 
-Then report the current state using `IMPLEMENTED / PARTIAL / MISSING / THEORETICAL` before proposing changes.
+Then report:
 
-The report must include the current branch, `HEAD` commit, latest CI-tested commit, and any mismatch between them. It must also separate implementation state from verification qualifier.
+- current branch;
+- current HEAD;
+- latest CI-tested commit;
+- implementation state using `IMPLEMENTED / PARTIAL / MISSING / THEORETICAL`;
+- verification qualifiers separately;
+- any mismatch between current HEAD and tested commit.
 
-Never assume that an earlier AI's report is proof of implementation.
+Never assume an earlier AI report is proof of implementation.
 
-## External Gemini audit report — 2026-09-17
+## Status vocabulary
 
-An external read-only audit report was collected in the Google Drive folder `Gnozis V2 Audit Workspace`, document `аудит контекст гемини — отчет`. The report declares the following audit target:
+Use these as primary implementation states:
 
-- branch: `manus/persistence-hardening`;
-- claimed commit: `28879c8ab56d3c5eb6686c2c168a32fce0b98e7b`;
-- final report status: `BLOCKED — findings remain`.
+- `IMPLEMENTED` — implementation exists and required evidence supports the claim;
+- `PARTIAL` — some implementation exists but required behavior is incomplete;
+- `MISSING` — specified but not implemented;
+- `THEORETICAL` — design/research only.
 
-The report identifies these claimed findings:
+Use verification qualifiers separately, for example `VERIFIED_BY_TESTS`, `VERIFIED_BY_CI`, `UNVERIFIED`, or `BLOCKED`.
 
-- `F-01` FAIL — foreign-key enforcement is not guaranteed on every SQLite connection;
-- `F-02` FAIL — possible orphan transitions or incomplete durable provenance;
-- `F-03` FAIL — fork-after-restart is not detected;
-- `F-04` FAIL — audit hash-chain fields and canonical JSON serialization lack sufficient integrity enforcement;
-- `F-05` PASS — exact replay is filtered by uniqueness constraints;
-- `F-06` FAIL — secret-detection heuristics can miss encoded or custom-structured secrets;
-- `F-07` FAIL — fault boundaries can leave an intermediate state instead of failing closed;
-- `F-08` PASS — optimistic locking rejects concurrent stale-head writes;
-- `F-09` FAIL — budget counters partly depend on process-local `Engine.history`;
-- `F-10` PASS — `gnosis/core` remains isolated from persistence details.
+## Open evolution boundary
 
-The report states that 34 of 50 adversarial scenarios are executable tests and 16 are documentation-only. It highlights `CRITICAL-01` (fork-after-restart protection), `CRITICAL-02` (strict hash-chain verification at initialization), `HIGH-01` (foreign-key coverage), `HIGH-02` (secret-detection limitations), and `MEDIUM-01` (process-local budget counters).
+As Gnozis approaches autonomous/self-directed evolution, the governance model must be revisited. Future autonomous modification requires independent verification of identity, capabilities, authorization, bounded operations, proof/invariants, rollback, durable auditability, recovery, conflict resolution and human override.
 
-### Verification qualification
-
-This report is **external evidence, not yet independently verified**. The checked-out branch was `manus/persistence-hardening` at `HEAD` `637f2f4f2b55ca7c4c5cff6f8a950d666eddf30a`, while the report claims it verified commit `28879c8ab56d3c5eb6686c2c168a32fce0b98e7b`. The claimed commit exists in repository history but is not the current branch head. Therefore the findings must not be marked as current implementation facts until they are reproduced against `637f2f4…` or the exact audited commit is checked out and verified.
-
-The current source tree contains `gnosis/storage/__init__.py`, `gnosis/storage/database.py`, and `gnosis/storage/repositories.py`; this differs from the older verification snapshot that described persistent storage as missing. The next review must compare the actual current source, tests, and CI against the external report before any final-gate decision. Until that comparison is complete, persistence remains **BLOCKED / UNVERIFIED**, and the report's PASS/FAIL labels remain provisional.
+No claim of autonomous self-development should be made until those mechanisms are implemented and independently verified.
