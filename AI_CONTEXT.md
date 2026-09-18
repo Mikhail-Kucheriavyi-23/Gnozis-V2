@@ -909,7 +909,9 @@ Complete replay verifies these links and fails closed on mismatch. Persistence s
 
 ### GNV2-EVOLUTION-RECOVERY-INTEGRITY-014
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35292194762 SUCCESS; Python 3.11 and 3.12 SUCCESS; 218 passed, 10 warnings.
 
 Added recovery integrity regression coverage:
 - evolution provenance survives database serialization/reopen;
