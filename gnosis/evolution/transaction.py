@@ -53,8 +53,8 @@ def persist_evolution_transaction(
         conn.execute(
             """INSERT INTO evolution_provenance
             (provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
-             evaluation_status,shadow_status,invariant_status,governance_decision,status)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+             evaluation_status,shadow_status,invariant_status,governance_decision,status,evolution_identity,proposed_state_content_id,candidate_binding_digest)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 provenance.provenance_id, provenance.execution_id,
                 provenance.candidate_id, provenance.parent_state_id,
@@ -62,6 +62,8 @@ def persist_evolution_transaction(
                 provenance.evidence_digest, provenance.evaluation_status,
                 provenance.shadow_status, provenance.invariant_status,
                 provenance.governance_decision, provenance.status,
+                provenance.evolution_identity, provenance.proposed_state_content_id,
+                provenance.candidate_binding_digest,
             ),
         )
         conn.execute(
