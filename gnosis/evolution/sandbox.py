@@ -34,6 +34,8 @@ class SandboxBudget:
 class SandboxExecution:
     candidate_id: str
     parent_state_id: str
+    parent_state_digest: str
+    proposed_state_digest: str
     operations: int
     status: str
     evidence_digest: str
@@ -107,6 +109,8 @@ def run_sandbox(
             SandboxExecution(
                 candidate.candidate_id,
                 state.state_id,
+                state.content_id,
+                candidate.proposed_state.content_id,
                 1,
                 "TIMEOUT",
                 _digest(observations),
@@ -129,6 +133,8 @@ def run_sandbox(
             SandboxExecution(
                 candidate.candidate_id,
                 state.state_id,
+                state.content_id,
+                candidate.proposed_state.content_id,
                 1,
                 "FAILED",
                 _digest(observations),
