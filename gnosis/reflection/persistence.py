@@ -369,9 +369,10 @@ def append_evolution_audit(
     )
     conn.execute(
         """INSERT INTO evolution_audit
-        (sequence,event_type,candidate_id,execution_id,payload_digest,previous_digest,record_digest)
-        VALUES (?,?,?,?,?,?,?)""",
-        (record.sequence, record.event_type, record.candidate_id, record.execution_id,
+        (sequence,event_type,candidate_id,execution_id,provenance_id,parent_state_digest,proposed_state_digest,evidence_digest,payload_digest,previous_digest,record_digest)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+        (record.sequence, record.event_type, record.candidate_id, record.execution_id, record.provenance_id,
+         record.parent_state_digest, record.proposed_state_digest, record.evidence_digest,
          record.payload_digest, record.previous_digest, record.record_digest),
     )
     return record
@@ -380,7 +381,8 @@ def append_evolution_audit(
 def list_evolution_audit(conn: sqlite3.Connection) -> tuple[EvolutionAuditRecord, ...]:
     ensure_reflection_schema(conn)
     rows = conn.execute(
-        """SELECT sequence,event_type,candidate_id,execution_id,payload_digest,
+        """SELECT sequence,event_type,candidate_id,execution_id,provenance_id,
+                  parent_state_digest,proposed_state_digest,evidence_digest,payload_digest,
                   previous_digest,record_digest
            FROM evolution_audit ORDER BY sequence"""
     ).fetchall()
