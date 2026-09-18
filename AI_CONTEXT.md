@@ -1368,3 +1368,18 @@ The philosophical use of panpsychism, if retained, is a design hypothesis and vo
 ### GNV2-FUTURE-049 — CONFLICT MODEL FORMALIZATION
 
 Next primary research task: formalize a conflict/tension model before implementing conflict-driven evolution. Define world-model identity, evidence provenance, conflict representation, a bounded tension measure or partial order, and criteria for a transition to count as tension-reducing while preserving Core invariants. Do not encode a simplistic scalar "truth" score and do not allow conflict/tension to become an implicit selector. The first implementation should remain observational/evaluative and generate evidence for later hypothesis formation.
+
+
+### GNV2-FORMAL-049A — CONFLICT REPRESENTATION
+
+First formalization step: represent a conflict as a structured relation between two or more world-model claims, not as a scalar score. A conflict record should preserve: model identities, claim identities, evidence/provenance references, the exact incompatibility relation, affected constraints/invariants, and the conditions under which the incompatibility was observed.
+
+A conflict is observational when the evidence establishes incompatibility under specified conditions. It must not imply that either model is globally false.
+
+Preferred conceptual form:
+
+C = (W_a, W_b, Claims, Evidence, Conditions, Incompatibility)
+
+Tension is initially treated as a structured/partially ordered object rather than a universal numeric truth value. Any later scalarization must be justified as an observational convenience and must never become an implicit selector.
+
+Acceptance for 049A: conflict records are provenance-preserving, condition-scoped, deterministic, immutable after creation, and incapable by themselves of authorizing mutation or selecting a world-model.
