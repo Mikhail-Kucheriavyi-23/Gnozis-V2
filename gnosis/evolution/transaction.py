@@ -33,7 +33,7 @@ def persist_evolution_transaction(
         );
         CREATE TABLE IF NOT EXISTS evolution_audit (
             sequence INTEGER PRIMARY KEY, event_type TEXT NOT NULL, candidate_id TEXT NOT NULL,
-            execution_id TEXT NOT NULL, payload_digest TEXT NOT NULL, previous_digest TEXT NOT NULL,
+            execution_id TEXT NOT NULL, provenance_id TEXT NOT NULL, parent_state_digest TEXT NOT NULL, proposed_state_digest TEXT NOT NULL, evidence_digest TEXT NOT NULL, payload_digest TEXT NOT NULL, previous_digest TEXT NOT NULL,
             record_digest TEXT NOT NULL UNIQUE
         );
     """)
@@ -51,6 +51,10 @@ def persist_evolution_transaction(
             event_type=event_type,
             candidate_id=provenance.candidate_id,
             execution_id=provenance.execution_id,
+            provenance_id=provenance.provenance_id,
+            parent_state_digest=provenance.parent_state_digest,
+            proposed_state_digest=provenance.proposed_state_digest,
+            evidence_digest=provenance.evidence_digest,
             payload=payload,
             previous_digest=previous_digest,
         )
@@ -70,11 +74,12 @@ def persist_evolution_transaction(
         )
         conn.execute(
             """INSERT INTO evolution_audit
-            (sequence,event_type,candidate_id,execution_id,payload_digest,previous_digest,record_digest)
-            VALUES (?,?,?,?,?,?,?)""",
+            (sequence,event_type,candidate_id,execution_id,provenance_id,parent_state_digest,proposed_state_digest,evidence_digest,payload_digest,previous_digest,record_digest)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 record.sequence, record.event_type, record.candidate_id,
-                record.execution_id, record.payload_digest,
+                record.execution_id, record.provenance_id, record.parent_state_digest,
+                record.proposed_state_digest, record.evidence_digest, record.payload_digest,
                 record.previous_digest, record.record_digest,
             ),
         )
