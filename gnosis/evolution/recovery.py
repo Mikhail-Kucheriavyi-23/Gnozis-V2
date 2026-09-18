@@ -47,7 +47,8 @@ def recover_evolution_audit(
     expected_digest = provenance_row["evidence_digest"]
     actual_digest = canonical_digest(observations)
     persisted_identity = provenance_row.get("evolution_identity", "")
-    replay_valid = result.valid and actual_digest == expected_digest
+    provenance_class = classify_evolution_provenance(provenance_row)
+    replay_valid = result.valid and actual_digest == expected_digest and provenance_class == "canonical"
     identity_valid = True
     if persisted_identity:
         try:
@@ -70,6 +71,8 @@ def recover_evolution_audit(
     reasons = list(result.reasons)
     if actual_digest != expected_digest:
         reasons.append("recovery replay digest mismatch")
+    if provenance_class != "canonical":
+        reasons.append("legacy provenance identity is unverified")
     if not identity_valid:
         reasons.append("recovery evolution identity mismatch")
     return RecoveryReport(len(records), result.valid, replay_valid, expected_digest, actual_digest, tuple(dict.fromkeys(reasons)))
