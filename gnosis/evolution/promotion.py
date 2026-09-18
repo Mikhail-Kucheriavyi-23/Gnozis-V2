@@ -31,7 +31,7 @@ class PromotionGate:
     status: str = "REVIEW_ONLY"
 
     @property
-    can_activate(self) -> bool:
+    def can_activate(self) -> bool:
         return False
 
 
