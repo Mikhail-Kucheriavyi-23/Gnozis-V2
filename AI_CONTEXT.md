@@ -965,7 +965,9 @@ Added an independent, read-only persisted-chain verifier. It accepts plain prove
 
 ### GNV2-EVOLUTION-RECOVERY-GATE-018
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35293291038 SUCCESS; Python 3.11 and 3.12 SUCCESS; 226 passed, 10 warnings.
 
 Recovery now fails closed unless:
 - a provenance identity is explicitly supplied;
