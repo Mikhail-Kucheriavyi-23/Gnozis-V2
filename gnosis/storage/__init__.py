@@ -1,3 +1,4 @@
+from .evolution_memory import EvolutionMemoryRecord, append_evolution_memory, load_evolution_memory
 from .database import GENESIS_HASH, SCHEMA_VERSION, close, connect, transaction
 from .repositories import (
     SecretMaterialError,
@@ -21,5 +22,5 @@ __all__ = [
     "SecretMaterialError", "StorageCorruptionError",
     "append_audit", "load_candidate", "load_instance", "recover_instance", "load_state",
     "load_transition_records", "persist_transition", "save_candidate", "save_instance", "save_state",
-    "verify_audit_chain", "verify_durable_graph",
+    "verify_audit_chain", "verify_durable_graph", "EvolutionMemoryRecord", "append_evolution_memory", "load_evolution_memory",
 ]
