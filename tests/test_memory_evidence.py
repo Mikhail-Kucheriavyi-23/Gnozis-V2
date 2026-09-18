@@ -13,3 +13,13 @@ def test_memory_projects_to_read_only_reflection_evidence():
 def test_memory_projection_is_bounded():
     records=tuple(EvolutionMemoryRecord(str(i),"i","c","t","s",None,"inconclusive",(),"2026-09-18T00:00:00+00:00") for i in range(5))
     assert len(project_evolution_memory(records, limit=2)) == 2
+
+
+def test_cumulative_reflection_reads_instance_scoped_evolution_memory():
+    from gnosis.core import State
+    from gnosis.instances.instance import Instance
+    from gnosis.reflection.runtime import reflect_with_history
+    from gnosis.storage import append_evolution_memory, connect, save_instance
+    conn=connect(); instance=Instance.create_root("u", State(elements={"a":1})); save_instance(conn, instance)
+    result=reflect_with_history(instance.engine, conn, instance_id=instance.instance_id)
+    assert result.evolution_evidence == ()
