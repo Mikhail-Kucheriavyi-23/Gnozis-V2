@@ -1271,3 +1271,8 @@ Implementation status: **IMPLEMENTED — awaiting CI verification**. Added `gnos
 ### CI-VERIFIED-044
 
 CI run `35339136889` SUCCESS on `9bea14f72e244c39b8b3d689f63da88af1813a9e`. Instance-scoped Evolution Memory → Reflection evidence binding is CI-verified. Reflection remains read-only with respect to memory/Core; no authority or mutation path was introduced.
+
+
+### GNV2-MEMORY-044A
+
+Evolution evidence is now carried directly on `ReflectionReport.evolution_evidence` when using `reflect_with_history`. The evidence is still read-only and verified before projection; this makes the memory visible to the endogenous generation input contract without yet changing proposal-selection semantics. CI pending.
