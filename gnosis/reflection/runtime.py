@@ -45,6 +45,7 @@ def reflect_with_history(
     conn: Any,
     *,
     minimum_repetitions: int = 2,
+    instance_id: str | None = None,
 ) -> CumulativeReflectionReport:
     """Run a pass while exposing durable prior reflection evidence.
 
@@ -54,7 +55,8 @@ def reflect_with_history(
     previous = list_reflection_reports(conn)
     history = summarize_reflection_history(previous)
     recurring = unresolved_findings(previous)
-    evolution_records = load_evolution_memory(conn, getattr(engine, "instance_id", "")) if getattr(engine, "instance_id", None) else ()
+    resolved_instance_id = instance_id or getattr(engine, "instance_id", None)
+    evolution_records = load_evolution_memory(conn, resolved_instance_id) if resolved_instance_id else ()
     evolution_evidence = project_evolution_memory(evolution_records)
     current = reflect(engine, minimum_repetitions=minimum_repetitions)
     return CumulativeReflectionReport(
@@ -69,12 +71,14 @@ def reflect_and_persist(
     engine: Any,
     conn: Any,
     minimum_repetitions: int = 2,
+    instance_id: str | None = None,
 ) -> tuple[ReflectionReport, str]:
     """Run reflection, incorporate prior evidence, and persist the new pass."""
     cumulative = reflect_with_history(
         engine,
         conn,
         minimum_repetitions=minimum_repetitions,
+        instance_id=instance_id,
     )
     created_at = datetime.now(timezone.utc).isoformat()
     report_key = save_reflection_report(conn, cumulative.current, created_at=created_at)
