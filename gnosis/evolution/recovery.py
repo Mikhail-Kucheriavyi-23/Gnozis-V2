@@ -5,6 +5,8 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Any
 
+from ..core.types import State
+
 from .chain_verifier import verify_persisted_chain
 from .provenance import canonical_digest, EvidenceProvenance
 from ..reflection.persistence import classify_evolution_provenance, list_evolution_audit, list_evolution_provenance
@@ -25,6 +27,7 @@ def recover_evolution_audit(
     *,
     provenance_id: str | None = None,
     observations: dict[str, Any] | None = None,
+    proposed_state: State | None = None,
 ) -> RecoveryReport:
     """Recover persisted evolution and fail closed unless its identity chain verifies."""
     records = list(list_evolution_audit(conn))
@@ -38,6 +41,8 @@ def recover_evolution_audit(
         return RecoveryReport(len(records), False, False, None, None, ("provenance record missing",))
     if observations is None:
         return RecoveryReport(len(records), False, False, None, None, ("observations required for independent recovery verification",))
+    if proposed_state is None:
+        return RecoveryReport(len(records), False, False, None, None, ("proposed state required for content reconciliation",))
     result = verify_persisted_chain(
         provenance_rows[0],
         [record.__dict__ for record in records],
@@ -48,7 +53,8 @@ def recover_evolution_audit(
     actual_digest = canonical_digest(observations)
     persisted_identity = provenance_row.get("evolution_identity", "")
     provenance_class = classify_evolution_provenance(provenance_row)
-    replay_valid = result.valid and actual_digest == expected_digest and provenance_class == "canonical"
+    content_identity_valid = proposed_state.content_id == provenance_row.get("proposed_state_content_id", "")
+    replay_valid = result.valid and actual_digest == expected_digest and provenance_class == "canonical" and content_identity_valid
     identity_valid = True
     if persisted_identity:
         try:
@@ -74,6 +80,8 @@ def recover_evolution_audit(
         reasons.append("recovery replay digest mismatch")
     if provenance_class != "canonical":
         reasons.append("legacy provenance identity is unverified")
+    if not content_identity_valid:
+        reasons.append("proposed state content identity mismatch")
     if not identity_valid:
         reasons.append("recovery evolution identity mismatch")
     return RecoveryReport(len(records), result.valid, replay_valid, expected_digest, actual_digest, tuple(dict.fromkeys(reasons)))
