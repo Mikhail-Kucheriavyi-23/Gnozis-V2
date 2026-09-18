@@ -277,7 +277,7 @@ def list_evolution_provenance(
     ensure_reflection_schema(conn)
     if candidate_id is None:
         rows = conn.execute(
-            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,"
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,"
             "evaluation_status,shadow_status,invariant_status,governance_decision,status "
             "FROM evolution_provenance ORDER BY rowid"
         ).fetchall()
@@ -289,7 +289,7 @@ def list_evolution_provenance(
             (candidate_id,),
         ).fetchall()
     keys = (
-        "provenance_id","execution_id","candidate_id","parent_state_id","evidence_digest",
+        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest",
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return tuple(dict(zip(keys, row)) for row in rows)
@@ -307,6 +307,8 @@ def crosscheck_stored_provenance(
         execution_id=row["execution_id"],
         candidate_id=row["candidate_id"],
         parent_state_id=row["parent_state_id"],
+        parent_state_digest=row["parent_state_digest"],
+        proposed_state_digest=row["proposed_state_digest"],
         evidence_digest=row["evidence_digest"],
         evaluation_status=row["evaluation_status"],
         shadow_status=row["shadow_status"],
@@ -318,6 +320,8 @@ def crosscheck_stored_provenance(
         provenance=provenance,
         candidate_id=row["candidate_id"],
         parent_state_id=row["parent_state_id"],
+        parent_state_digest=row["parent_state_digest"],
+        proposed_state_digest=row["proposed_state_digest"],
         observations=observations,
         evidence_digest=row["evidence_digest"],
         execution_id_value=row["execution_id"],
