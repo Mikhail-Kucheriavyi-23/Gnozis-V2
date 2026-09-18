@@ -824,7 +824,9 @@ Recovery does not trust process memory and has no Core mutation or activation au
 
 ### GNV2-EVOLUTION-TRANSACTION-009
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35291113894 SUCCESS; Python 3.11 and 3.12 SUCCESS; 210 passed, 10 warnings. Initial CI exposed a circular import and a test-double misuse; both were corrected before verification.
 
 Added:
 - atomic SQLite transaction for evolution provenance + audit event
