@@ -89,4 +89,8 @@ def verify_persisted_chain(
                 link = crosscheck_provenance_audit(provenance, audit)
                 reasons.extend(link.reasons)
 
+    expected_identity = provenance.evolution_identity
+    supplied_identity = provenance_row.get("evolution_identity")
+    if supplied_identity is not None and supplied_identity != expected_identity:
+        reasons.append("evolution identity mismatch")
     return ChainVerification(not reasons, tuple(dict.fromkeys(reasons)))
