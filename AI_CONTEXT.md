@@ -718,3 +718,27 @@ Update this file whenever:
 - architecture changes
 
 Do not maintain historical claims that are contradicted by current repository/runtime evidence.
+
+### GNV2-EVOLUTION-PROVENANCE-003
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added:
+- tamper-evident canonical evidence digest verification
+- immutable `EvidenceProvenance`
+- deterministic execution/provenance IDs
+- rejection of mismatched observations/evidence digests
+- SQLite `evolution_provenance` persistence
+- load/list persistence accessors
+- regression test for persistence round-trip
+
+Security boundary:
+- provenance records evidence and decisions as metadata
+- persistence does not authorize activation
+- `PromotionCandidate.can_activate` remains false
+- canonical Core state remains untouched
+
+Next step after CI:
+- verify full pipeline evidence linkage from sandbox digest through evaluation/shadow/invariant/governance
+- then add explicit cross-record consistency/tamper checks
+- keep canonical promotion closed
