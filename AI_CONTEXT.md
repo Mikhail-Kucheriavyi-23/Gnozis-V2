@@ -1060,3 +1060,10 @@ The existing `Candidate.binding_digest(parent_state_digest)` is now elevated int
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Audited the existing `persist_evolution_transaction()` and retained its existing BEGIN IMMEDIATE / SAVEPOINT model. Fixed the transaction writer so canonical provenance fields (`evolution_identity`, `proposed_state_content_id`, `candidate_binding_digest`) are persisted atomically with the audit record. Existing rollback and nested-savepoint tests remain the primary atomicity gates; a regression assertion verifies the canonical fields survive the atomic write.
+
+
+### GNV2-EVOLUTION-IDEMPOTENCY-029
+
+Implementation status: **IN PROGRESS — identity verification added; CI pending**.
+
+The atomic transaction writer now re-reads the persisted provenance inside the same transaction and verifies execution_id, evolution_identity, proposed_state_content_id, and candidate_binding_digest before COMMIT/RELEASE. A mismatch raises and rolls back the transaction. This is the first half of replay/idempotency hardening; duplicate-key rejection remains the existing boundary for repeated provenance_id submissions.
