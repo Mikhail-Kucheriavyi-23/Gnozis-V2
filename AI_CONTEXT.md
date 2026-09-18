@@ -1048,7 +1048,9 @@ Trusted recovery now requires the recovered/provided `State` and independently r
 
 ### GNV2-EVOLUTION-STATE-PROVENANCE-LINK-027
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35296130140 SUCCESS; Python 3.11 and 3.12 SUCCESS; 234 passed, 10 warnings.
 
 The existing `Candidate.binding_digest(parent_state_digest)` is now elevated into persisted provenance as `candidate_binding_digest`. Provenance identity includes the binding; persistence stores/migrates it; chain verification and recovery reconstruct it. New provenance requires a non-empty candidate binding digest, preventing a proposed state/content identity from being trusted without an explicit parent→candidate→proposed-state transition binding.
 
