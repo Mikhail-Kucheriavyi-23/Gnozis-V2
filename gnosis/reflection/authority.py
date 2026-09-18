@@ -133,3 +133,46 @@ def require_execution_commit(request: ExecutionCommitRequest) -> None:
     if request.authorization.evolution_identity != request.intent_snapshot.evolution_identity:
         raise PermissionError("execution commit identity mismatch")
     require_execution_intent_snapshot(request.intent_snapshot, request.provenance)
+
+
+@dataclass(frozen=True)
+class ExecutionReceipt:
+    """Immutable evidence produced only after a caller supplies a committed result digest."""
+    execution_id: str
+    provenance_id: str
+    evolution_identity: str
+    parent_state_digest: str
+    resulting_state_digest: str
+    candidate_binding_digest: str
+
+    @classmethod
+    def after_commit(cls, request: ExecutionCommitRequest, resulting_state_digest: str) -> "ExecutionReceipt":
+        if not resulting_state_digest:
+            raise ValueError("resulting state digest is required for an execution receipt")
+        require_execution_commit(request)
+        p = request.provenance
+        return cls(
+            execution_id=str(p.execution_id),
+            provenance_id=str(p.provenance_id),
+            evolution_identity=str(p.evolution_identity),
+            parent_state_digest=str(p.parent_state_digest),
+            resulting_state_digest=str(resulting_state_digest),
+            candidate_binding_digest=str(p.candidate_binding_digest),
+        )
+
+    def matches_request(self, request: ExecutionCommitRequest) -> bool:
+        p = request.provenance
+        return (
+            self.execution_id == str(p.execution_id)
+            and self.provenance_id == str(p.provenance_id)
+            and self.evolution_identity == str(p.evolution_identity)
+            and self.parent_state_digest == str(p.parent_state_digest)
+            and self.candidate_binding_digest == str(p.candidate_binding_digest)
+            and request.authorization.evolution_identity == self.evolution_identity
+        )
+
+
+def require_execution_receipt(receipt: ExecutionReceipt | None, request: ExecutionCommitRequest) -> None:
+    """Fail closed unless a post-commit receipt is bound to the authorized evolution."""
+    if receipt is None or not receipt.resulting_state_digest or not receipt.matches_request(request):
+        raise PermissionError("execution receipt does not match committed evolution")
