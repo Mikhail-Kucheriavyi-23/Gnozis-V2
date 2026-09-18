@@ -43,3 +43,20 @@ def request_authorization(decision: GovernanceDecision) -> AuthorityRequest:
         decision=decision.decision,
         rationale=decision.rationale,
     )
+
+
+@dataclass(frozen=True)
+class ExecutionAuthorization:
+    """Opaque authorization marker; construction is intentionally fail-closed."""
+    request_provenance: str
+    owner_approved: bool = False
+
+    @property
+    def can_execute(self) -> bool:
+        return self.owner_approved and bool(self.request_provenance)
+
+
+def require_execution_authorization(auth: ExecutionAuthorization | None) -> None:
+    """Fail closed unless an explicit owner-approved authorization is supplied."""
+    if auth is None or not auth.can_execute:
+        raise PermissionError("execution authorization required")
