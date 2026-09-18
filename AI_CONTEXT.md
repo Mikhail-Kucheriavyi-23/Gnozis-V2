@@ -723,6 +723,13 @@ Do not maintain historical claims that are contradicted by current repository/ru
 
 Implementation status: **VERIFIED by CI**.
 
+Cross-check extension:
+- `ProvenanceCrossCheck` verifies candidate, parent state, evidence digest, execution identity, evaluation, shadow, invariant and governance links.
+- stored provenance can be re-validated against observations.
+- mismatched chain or tampered observations fail closed.
+- CI run 35289996129 SUCCESS; Python 3.11 and 3.12 SUCCESS; 198 passed, 10 warnings.
+- Self-Diagnostic run 35289996076 SUCCESS.
+
 CI evidence: run 35289871794 SUCCESS; Python 3.11 and 3.12 SUCCESS; 195 passed, 10 warnings; Self-Diagnostic run 35289865670 SUCCESS.
 
 Added:
