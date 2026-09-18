@@ -1817,3 +1817,42 @@ A candidate transition can be represented as:
 with the requirement that the transition is accepted only when its declared invariants, provenance, test result, and authorization conditions are satisfied.
 
 The current implementation should not claim full autonomous autopoiesis while Generate remains caller-supplied and capability activation remains disabled. This section defines the target research property and its acceptance conditions; it does not claim that the property is already implemented.
+
+
+### GNV2-FORMAL-049S — AUTOPOIETIC CORE ACCEPTANCE CONDITIONS
+
+The project must not claim an implemented autopoietic core until the following conditions are demonstrably satisfied by runtime evidence, tests, and provenance records. These are acceptance conditions, not implementation claims.
+
+A — SELF-REFERENTIAL MEMORY: the system can consume its own prior accepted evolution records as input to subsequent bounded evolution without rewriting immutable history.
+
+B — ENDOGENOUS GAP DETECTION: at least one runtime path can derive a capability gap from observed state/evidence rather than requiring the gap to be manually supplied by the caller.
+
+C — CAPABILITY HYPOTHESIS GENERATION: the system can construct a bounded capability hypothesis from an evidenced gap, including mechanism, expected effects, side effects, test plan, and resource bound.
+
+D — BOUNDED CAPABILITY TESTING: a generated capability can be tested in an isolated, resource-bounded execution path with protected invariants enforced independently of the candidate's own test function.
+
+E — EVIDENCE-PRESERVING SELECTION: the system can evaluate candidate outcomes without rewriting source evidence, suppressing contradictory observations, or using an undocumented global selector.
+
+F — STATE TRANSFORMATION: an accepted, authorized transition can produce a new durable state whose provenance links the previous state, candidate/capability, test evidence, and resulting state.
+
+G — RECURSIVE FEEDBACK: the resulting state and its observed consequences become available to the next evolution cycle, closing the loop.
+
+H — FAILURE/REGRESSION LEARNING: failed, inconclusive, and regressed capabilities remain in evolutionary memory and can alter subsequent hypotheses without being treated as successful evidence.
+
+I — FORECAST FEEDBACK: the system can compare a prior forecast with later observations and retain forecast error as evidence for future forecasting.
+
+J — BRANCHING CONTINUITY: bounded forks/clones can evolve independently while retaining explicit ancestry and separate identities.
+
+K — CROSS-LINEAGE VALIDATION: independent lineages can replicate or critique evidence without merging identity or authority.
+
+L — FAIL-CLOSED AUTHORITY: no evolutionary discovery, forecast, replication, or capability hypothesis can itself grant permission to mutate protected Core; activation requires the separately defined authorization contract.
+
+M — OBSERVABLE PROOF: each accepted transition exposes sufficient provenance, audit evidence, and deterministic identifiers for an independent reviewer to reconstruct why the transition occurred.
+
+The minimum autopoietic claim is therefore:
+
+AutopoieticCore = A ∧ B ∧ C ∧ D ∧ E ∧ F ∧ G ∧ H ∧ L ∧ M
+
+J and K become required for the stronger claim of distributed/networked autopoiesis. I becomes required for the stronger claim of predictive autopoietic adaptation.
+
+Until the corresponding runtime evidence exists, these conditions remain a roadmap and acceptance gate, not a statement that the current implementation satisfies them.
