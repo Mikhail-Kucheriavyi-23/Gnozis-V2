@@ -1078,3 +1078,10 @@ The atomic transaction writer now re-reads the persisted provenance inside the s
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 `persist_evolution_transaction()` now treats an exact replay of the same provenance + event type + payload digest as idempotent: it returns the existing audit record without appending a new sequence. A conflicting replay with the same provenance identity but different audit semantics fails closed and leaves the existing audit chain unchanged. This preserves distinct records for genuinely new provenance while preventing retry-driven duplicate history.
+
+
+### GNV2-EXECUTION-AUTHORIZATION-GATE-031
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+The existing authority boundary is now explicit about execution: `ExecutionAuthorization` is a fail-closed marker, and `require_execution_authorization()` rejects missing authorization, non-owner-approved authorization, or authorization without provenance. This does not grant authority to promotion or Core Engine; it establishes the execution boundary that future activation code must call. No autonomous path is enabled by this change.
