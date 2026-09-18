@@ -1230,3 +1230,8 @@ CI run 35337563386 exposed a real Core invariant failure in the new endogenous i
 ### CI-FIX-ENDOGENOUS-042-TEST-FORMAT
 
 CI run 35337753436 failed during test collection, before executing tests. Cause: the added assertion in `tests/test_endogenous_generation.py` contained a literal escaped `\\n` sequence in source, producing a SyntaxError. Fixed only the test formatting; no production code changed. Awaiting CI verification.
+
+
+### CI-FIX-042-TEST-SYNTAX
+
+CI run 35337753436 failed during test collection due to an accidentally literal `\\n` sequence inserted into `tests/test_endogenous_generation.py`, not due to product code. Fixed the test source in commit `de7a2e026ca98d0411427d565eb59accee89c5b5`. Awaiting CI verification.
