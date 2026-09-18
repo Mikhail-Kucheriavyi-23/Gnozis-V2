@@ -1169,3 +1169,8 @@ CI run 35332087037 exposed one test defect in the new fail-closed adapter test: 
 ### CI-FIX-038-039-FINAL
 
 Run 35333218308 still failed because the previous correction inserted `initial_state_id` into the neighboring success test rather than the rejection test. The rejection test now captures `initial_state_id` immediately after instance creation. This is a test-only correction; no production code changed.
+
+
+### CI-VERIFIED-038-039
+
+CI run 35333354866 SUCCESS. The corrected fail-closed SQLite execution adapter test passes. Python 3.11/3.12 workflow checks are green. 038 is now CI-VERIFIED. 039 boundary tests are also CI-VERIFIED; trusted owner-authority issuance remains intentionally NOT IMPLEMENTED.
