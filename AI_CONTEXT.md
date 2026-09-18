@@ -1788,3 +1788,32 @@ A capability discovered by one lineage may become a candidate for replication by
 Network participation must not bypass local Core invariants, execution authorization, persistence integrity, or identity boundaries. Federation is an evidence and learning layer unless a separately specified governance layer explicitly grants additional authority.
 
 This principle is foundational for future Gnozis federation and multi-agent autopoiesis: collective development emerges from interaction among autonomous lineages rather than from a single central decision-maker.
+
+
+### GNV2-FORMAL-049R — CONFLICT AS EVOLUTIONARY PRESSURE AND AUTOPOIETIC LOOP
+
+Conflict is modeled as a source of evolutionary pressure when incompatible constraints, models, objectives, or observed effects create persistent tension that cannot be adequately resolved by the current capability set. Conflict is not itself a command to mutate; it is an observation that may expose a capability gap.
+
+Conceptual loop:
+
+Conflict → Tension → Gap → CapabilityHypothesis → Bounded Test → Evidence → Transformation → New State → New Conflict/Tension
+
+For the loop to qualify as an autopoietic process, the system must satisfy all of the following conditions:
+
+1. SELF-REFERENCE — outcomes of its own prior transformations become part of the evidence available to subsequent evolution;
+2. CAPABILITY GENERATION — unresolved gaps can produce explicit hypotheses for new capabilities rather than only selecting among fixed actions;
+3. STRUCTURAL CLOSURE — accepted transformations operate through defined internal state/provenance contracts and cannot bypass protected invariants;
+4. CONTINUITY — the evolutionary identity and memory graph preserve the relation between successive transformations;
+5. BOUNDED REPRODUCTION — a capability or organizational pattern may be reproduced in a new bounded lineage/instance through explicit provenance;
+6. ENVIRONMENTAL COUPLING — external observations may expose new tensions or evidence, while external input does not directly dictate Core state;
+7. FAIL-CLOSED EVOLUTION — insufficient evidence, failed tests, broken provenance, or authorization failures halt or downgrade the evolutionary transition rather than silently mutating state.
+
+Autopoiesis therefore does not mean unrestricted self-modification. It means that the system can participate in a closed evolutionary loop in which its own history, limitations, generated capabilities, and observed consequences become material for subsequent organization.
+
+A candidate transition can be represented as:
+
+Ψ_t + Evidence_t + Gap_t + Capability_t → Ψ_{t+1}
+
+with the requirement that the transition is accepted only when its declared invariants, provenance, test result, and authorization conditions are satisfied.
+
+The current implementation should not claim full autonomous autopoiesis while Generate remains caller-supplied and capability activation remains disabled. This section defines the target research property and its acceptance conditions; it does not claim that the property is already implemented.
