@@ -1115,7 +1115,9 @@ Added `ExecutionIntentSnapshot`, a frozen identity snapshot containing provenanc
 
 ### GNV2-EXECUTION-INTENT-FRESHNESS-034
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI exposed a missing test import; corrected. Awaiting CI verification.**
+
+CI run 35298070747: 244 passed, 2 failed. Both failures were NameError in the new tests because `ExecutionCommitRequest` was not imported. Production gate was not implicated. Added the missing import.
 
 `ExecutionIntentSnapshot` now includes `parent_state_id` and `parent_state_digest`, binding the authorization snapshot to the exact parent state from which the evolution was derived. A changed parent state identity or digest therefore invalidates the snapshot through the existing fail-closed match check. No global clock or second state model is introduced.
 
