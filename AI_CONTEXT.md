@@ -1235,3 +1235,8 @@ CI run 35337753436 failed during test collection, before executing tests. Cause:
 ### CI-FIX-042-TEST-SYNTAX
 
 CI run 35337753436 failed during test collection due to an accidentally literal `\\n` sequence inserted into `tests/test_endogenous_generation.py`, not due to product code. Fixed the test source in commit `de7a2e026ca98d0411427d565eb59accee89c5b5`. Awaiting CI verification.
+
+
+### CI-FIX-042-PRODUCT-SYNTAX
+
+CI run 35337956893 showed the previous test-source fix was insufficient: `gnosis/reflection/endogenous.py` itself contained literal `\\n` escape sequences in the multiline `with_elements()` block. Corrected the production source in commit `14c1cc03e20f7e1ff434c7cf43ef354ca8d1d6b8`. This is a source-generation/formatting defect, not a semantic change. Awaiting CI verification.
