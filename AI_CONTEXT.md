@@ -1363,3 +1363,8 @@ Safety/preservation and development/exploration are therefore treated as potenti
 A future conflict model may track tension T between world-models and evaluate whether a tested transition produces a viable reduction in tension while preserving protected invariants and increasing useful capability. This is a future research direction, not a current Core rule.
 
 The philosophical use of panpsychism, if retained, is a design hypothesis and vocabulary for this line of inquiry, not a scientific fact and not a protected implementation invariant.
+
+
+### GNV2-FUTURE-049 — CONFLICT MODEL FORMALIZATION
+
+Next primary research task: formalize a conflict/tension model before implementing conflict-driven evolution. Define world-model identity, evidence provenance, conflict representation, a bounded tension measure or partial order, and criteria for a transition to count as tension-reducing while preserving Core invariants. Do not encode a simplistic scalar "truth" score and do not allow conflict/tension to become an implicit selector. The first implementation should remain observational/evaluative and generate evidence for later hypothesis formation.
