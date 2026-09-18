@@ -11,7 +11,7 @@ from typing import Sequence
 from gnosis.core.types import Candidate, Relation, State
 from .analyzer import ReflectionReport, RuleProposal
 
-MAX_ENDOGENOUS_CANDIDATES = 20
+MAX_ENDOGENOUS_CANDIDATES = 20  # default; bounded by caller-provided evolution budget
 REFLECTION_NODE = "__gnozis_reflection__"
 
 @dataclass(frozen=True)
