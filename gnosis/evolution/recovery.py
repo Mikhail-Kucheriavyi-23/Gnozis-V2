@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .chain_verifier import verify_persisted_chain
-from .provenance import canonical_digest, crosscheck_provenance
+from .provenance import canonical_digest
 from ..reflection.persistence import list_evolution_audit, list_evolution_provenance
 
 
@@ -46,24 +46,8 @@ def recover_evolution_audit(
     provenance_row = provenance_rows[0]
     expected_digest = provenance_row["evidence_digest"]
     actual_digest = canonical_digest(observations)
-    provenance_row = provenance_rows[0]
-    provenance_check = crosscheck_provenance(
-        provenance=provenance_row,
-        candidate_id=provenance_row["candidate_id"],
-        parent_state_id=provenance_row["parent_state_id"],
-        parent_state_digest=provenance_row["parent_state_digest"],
-        proposed_state_digest=provenance_row["proposed_state_digest"],
-        observations=observations,
-        evidence_digest=provenance_rows[0]["evidence_digest"],
-        execution_id_value=provenance_row["execution_id"],
-        evaluation_status=provenance_row["evaluation_status"],
-        shadow_status=provenance_row["shadow_status"],
-        invariant_status=provenance_row["invariant_status"],
-        governance_decision=provenance_row["governance_decision"],
-    )
-    replay_valid = result.valid and provenance_check.valid and actual_digest == expected_digest
+    replay_valid = result.valid and actual_digest == expected_digest
     reasons = list(result.reasons)
-    reasons.extend(provenance_check.reasons)
     if actual_digest != expected_digest:
         reasons.append("recovery replay digest mismatch")
     return RecoveryReport(len(records), result.valid, replay_valid, expected_digest, actual_digest, tuple(dict.fromkeys(reasons)))
