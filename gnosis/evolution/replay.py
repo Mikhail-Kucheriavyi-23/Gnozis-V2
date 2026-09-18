@@ -70,7 +70,7 @@ def replay_complete(
     if audit_record is not None:
         if audit_record.candidate_id != execution.candidate_id:
             reasons.append("audit candidate mismatch")
-        if getattr(audit_record, "provenance_id", None) != provenance.provenance_id if provenance is not None else True:
+        if provenance is None or getattr(audit_record, "provenance_id", None) != provenance.provenance_id:
             reasons.append("audit provenance mismatch")
         for field in ("parent_state_digest", "proposed_state_digest", "evidence_digest"):
             if getattr(audit_record, field, None) != getattr(execution, field, None):
