@@ -95,7 +95,7 @@ def test_nested_failure_rolls_back_only_evolution_savepoint():
         conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"}
     )
     conn.execute("INSERT INTO marker VALUES ('before-failure')")
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(RuntimeError, match="conflicting replay"):
         persist_evolution_transaction(
             conn, provenance, event_type="PROVENANCE", payload={"status": "DUPLICATE"}
         )
