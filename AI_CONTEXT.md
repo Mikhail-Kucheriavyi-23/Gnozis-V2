@@ -648,6 +648,58 @@ Current handoff:
 - Do not add OpenRouter, bot infrastructure, or unrelated external-agent orchestration to this gate.
 - Next work must select exactly one dependency-satisfied READY task from the post-Reflection sequence.
 
+## 19A. CURRENT EVOLUTION EVIDENCE SLICE
+
+The first bounded evolution evidence slice is now implemented outside Core.
+
+Implementation commit:
+- c40a9d6d2c18d14d9060398bb6f14794797774bd
+
+Added:
+- gnosis/evolution/__init__.py
+- gnosis/evolution/sandbox.py
+- gnosis/evolution/evaluator.py
+- gnosis/evolution/promotion.py
+- tests/test_evolution_sandbox.py
+
+Properties:
+- sandbox input is State + Candidate only
+- stale parent is rejected
+- sandbox is bounded to <=20 configured operations
+- observer failures become FAILED evidence and do not pass evaluation
+- observations receive a deterministic evidence digest
+- evaluator refuses to claim PASS for unknown policy identifiers
+- PromotionCandidate is immutable evidence packaging only
+- PromotionCandidate.can_activate is always False
+- no Engine, persistence handle, activation API or canonical mutation path is exposed
+
+Important limitation:
+- This is the first bounded evidence slice, not a full OS/process/network sandbox.
+- The current budget counts the experiment invocation as one operation; finer-grained gas/resource accounting remains a later gate.
+- Evaluator semantics are intentionally minimal and do not yet constitute scientific/task-specific validation.
+- PromotionCandidate is not an authorization mechanism.
+
+CI evidence:
+- CI run 35289454476: SUCCESS
+- Python 3.11: SUCCESS
+- Python 3.12: SUCCESS
+- executed suite: 190 passed, 10 warnings
+- Self-Diagnostic run 35289454521: SUCCESS
+
+Status:
+- GNV2-REFLECTION-GATE: VERIFIED
+- GNV2-EVOLUTION-EVIDENCE-001: VERIFIED for this bounded slice
+- Full autonomous/canonical evolution: CLOSED
+
+Next required gate:
+GNV2-EVOLUTION-SANDBOX-002
+- replace the minimal callable sandbox with an explicitly resource-bounded execution boundary
+- define gas/operation accounting
+- define timeout/failure semantics
+- ensure experimental execution cannot receive Core authority
+- persist execution evidence and link it to Reflection/Promotion provenance
+- keep canonical promotion closed
+
 ## 20. CONTEXT INTEGRITY
 
 Update this file whenever:
