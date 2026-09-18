@@ -41,7 +41,7 @@ def test_evolution_transaction_rolls_back_both_records_on_constraint_failure():
     first = persist_evolution_transaction(
         conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"}
     )
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(RuntimeError, match="conflicting replay"):
         persist_evolution_transaction(
             conn, provenance, event_type="PROVENANCE", payload={"status": "DUPLICATE"}
         )
