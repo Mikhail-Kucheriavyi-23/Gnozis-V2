@@ -56,6 +56,7 @@ class EvidenceProvenance:
             "parent_state_id": self.parent_state_id,
             "parent_state_digest": self.parent_state_digest,
             "proposed_state_digest": self.proposed_state_digest,
+            "proposed_state_content_id": self.proposed_state_content_id,
             "evidence_digest": self.evidence_digest,
             "evaluation_status": self.evaluation_status,
             "shadow_status": self.shadow_status,
@@ -174,6 +175,7 @@ def crosscheck_provenance(
         invariant_status=invariant_status,
         governance_decision=governance_decision,
         status=provenance.status,
+        proposed_state_content_id=proposed_state_content_id,
     )
     if provenance.provenance_id != expected_provenance.provenance_id:
         reasons.append("provenance identity mismatch")
