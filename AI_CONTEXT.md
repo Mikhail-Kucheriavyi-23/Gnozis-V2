@@ -1344,3 +1344,22 @@ Implementation status: **IMPLEMENTED — awaiting CI verification**. Added regre
 ### GNV2-MEMORY-SIGNATURE-048
 
 Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now derives a deterministic `memory_signature` from verified memory identifiers and carries it into hypothesis context. Regression tests demonstrate that different memory histories can produce different hypothesis context while preserving deterministic generation and identical proposal selection. This is contextual memory influence, not a hidden selector.
+
+
+## FUTURE PHILOSOPHICAL PRINCIPLE — CONFLICT AS EVOLUTIONARY PRESSURE
+
+Gnozis may represent multiple world-models whose differences create measurable or structurally describable tension. Conflict is not merely an error condition or a source of information. It may function as an evolutionary pressure that motivates the creation of new capabilities and new organization.
+
+The intended developmental pattern is:
+
+CONFLICT → TENSION → LIMITATION → HYPOTHESIS → NEW CAPABILITY → TEST → INTEGRATION → REDUCED TENSION
+
+The objective is not to force one world-model to defeat another, nor to compute a simplistic midpoint between them. A successful evolution may instead create a third organization in which previously incompatible requirements can coexist under new conditions:
+
+W_A ⊕ W_B → W_C
+
+Safety/preservation and development/exploration are therefore treated as potentially complementary evolutionary pressures. Safety preserves viable structure; development expands the space of viable possibilities. Neither pole is itself the complete objective of Gnozis.
+
+A future conflict model may track tension T between world-models and evaluate whether a tested transition produces a viable reduction in tension while preserving protected invariants and increasing useful capability. This is a future research direction, not a current Core rule.
+
+The philosophical use of panpsychism, if retained, is a design hypothesis and vocabulary for this line of inquiry, not a scientific fact and not a protected implementation invariant.
