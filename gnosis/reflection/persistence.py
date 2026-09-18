@@ -52,6 +52,23 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             payload TEXT NOT NULL,
             FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
         );
+        CREATE TABLE IF NOT EXISTS evolution_provenance (
+            provenance_id TEXT PRIMARY KEY,
+            execution_id TEXT NOT NULL,
+            candidate_id TEXT NOT NULL,
+            parent_state_id TEXT NOT NULL,
+            evidence_digest TEXT NOT NULL,
+            evaluation_status TEXT NOT NULL,
+            shadow_status TEXT NOT NULL,
+            invariant_status TEXT NOT NULL,
+            governance_decision TEXT NOT NULL,
+            status TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_evolution_provenance_candidate
+            ON evolution_provenance(candidate_id);
+        CREATE INDEX IF NOT EXISTS idx_evolution_provenance_digest
+            ON evolution_provenance(evidence_digest);
+
         CREATE TABLE IF NOT EXISTS reflection_governance_decisions (
             decision_id TEXT PRIMARY KEY,
             report_id TEXT NOT NULL,
@@ -191,3 +208,70 @@ def list_reflection_reports(conn: sqlite3.Connection) -> tuple[dict[str, Any], .
     ensure_reflection_schema(conn)
     rows = conn.execute("SELECT report_id,created_at,payload FROM reflection_reports ORDER BY created_at,report_id").fetchall()
     return tuple({"report_id": row[0], "created_at": row[1], "payload": json.loads(row[2])} for row in rows)
+
+
+def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
+    """Persist immutable provenance metadata; never activates the candidate."""
+    ensure_reflection_schema(conn)
+    provenance_id = provenance.provenance_id
+    payload = _json(provenance)
+    conn.execute(
+        """INSERT OR IGNORE INTO evolution_provenance
+        (provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,
+         evaluation_status,shadow_status,invariant_status,governance_decision,status)
+        VALUES (?,?,?,?,?,?,?,?,?,?)""",
+        (
+            provenance_id,
+            provenance.execution_id,
+            provenance.candidate_id,
+            provenance.parent_state_id,
+            provenance.evidence_digest,
+            provenance.evaluation_status,
+            provenance.shadow_status,
+            provenance.invariant_status,
+            provenance.governance_decision,
+            provenance.status,
+        ),
+    )
+    return provenance_id
+
+
+def load_evolution_provenance(conn: sqlite3.Connection, provenance_id: str) -> dict[str, Any]:
+    ensure_reflection_schema(conn)
+    row = conn.execute(
+        """SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,
+                  evaluation_status,shadow_status,invariant_status,governance_decision,status
+           FROM evolution_provenance WHERE provenance_id=?""",
+        (provenance_id,),
+    ).fetchone()
+    if row is None:
+        raise KeyError(provenance_id)
+    keys = (
+        "provenance_id","execution_id","candidate_id","parent_state_id","evidence_digest",
+        "evaluation_status","shadow_status","invariant_status","governance_decision","status",
+    )
+    return dict(zip(keys, row))
+
+
+def list_evolution_provenance(
+    conn: sqlite3.Connection, candidate_id: str | None = None
+) -> tuple[dict[str, Any], ...]:
+    ensure_reflection_schema(conn)
+    if candidate_id is None:
+        rows = conn.execute(
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,"
+            "evaluation_status,shadow_status,invariant_status,governance_decision,status "
+            "FROM evolution_provenance ORDER BY rowid"
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,"
+            "evaluation_status,shadow_status,invariant_status,governance_decision,status "
+            "FROM evolution_provenance WHERE candidate_id=? ORDER BY rowid",
+            (candidate_id,),
+        ).fetchall()
+    keys = (
+        "provenance_id","execution_id","candidate_id","parent_state_id","evidence_digest",
+        "evaluation_status","shadow_status","invariant_status","governance_decision","status",
+    )
+    return tuple(dict(zip(keys, row)) for row in rows)
