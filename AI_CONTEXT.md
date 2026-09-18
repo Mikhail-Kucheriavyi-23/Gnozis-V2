@@ -1133,7 +1133,9 @@ Added `ExecutionCommitRequest` and `require_execution_commit()` as a composed pr
 
 ### GNV2-EXECUTION-RECEIPT-036
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35330847196 SUCCESS.
 
 Added immutable `ExecutionReceipt` as post-commit evidence. It contains execution_id, provenance_id, evolution_identity, parent_state_digest, resulting_state_digest, and candidate_binding_digest. `ExecutionReceipt.after_commit()` requires the full pre-commit gate and a non-empty resulting-state digest; `require_execution_receipt()` rejects missing or cross-bound receipts. The receipt does not itself mutate state or grant authority; it records a result only after the caller supplies the committed result digest.
 
