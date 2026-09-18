@@ -751,3 +751,21 @@ Next step after CI:
 - verify full pipeline evidence linkage from sandbox digest through evaluation/shadow/invariant/governance
 - then add explicit cross-record consistency/tamper checks
 - keep canonical promotion closed
+
+### GNV2-EVOLUTION-PROMOTION-GATE-005
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added a non-authoritative PromotionGate:
+- validates provenance cross-check status
+- requires evaluation PASS
+- accepts only defined shadow statuses
+- requires invariant PRESERVED/IMPROVED
+- requires governance REVIEW/APPROVE
+- returns REVIEW_ONLY
+- `PromotionGate.can_activate` is always false
+- `PromotionCandidate.can_activate` remains false
+- no canonical Core mutation or activation path exists
+- regression tests cover eligible, provenance-failure and unsafe-status cases
+
+This gate is an eligibility/proof boundary, not an authorization boundary.
