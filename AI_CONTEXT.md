@@ -1311,3 +1311,8 @@ Context authorship ≠ absolute authority
 New context ≠ deletion of history
 
 This principle is recorded as a FUTURE architectural direction. It is not an implementation grant and must not be interpreted by an agent as permission to modify AI_CONTEXT autonomously at the current stage.
+
+
+### GNV2-MEMORY-AWARE-GENERATE-045
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now accepts verified `EvolutionEvidence` as an explicit input and carries its immutable memory identifiers into the proposed-state evidence record. This is evidence binding only: historical memory does not automatically reject, accept, rank, or activate a proposal. Selection semantics remain unchanged. Added regression coverage for the binding. This preserves the distinction Memory → Evidence → Hypothesis while preparing the next phase for genuine memory-informed hypothesis formation.
