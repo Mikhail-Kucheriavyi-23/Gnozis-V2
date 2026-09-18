@@ -161,3 +161,50 @@ def test_stored_provenance_crosscheck_detects_tampering():
     result = crosscheck_stored_provenance(conn, stored, observations={"metric": 999})
     assert not result.valid
     assert any("observation digest mismatch" in reason for reason in result.reasons)
+
+
+def test_promotion_gate_is_review_only_even_when_eligible():
+    from gnosis.evolution.promotion import evaluate_promotion_gate, make_promotion_candidate
+    candidate = make_promotion_candidate(
+        candidate_id="candidate:6",
+        evidence_digest="digest",
+        evaluation_status="PASS",
+        shadow_status="IMPROVED",
+        invariant_status="PRESERVED",
+        governance_decision="APPROVE",
+    )
+    gate = evaluate_promotion_gate(candidate, provenance_valid=True)
+    assert gate.eligible
+    assert gate.status == "REVIEW_ONLY"
+    assert gate.can_activate is False
+    assert candidate.can_activate is False
+
+
+def test_promotion_gate_fails_closed_on_provenance():
+    from gnosis.evolution.promotion import evaluate_promotion_gate, make_promotion_candidate
+    candidate = make_promotion_candidate(
+        candidate_id="candidate:7",
+        evidence_digest="digest",
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="APPROVE",
+    )
+    gate = evaluate_promotion_gate(candidate, provenance_valid=False)
+    assert not gate.eligible
+    assert "provenance cross-check failed" in gate.reasons
+
+
+def test_promotion_gate_rejects_unsafe_statuses():
+    from gnosis.evolution.promotion import evaluate_promotion_gate, make_promotion_candidate
+    candidate = make_promotion_candidate(
+        candidate_id="candidate:8",
+        evidence_digest="digest",
+        evaluation_status="REVIEW",
+        shadow_status="BEHAVIOR_CHANGED",
+        invariant_status="REGRESSED",
+        governance_decision="REJECT",
+    )
+    gate = evaluate_promotion_gate(candidate, provenance_valid=True)
+    assert not gate.eligible
+    assert len(gate.reasons) == 4
