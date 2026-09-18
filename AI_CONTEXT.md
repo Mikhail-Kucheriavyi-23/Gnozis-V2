@@ -1661,3 +1661,30 @@ The graph must preserve original observations when later interpretations change.
 The graph should support long-horizon questions such as: which capabilities repeatedly reduced a class of tension; which capabilities created recurring side effects; which gaps recur across different conflicts; where forecasts repeatedly failed; and which evolutionary transitions produced durable structural change.
 
 This graph is an analytical memory model, not an autonomous decision-maker. It must not itself authorize mutation, select a world-model as truth, or erase contradictory evidence.
+
+
+### GNV2-FORMAL-049M — EVOLUTIONARY IDENTITY AND LINEAGE
+
+Evolutionary identity must distinguish the continuity of an evolution process from the identity of any individual state, instance, clone, or capability. A state transition may preserve an evolutionary lineage while changing state identity; a clone may preserve provenance to a parent while receiving a distinct instance identity.
+
+Conceptual relations:
+
+StateIdentity_t != EvolutionIdentity
+InstanceIdentity_clone != InstanceIdentity_parent
+InstanceIdentity_clone derived_from InstanceIdentity_parent
+
+An EvolutionIdentity should bind a sequence of accepted, provenance-preserving transitions into a reconstructable lineage. The lineage must not depend solely on mutable labels, filenames, process IDs, or external runtime location.
+
+The identity model must distinguish at least:
+
+- EVOLUTION_ID — continuity of a particular evolutionary lineage;
+- STATE_ID — identity/digest of a concrete state;
+- INSTANCE_ID — identity of a running or persisted instance;
+- CAPABILITY_ID — identity of a proposed or verified capability;
+- PROVENANCE_ID — identity of the evidence chain supporting an event or transition.
+
+Forks and clones create new instance identities while retaining explicit ancestry. A derived lineage may diverge from its parent without rewriting the parent's historical graph. Shared ancestry is provenance, not shared mutable state.
+
+Evolutionary identity must be cryptographically or deterministically bound to the relevant provenance where required by the existing persistence/evolution contracts. It must not grant authority: identity proves continuity/lineage, not permission to mutate or activate.
+
+This identity layer is required before later federation/autopoietic-network work so that multiple Gnozis instances can cooperate without collapsing their histories or authority boundaries.
