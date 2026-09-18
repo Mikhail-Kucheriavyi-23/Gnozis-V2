@@ -1588,3 +1588,26 @@ The field should support identifying shared capability gaps. This permits Gnozis
 A coupled-conflict record must preserve the individual conflict identities and their provenance. Aggregation must never erase the underlying observations.
 
 No global scalar tension field or automatic optimization rule is introduced. This is a representation and analysis contract for future evolution research.
+
+
+### GNV2-FORMAL-049J — SHARED GAP DISCOVERY
+
+A Shared Gap is a candidate common limitation associated with multiple conflict observations. It must be distinguished from coincidence. Gnozis should require explicit evidence of a common dependency, shared constraint, shared missing operation, or reproducible cross-conflict effect before treating multiple conflicts as one Shared Gap.
+
+Conceptual form:
+
+SG = (conflict_refs, common_dependency, supporting_evidence, conditions, counterevidence, confidence_status)
+
+Discovery evidence may include:
+
+- SHARED_CONSTRAINT — the conflicts depend on the same protected or externally verified constraint;
+- SHARED_OPERATION — the same missing operation is required to test or resolve each conflict;
+- SHARED_RESOURCE — the conflicts compete for the same bounded resource;
+- CROSS_EFFECT — an independently observed intervention changes multiple conflicts through a reproducible mechanism;
+- STRUCTURAL_DEPENDENCY — the conflict representations share a verified dependency in their claims/models.
+
+Temporal correlation alone is insufficient. A capability that happened to affect two conflicts once must not be declared a shared cause without mechanism or repeatable evidence.
+
+Shared-gap discovery produces a hypothesis and evidence record, not a selector. It may prioritize future investigation only through an explicitly defined research policy; it cannot itself authorize mutation or capability activation.
+
+Acceptance for 049J: preserve individual conflict provenance, expose supporting and counterevidence, record conditions, distinguish observed dependency from inferred dependency, and fail closed when evidence is insufficient.
