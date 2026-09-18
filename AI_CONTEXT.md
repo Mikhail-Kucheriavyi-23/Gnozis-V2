@@ -1075,7 +1075,9 @@ The atomic transaction writer now re-reads the persisted provenance inside the s
 
 ### GNV2-EVOLUTION-AUDIT-IDEMPOTENCY-030
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35296869203 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 `persist_evolution_transaction()` now treats an exact replay of the same provenance + event type + payload digest as idempotent: it returns the existing audit record without appending a new sequence. A conflicting replay with the same provenance identity but different audit semantics fails closed and leaves the existing audit chain unchanged. This preserves distinct records for genuinely new provenance while preventing retry-driven duplicate history.
 
