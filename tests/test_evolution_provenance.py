@@ -68,3 +68,67 @@ def test_provenance_persists_and_reloads_without_activation():
     assert loaded["evidence_digest"] == provenance.evidence_digest
     assert loaded["candidate_id"] == provenance.candidate_id
     assert loaded["status"] == "RECORDED"
+
+
+def test_crosscheck_accepts_intact_provenance():
+    from gnosis.evolution.provenance import (
+        canonical_digest,
+        crosscheck_provenance,
+        execution_id,
+    )
+    observations = {"metric": 9}
+    digest = canonical_digest(observations)
+    provenance = build_provenance(
+        candidate_id="candidate:3",
+        parent_state_id="state:3",
+        observations=observations,
+        evidence_digest=digest,
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    result = crosscheck_provenance(
+        provenance=provenance,
+        candidate_id="candidate:3",
+        parent_state_id="state:3",
+        observations=observations,
+        evidence_digest=digest,
+        execution_id_value=execution_id("candidate:3", "state:3", digest),
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    assert result.valid
+    assert result.reasons == ()
+
+
+def test_crosscheck_rejects_chain_mismatch():
+    from gnosis.evolution.provenance import canonical_digest, crosscheck_provenance, execution_id
+    observations = {"metric": 9}
+    digest = canonical_digest(observations)
+    provenance = build_provenance(
+        candidate_id="candidate:4",
+        parent_state_id="state:4",
+        observations=observations,
+        evidence_digest=digest,
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    result = crosscheck_provenance(
+        provenance=provenance,
+        candidate_id="candidate:tampered",
+        parent_state_id="state:4",
+        observations=observations,
+        evidence_digest=digest,
+        execution_id_value=execution_id("candidate:tampered", "state:4", digest),
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    assert not result.valid
+    assert any("candidate_id mismatch" in reason for reason in result.reasons)
