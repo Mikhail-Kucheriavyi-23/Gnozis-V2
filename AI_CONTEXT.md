@@ -974,3 +974,10 @@ Recovery now fails closed unless:
 - the independent persisted-chain verifier accepts provenance, audit chain, and cross-links.
 
 The old audit-only recovery path is no longer trusted recovery.
+
+
+### GNV2-EVOLUTION-RECOVERY-REPLAY-019
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Recovery now closes the persistence→verification→replay loop by recomputing the canonical evidence digest from recovered observations and requiring equality with persisted provenance evidence. The recovery report exposes expected/actual digests and a separate replay_valid gate. Changed observations fail closed.
