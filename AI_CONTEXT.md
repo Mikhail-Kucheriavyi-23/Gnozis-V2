@@ -840,7 +840,9 @@ This is persistence atomicity only; it does not grant activation authority.
 
 ### GNV2-EVOLUTION-STATE-BINDING-010
 
-Implementation status: **IMPLEMENTED — CI verification in progress; prior run exposed compatibility defects which are being corrected.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35291486930 SUCCESS; Python 3.11 and 3.12 SUCCESS; 211 passed, 10 warnings. Diagnostic runs 35291486739 and 35291483411 SUCCESS. Prior CI failures exposed and corrected sandbox constructor, SQL placeholder, and state-digest argument compatibility defects.
 
 Added state binding to evolution provenance/execution:
 - parent state content digest
