@@ -1025,7 +1025,7 @@ Legacy persisted provenance with empty/missing `evolution_identity` is explicitl
 
 ### GNV2-EVOLUTION-STATE-CONTENT-BINDING-024
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI test compatibility fix applied.**
 
 Provenance now carries `proposed_state_content_id` as an explicit content-binding field. The canonical evolution identity includes it; persistence migrates/stores it; independent chain verification and recovery reconstruct and verify it; a regression test rejects tampering. Legacy records default to an empty binding and remain subject to the existing legacy fail-closed policy.
 
