@@ -808,7 +808,9 @@ Audit records are evidence/history only and have no Core mutation or activation 
 
 ### GNV2-EVOLUTION-RECOVERY-008
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35290870078 SUCCESS; Python 3.11 and 3.12 SUCCESS; 208 passed, 10 warnings. Self-Diagnostic 35290865148 SUCCESS.
 
 Added:
 - durable SQLite recovery of the evolution audit chain
