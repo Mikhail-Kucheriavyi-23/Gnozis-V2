@@ -84,7 +84,8 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             governance_decision TEXT NOT NULL,
             status TEXT NOT NULL,
             evolution_identity TEXT NOT NULL DEFAULT '',
-            proposed_state_content_id TEXT NOT NULL DEFAULT ''
+            proposed_state_content_id TEXT NOT NULL DEFAULT '',
+            candidate_binding_digest TEXT NOT NULL DEFAULT ''
         );
         CREATE INDEX IF NOT EXISTS idx_evolution_provenance_candidate
             ON evolution_provenance(candidate_id);
@@ -114,6 +115,10 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
         pass
     try:
         conn.execute("ALTER TABLE evolution_provenance ADD COLUMN proposed_state_content_id TEXT NOT NULL DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE evolution_provenance ADD COLUMN candidate_binding_digest TEXT NOT NULL DEFAULT ''")
     except sqlite3.OperationalError:
         pass
 
@@ -258,7 +263,7 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
         """INSERT OR IGNORE INTO evolution_provenance
         (provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
          evaluation_status,shadow_status,invariant_status,governance_decision,status,evolution_identity,proposed_state_content_id)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             provenance_id,
             provenance.execution_id,
@@ -274,6 +279,7 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
             provenance.status,
             evolution_identity,
             provenance.proposed_state_content_id,
+            provenance.candidate_binding_digest,
         ),
     )
     return provenance_id
