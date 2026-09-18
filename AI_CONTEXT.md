@@ -888,3 +888,18 @@ Added a fail-closed complete replay contract requiring:
 - audit record presence and candidate/execution identity binding
 
 Missing provenance or audit evidence can never produce a reproducible/valid result.
+
+
+### GNV2-EVOLUTION-AUDIT-CONTINUITY-013
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Audit records now bind to:
+- provenance_id
+- parent_state_digest
+- proposed_state_digest
+- evidence_digest
+- candidate_id
+- execution identity
+
+Complete replay verifies these links and fails closed on mismatch. Persistence schemas and atomic transaction storage were extended accordingly.
