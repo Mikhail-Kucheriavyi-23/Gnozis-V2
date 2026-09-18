@@ -1438,3 +1438,30 @@ T_0, Tool_0, ΔT_0, T_1, Tool_1, ΔT_1, ...
 A repeated failure to reduce a tension should be evidence that the capability class or hypothesis class may be inadequate, not a reason to repeatedly apply the same intervention. A forecast of rising tension may justify generating preventive capability hypotheses before the predicted conflict manifests.
 
 This is a future research/architecture principle. No automatic authority, mutation, or scalar tension objective is introduced by this entry.
+
+
+### GNV2-FORMAL-049E — CAPABILITY GAP TAXONOMY
+
+A CapabilityGap is a verified or explicitly unresolved limitation in what the current system organization can perform that prevents a stated hypothesis, test, integration, or conflict-reduction operation from being carried out or evaluated adequately.
+
+Conceptual form:
+
+G = (target_operation, current_capability, missing_capability, evidence_refs, conditions)
+
+The first taxonomy distinguishes:
+
+- CAPABILITY_GAP — the system lacks an operation or instrument required to act/evaluate;
+- KNOWLEDGE_GAP — the required operation exists, but relevant knowledge/model information is insufficient;
+- EVIDENCE_GAP — a claim or transition cannot yet be adequately tested because evidence is insufficient;
+- RESOURCE_GAP — the capability exists conceptually but available bounded resources prevent execution;
+- MODEL_CONFLICT — existing models impose incompatible requirements and a new capability may be required to reconcile them.
+
+These categories must not be silently conflated. In particular, missing knowledge must not be misreported as missing capability, and missing evidence must not be treated as proof that a capability failed.
+
+Capability gaps are descriptive evidence for hypothesis generation. A gap must not itself create authority, mutate Core, select a candidate, or prove that a proposed tool is necessary. A future CapabilityHypothesis must specify the target gap, expected effect, test conditions, resource bound, and acceptance evidence.
+
+Long-term history should permit:
+
+CapabilityGap → CapabilityHypothesis → Tool/Capability → Test → ObservedEffect → ΔT
+
+This entry is a formal research contract; no runtime authority is introduced.
