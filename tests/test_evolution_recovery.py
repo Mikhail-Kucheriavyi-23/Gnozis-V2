@@ -70,7 +70,7 @@ def test_recovery_replay_equality_fails_closed_on_changed_observations():
     ensure_reflection_schema(conn)
     pid, observations, state = _persist(conn)
     changed = {"status": "CHANGED"}
-    report = recover_evolution_audit(conn, provenance_id=pid, observations=changed)
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=changed, proposed_state=state)
     assert report.chain_valid is False
     assert report.replay_valid is False
     assert report.expected_digest != report.actual_digest
