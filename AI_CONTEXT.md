@@ -1016,7 +1016,7 @@ Recovery now reconstructs the persisted EvidenceProvenance and compares its cano
 
 ### GNV2-EVOLUTION-PERSISTENCE-IDENTITY-MIGRATION-023
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI syntax fix applied after duplicate keyword was detected.**
 
 Legacy persisted provenance with empty/missing `evolution_identity` is explicitly classified as `legacy_unverified` and recovery fails closed. No silent identity generation or automatic upgrade is permitted.
 
