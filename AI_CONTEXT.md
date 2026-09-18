@@ -1159,3 +1159,8 @@ Added `SQLiteExecutionCommitAdapter` as a narrow persistence boundary. It calls 
 Implementation status: **BOUNDARY DEFINED — trusted issuer intentionally not implemented; awaiting CI verification**.
 
 Added `OwnerApproval` and `issue_execution_authorization()` to make the missing owner-authority source explicit. The issuer rejects absent or cross-bound approval evidence and, even with syntactically valid evidence, raises `NotImplementedError` until a trusted owner-authority mechanism exists. This prevents a boolean `owner_approved=True` from being treated as proof of legitimate ownership. Existing execution tests continue to construct authorization fixtures directly as test fixtures; they do not establish production authority.
+
+
+### CI-REVIEW-FIX-038-039
+
+CI run 35332087037 exposed one test defect in the new fail-closed adapter test: `Engine.step()` updates the in-memory engine state, so the test incorrectly compared durable state against the mutated in-memory state instead of the captured pre-execution state. Fixed by capturing `initial_state_id` before stepping. Also removed the dead `if False` expression in `verify_durable_graph` and clarified the replay provenance guard. These are test/code-quality corrections; no production authorization or persistence semantics were weakened.
