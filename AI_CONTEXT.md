@@ -1109,3 +1109,10 @@ CI evidence: run 35297775009 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added `ExecutionIntentSnapshot`, a frozen identity snapshot containing provenance_id, execution_id, evolution_identity, candidate_binding_digest, and proposed_state_content_id. `require_execution_intent_snapshot()` fails closed unless the snapshot exactly matches the current provenance. This is a boundary primitive only; it is not yet wired to autonomous execution or Core mutation.
+
+
+### GNV2-EXECUTION-INTENT-FRESHNESS-034
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+`ExecutionIntentSnapshot` now includes `parent_state_id` and `parent_state_digest`, binding the authorization snapshot to the exact parent state from which the evolution was derived. A changed parent state identity or digest therefore invalidates the snapshot through the existing fail-closed match check. No global clock or second state model is introduced.
