@@ -107,6 +107,10 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             ON reflection_governance_decisions(report_id);
         """
     )
+    try:
+        conn.execute("ALTER TABLE evolution_provenance ADD COLUMN evolution_identity TEXT NOT NULL DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
 
 
 def save_reflection_report(
@@ -284,7 +288,7 @@ def list_evolution_provenance(
     ensure_reflection_schema(conn)
     if candidate_id is None:
         rows = conn.execute(
-            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,"
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,"
             "evaluation_status,shadow_status,invariant_status,governance_decision,status "
             "FROM evolution_provenance ORDER BY rowid"
         ).fetchall()
@@ -296,7 +300,7 @@ def list_evolution_provenance(
             (candidate_id,),
         ).fetchall()
     keys = (
-        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest",
+        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest","evolution_identity",
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return tuple(dict(zip(keys, row)) for row in rows)
