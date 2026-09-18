@@ -1203,3 +1203,10 @@ Added `run_reflection_evidence_gate()` as a read-only orchestration boundary ove
 ### CI-VERIFIED-041
 
 CI run 35336802374 SUCCESS. Reflection Evidence Gate is CI-verified. Shadow → Invariant Delta → Governance is now connected through a read-only, fail-closed evidence boundary; governance remains non-authoritative (`can_activate=False`, `can_rollback=False`).
+
+
+### GNV2-ENDOGENOUS-GENERATE-042
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added `generate_endogenous_candidates()` in `gnosis/reflection/endogenous.py`. It converts evidence-backed `RuleProposal` objects into ordinary Core `Candidate` objects by encoding each hypothesis as a bounded `Relation` in the proposed state. The generator is deterministic, limited to 20 candidates, does not mutate Engine/Core state, does not activate proposals, and does not bypass Test/Select. This is the first endogenous candidate-generation boundary; it is intentionally proposal/evidence-driven rather than direct rule self-modification.
