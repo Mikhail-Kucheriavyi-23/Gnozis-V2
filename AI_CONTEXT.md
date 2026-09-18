@@ -1057,9 +1057,9 @@ The existing `Candidate.binding_digest(parent_state_digest)` is now elevated int
 
 ### GNV2-EVOLUTION-ATOMIC-PERSISTENCE-028
 
-Implementation status: **IMPLEMENTED — CI exposed two stale constraint-expectation tests; corrected.**
+Implementation status: **IMPLEMENTED — final nested replay test expectation corrected; awaiting CI verification.**
 
-CI run 35296499421: 234 passed, 2 failed. Both failures were pre-030 tests expecting SQLite IntegrityError for a conflicting replay. The new semantic idempotency contract correctly raises RuntimeError and leaves the chain unchanged. Test expectations were updated; no production rollback/idempotency logic was weakened.
+CI run 35296606394: 235 passed, 1 failed. The remaining failure was the nested SAVEPOINT replay test still expecting SQLite IntegrityError; production correctly raises the new semantic RuntimeError. Updated that stale expectation. Both failures were pre-030 tests expecting SQLite IntegrityError for a conflicting replay. The new semantic idempotency contract correctly raises RuntimeError and leaves the chain unchanged. Test expectations were updated; no production rollback/idempotency logic was weakened.
 
 Audited the existing `persist_evolution_transaction()` and retained its existing BEGIN IMMEDIATE / SAVEPOINT model. Fixed the transaction writer so canonical provenance fields (`evolution_identity`, `proposed_state_content_id`, `candidate_binding_digest`) are persisted atomically with the audit record. Existing rollback and nested-savepoint tests remain the primary atomicity gates; a regression assertion verifies the canonical fields survive the atomic write.
 
