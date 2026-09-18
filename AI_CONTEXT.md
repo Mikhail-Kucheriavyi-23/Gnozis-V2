@@ -1332,6 +1332,15 @@ CI run `35340210780` SUCCESS on `aba33cf8455f88afe50a45b337ede8b176d2af95`. Memo
 Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now incorporates verified historical memory outcomes into each generated hypothesis state's evidence payload (`historical_memory_outcomes`) alongside immutable memory references. This is contextual formation, not selection: outcomes are recorded as historical evidence and do not automatically veto, approve, rank, or activate a candidate. Candidate testing and selection remain governed by Core.
 
 
+### CI-VERIFIED-047
+
+CI run `35340364864` SUCCESS on `66e9fa873576034845792c5597ec8c4ae85cb70f`. Differential memory influence is CI-verified.
+
 ### GNV2-MEMORY-DIFFERENTIAL-047
 
 Implementation status: **IMPLEMENTED — awaiting CI verification**. Added regression coverage showing that identical reflection proposals produce identical proposal selection while historical memory changes only the evidence attached to the generated hypothesis. Historical memory therefore influences hypothesis context without becoming a hidden selector or automatic veto/approval mechanism.
+
+
+### GNV2-MEMORY-SIGNATURE-048
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now derives a deterministic `memory_signature` from verified memory identifiers and carries it into hypothesis context. Regression tests demonstrate that different memory histories can produce different hypothesis context while preserving deterministic generation and identical proposal selection. This is contextual memory influence, not a hidden selector.
