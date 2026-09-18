@@ -92,7 +92,7 @@ def test_foreign_keys_reject_orphan_instance_state():
 def test_supported_schema_version_connects(tmp_path: Path):
     path = tmp_path / "supported.sqlite"
     conn = connect(path)
-    assert conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0] == "3"
+    assert conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()[0] == "4"
     conn.close()
 
 
