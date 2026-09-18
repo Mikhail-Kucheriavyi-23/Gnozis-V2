@@ -83,3 +83,24 @@ def test_complete_replay_rejects_audit_identity_mismatch():
     assert not replay.reproducible
     assert "provenance missing" in replay.reasons
     assert "audit candidate mismatch" in replay.reasons
+
+
+def test_complete_replay_rejects_audit_provenance_and_digest_mismatch():
+    state = State(elements={"a": 1})
+    result = run_sandbox(state, _candidate(state), _observer)
+
+    class Audit:
+        candidate_id = result.execution.candidate_id
+        execution_id = result.execution.candidate_id
+        provenance_id = "wrong-provenance"
+        parent_state_digest = "wrong-parent"
+        proposed_state_digest = result.execution.proposed_state_digest
+        evidence_digest = "wrong-evidence"
+
+    replay = replay_complete(
+        result.execution, None, Audit(), observations=result.execution.observations
+    )
+    assert not replay.reproducible
+    assert "audit provenance mismatch" in replay.reasons
+    assert "audit parent_state_digest mismatch" in replay.reasons
+    assert "audit evidence_digest mismatch" in replay.reasons
