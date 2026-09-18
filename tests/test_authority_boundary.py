@@ -1,5 +1,5 @@
 import pytest
-from gnosis.reflection.authority import ExecutionAuthorization, ExecutionIntentSnapshot, request_authorization, require_execution_authorization, require_execution_intent_snapshot
+from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit
 from gnosis.reflection.governance import GovernanceDecision
 
 
