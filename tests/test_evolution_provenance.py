@@ -210,3 +210,37 @@ def test_promotion_gate_rejects_unsafe_statuses():
     gate = evaluate_promotion_gate(candidate, provenance_valid=True)
     assert not gate.eligible
     assert len(gate.reasons) == 4
+
+
+def test_crosscheck_rejects_state_digest_mismatch():
+    from gnosis.evolution.provenance import canonical_digest, crosscheck_provenance, execution_id
+    observations = {"metric": 12}
+    digest = canonical_digest(observations)
+    provenance = build_provenance(
+        candidate_id="candidate:state-bind",
+        parent_state_id="state:bind",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
+        observations=observations,
+        evidence_digest=digest,
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    result = crosscheck_provenance(
+        provenance=provenance,
+        candidate_id="candidate:state-bind",
+        parent_state_id="state:bind",
+        parent_state_digest="wrong-parent",
+        proposed_state_digest="proposed-digest",
+        observations=observations,
+        evidence_digest=digest,
+        execution_id_value=execution_id("candidate:state-bind", "state:bind", digest, "wrong-parent", "proposed-digest"),
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    assert not result.valid
+    assert "parent_state_digest mismatch" in result.reasons
