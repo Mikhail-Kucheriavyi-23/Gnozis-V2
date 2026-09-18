@@ -52,8 +52,13 @@ def test_evolution_transaction_rolls_back_both_records_on_constraint_failure():
 def test_evolution_transaction_rolls_back_when_audit_schema_rejects_insert():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    conn.execute("DROP TABLE evolution_audit")
-    conn.execute("CREATE TABLE evolution_audit (sequence INTEGER PRIMARY KEY)")
+    conn.execute("""
+        CREATE TRIGGER reject_evolution_audit
+        BEFORE INSERT ON evolution_audit
+        BEGIN
+            SELECT RAISE(ABORT, 'forced audit failure');
+        END
+    """)
     with pytest.raises(sqlite3.IntegrityError):
         persist_evolution_transaction(
             conn, _provenance(), event_type="PROVENANCE", payload={"status": "RECORDED"}
@@ -66,7 +71,6 @@ def test_evolution_transaction_nested_savepoint_preserves_outer_transaction():
     ensure_reflection_schema(conn)
     conn.execute("CREATE TABLE marker (value TEXT)")
     conn.execute("INSERT INTO marker VALUES ('outer')")
-    conn.execute("BEGIN")
     provenance = _provenance()
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS uq_test_audit_candidate ON evolution_audit(candidate_id)"
@@ -85,7 +89,6 @@ def test_nested_failure_rolls_back_only_evolution_savepoint():
     ensure_reflection_schema(conn)
     conn.execute("CREATE TABLE marker (value TEXT)")
     conn.execute("INSERT INTO marker VALUES ('outer')")
-    conn.execute("BEGIN")
     provenance = _provenance()
     persist_evolution_transaction(
         conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"}
