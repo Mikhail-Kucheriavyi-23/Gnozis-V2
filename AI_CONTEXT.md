@@ -1638,3 +1638,26 @@ and:
 capability → new tension → new conflict record → updated field
 
 No scalar global utility function or autonomous authority is introduced by this task. Trade-offs remain explicit and provenance-preserving.
+
+
+### GNV2-FORMAL-049L — EVOLUTIONARY MEMORY GRAPH
+
+Evolutionary history should be represented as a provenance-preserving graph rather than a flat event log. The graph connects conflicts, tensions, capability gaps, hypotheses, capabilities, tests, observed effects, forecasts, regressions, and subsequent conflicts.
+
+Conceptual node types:
+
+WORLD_MODEL, CLAIM, EVIDENCE, CONFLICT, TENSION, CAPABILITY_GAP, HYPOTHESIS, CAPABILITY, TEST, RESULT, EFFECT, FORECAST, REGRESSION, STATE_TRANSITION.
+
+Conceptual edge types include:
+
+SUPPORTED_BY, CONFLICTS_WITH, CONDITIONS_ON, EXPOSES_GAP, PROPOSES, TESTS, PRODUCES, REDUCES, INCREASES, DISPLACES, CAUSES_NEW_CONFLICT, FORECASTS, CONFIRMS, REFUTES, SUPERSEDES.
+
+A historical chain may therefore be reconstructed as:
+
+Conflict → Gap → Hypothesis → Capability → Test → Effect → StateTransition → NewConflict
+
+The graph must preserve original observations when later interpretations change. New evidence may create new edges or revise the status of a hypothesis, but must not rewrite historical evidence into conformity with the latest model.
+
+The graph should support long-horizon questions such as: which capabilities repeatedly reduced a class of tension; which capabilities created recurring side effects; which gaps recur across different conflicts; where forecasts repeatedly failed; and which evolutionary transitions produced durable structural change.
+
+This graph is an analytical memory model, not an autonomous decision-maker. It must not itself authorize mutation, select a world-model as truth, or erase contradictory evidence.
