@@ -75,9 +75,3 @@ def require_execution_authorization(
         or auth.evolution_identity != evolution_identity
     ):
         raise PermissionError("execution authorization does not match evolution")
-
-
-def require_execution_authorization(auth: ExecutionAuthorization | None) -> None:
-    """Fail closed unless an explicit owner-approved authorization is supplied."""
-    if auth is None or not auth.can_execute:
-        raise PermissionError("execution authorization required")
