@@ -32,6 +32,7 @@ def _provenance_from_mapping(row: Mapping[str, Any]) -> EvidenceProvenance:
         governance_decision=row["governance_decision"],
         status=row.get("status", "RECORDED"),
         proposed_state_content_id=row.get("proposed_state_content_id", ""),
+        candidate_binding_digest=row.get("candidate_binding_digest", ""),
     )
 
 
@@ -75,6 +76,7 @@ def verify_persisted_chain(
         invariant_status=provenance.invariant_status,
         governance_decision=provenance.governance_decision,
         proposed_state_content_id=provenance.proposed_state_content_id,
+        candidate_binding_digest=provenance.candidate_binding_digest,
     )
     reasons.extend(provenance_check.reasons)
 
