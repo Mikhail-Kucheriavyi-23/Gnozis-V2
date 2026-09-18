@@ -872,3 +872,17 @@ Candidate identity is strengthened to bind:
 A separate candidate binding digest additionally binds the concrete parent state content digest. This composes with the state-bound provenance contract without granting activation authority.
 
 Regression tests cover origin, seed, proposed-content and parent-digest tampering.
+
+
+### GNV2-EVOLUTION-REPLAY-COMPLETENESS-012
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added a fail-closed complete replay contract requiring:
+- execution identity
+- parent/proposed state binding
+- evidence digest verification
+- provenance presence and cross-check
+- audit record presence and candidate/execution identity binding
+
+Missing provenance or audit evidence can never produce a reproducible/valid result.
