@@ -840,7 +840,7 @@ This is persistence atomicity only; it does not grant activation authority.
 
 ### GNV2-EVOLUTION-STATE-BINDING-010
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI verification in progress; prior run exposed compatibility defects which are being corrected.**
 
 Added state binding to evolution provenance/execution:
 - parent state content digest
