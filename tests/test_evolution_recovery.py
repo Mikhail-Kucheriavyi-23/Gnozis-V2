@@ -58,9 +58,9 @@ def test_recovery_fails_closed_when_provenance_is_missing():
 def test_recovery_fails_closed_on_tampered_persisted_chain():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    pid, observations = _persist(conn)
+    pid, observations, state = _persist(conn)
     conn.execute("UPDATE evolution_audit SET evidence_digest='tampered'")
-    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations, proposed_state=state)
     assert not report.chain_valid
     assert report.reasons
 
@@ -68,7 +68,7 @@ def test_recovery_fails_closed_on_tampered_persisted_chain():
 def test_recovery_replay_equality_fails_closed_on_changed_observations():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    pid, observations = _persist(conn)
+    pid, observations, state = _persist(conn)
     changed = {"status": "CHANGED"}
     report = recover_evolution_audit(conn, provenance_id=pid, observations=changed)
     assert report.chain_valid is False
@@ -80,9 +80,9 @@ def test_recovery_replay_equality_fails_closed_on_changed_observations():
 def test_recovery_replay_fails_when_persisted_state_identity_is_tampered():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    pid, observations = _persist(conn)
+    pid, observations, state = _persist(conn)
     conn.execute("UPDATE evolution_provenance SET proposed_state_digest='tampered'")
-    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations, proposed_state=state)
     assert not report.replay_valid
     assert report.reasons
 
@@ -90,9 +90,9 @@ def test_recovery_replay_fails_when_persisted_state_identity_is_tampered():
 def test_recovery_rejects_tampered_canonical_evolution_identity():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    pid, observations = _persist(conn)
+    pid, observations, state = _persist(conn)
     conn.execute("UPDATE evolution_provenance SET evolution_identity='tampered'")
-    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations, proposed_state=state)
     assert not report.replay_valid
     assert "recovery evolution identity mismatch" in report.reasons
 
@@ -100,9 +100,9 @@ def test_recovery_rejects_tampered_canonical_evolution_identity():
 def test_recovery_rejects_legacy_provenance_without_identity():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    pid, observations = _persist(conn)
+    pid, observations, state = _persist(conn)
     conn.execute("UPDATE evolution_provenance SET evolution_identity=''")
-    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations, proposed_state=state)
     assert not report.replay_valid
     assert "legacy provenance identity is unverified" in report.reasons
 
