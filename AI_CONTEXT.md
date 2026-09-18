@@ -952,3 +952,10 @@ Added one fail-closed cross-check covering:
 - audit record digest integrity
 
 Complete replay now invokes this unified persisted-link check when both provenance and audit are present.
+
+
+### GNV2-EVOLUTION-CHAIN-VERIFIER-017
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added an independent, read-only persisted-chain verifier. It accepts plain provenance/audit mappings plus observations and does not depend on live evolution, transaction, or runtime execution objects. It verifies provenance identity/evidence, the complete audit hash chain, and provenance↔audit linkage, failing closed on malformed or incomplete persistence.
