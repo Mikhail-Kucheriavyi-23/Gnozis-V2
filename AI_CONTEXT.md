@@ -1383,3 +1383,16 @@ C = (W_a, W_b, Claims, Evidence, Conditions, Incompatibility)
 Tension is initially treated as a structured/partially ordered object rather than a universal numeric truth value. Any later scalarization must be justified as an observational convenience and must never become an implicit selector.
 
 Acceptance for 049A: conflict records are provenance-preserving, condition-scoped, deterministic, immutable after creation, and incapable by themselves of authorizing mutation or selecting a world-model.
+
+
+### GNV2-FORMAL-049B — INCOMPATIBILITY AND CONDITIONS
+
+A conflict must identify the precise incompatibility and the conditions under which it holds. Represent incompatibility as a typed relation between claims rather than a free-form assertion. Initial relation types may include CONTRADICTORY, INCOMPATIBLE_UNDER_CONDITION, RESOURCE_TENSION, OBJECTIVE_TENSION, and UNRESOLVED. Conditions must be explicit, canonicalizable, and provenance-bound so that the same conflict can be independently reconstructed.
+
+Conceptual form:
+
+Incompatibility = (claim_a, claim_b, relation_type, conditions, evidence_refs)
+
+Conditions are part of the identity of an observed conflict. Removing or changing conditions must produce a distinct conflict observation rather than silently generalizing the original one.
+
+Acceptance for 049B: the representation is deterministic, immutable, provenance-preserving, condition-scoped, and does not itself imply truth, priority, selection, or authority.
