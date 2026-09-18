@@ -1064,6 +1064,8 @@ Audited the existing `persist_evolution_transaction()` and retained its existing
 
 ### GNV2-EVOLUTION-IDEMPOTENCY-029
 
-Implementation status: **IN PROGRESS — identity verification added; CI pending**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35296286746 SUCCESS; Python 3.11 and 3.12 SUCCESS; 234 passed, 10 warnings.
 
 The atomic transaction writer now re-reads the persisted provenance inside the same transaction and verifies execution_id, evolution_identity, proposed_state_content_id, and candidate_binding_digest before COMMIT/RELEASE. A mismatch raises and rolls back the transaction. This is the first half of replay/idempotency hardening; duplicate-key rejection remains the existing boundary for repeated provenance_id submissions.
