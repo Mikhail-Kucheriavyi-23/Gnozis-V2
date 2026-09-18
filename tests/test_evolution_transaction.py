@@ -11,6 +11,8 @@ def _provenance():
     return build_provenance(
         candidate_id="candidate:tx",
         parent_state_id="state:tx",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
         observations=observations,
         evidence_digest=canonical_digest(observations),
         evaluation_status="PASS",
