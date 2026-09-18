@@ -1164,3 +1164,8 @@ Added `OwnerApproval` and `issue_execution_authorization()` to make the missing 
 ### CI-REVIEW-FIX-038-039
 
 CI run 35332087037 exposed one test defect in the new fail-closed adapter test: `Engine.step()` updates the in-memory engine state, so the test incorrectly compared durable state against the mutated in-memory state instead of the captured pre-execution state. Fixed by capturing `initial_state_id` before stepping. Also removed the dead `if False` expression in `verify_durable_graph` and clarified the replay provenance guard. These are test/code-quality corrections; no production authorization or persistence semantics were weakened.
+
+
+### CI-FIX-038-039-FINAL
+
+Run 35333218308 still failed because the previous correction inserted `initial_state_id` into the neighboring success test rather than the rejection test. The rejection test now captures `initial_state_id` immediately after instance creation. This is a test-only correction; no production code changed.
