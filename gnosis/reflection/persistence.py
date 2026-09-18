@@ -287,7 +287,7 @@ def list_evolution_provenance(
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,"
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,"
             "evaluation_status,shadow_status,invariant_status,governance_decision,status "
             "FROM evolution_provenance WHERE candidate_id=? ORDER BY rowid",
             (candidate_id,),
