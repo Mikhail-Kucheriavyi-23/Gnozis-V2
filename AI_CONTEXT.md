@@ -1210,3 +1210,8 @@ CI run 35336802374 SUCCESS. Reflection Evidence Gate is CI-verified. Shadow → 
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added `generate_endogenous_candidates()` in `gnosis/reflection/endogenous.py`. It converts evidence-backed `RuleProposal` objects into ordinary Core `Candidate` objects by encoding each hypothesis as a bounded `Relation` in the proposed state. The generator is deterministic, limited to 20 candidates, does not mutate Engine/Core state, does not activate proposals, and does not bypass Test/Select. This is the first endogenous candidate-generation boundary; it is intentionally proposal/evidence-driven rather than direct rule self-modification.
+
+
+### GNV2-ENDOGENOUS-BUDGET-BINDING
+
+042 refinement: endogenous candidate generation now accepts the existing Core `Budget` and caps generation by `budget.remaining`; an exhausted budget produces zero candidates. The legacy `20` remains the default upper bound, not a mathematical constant. Added tests for partial and exhausted budgets. Awaiting CI verification.
