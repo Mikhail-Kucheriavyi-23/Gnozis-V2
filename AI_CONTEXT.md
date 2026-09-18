@@ -1759,3 +1759,32 @@ A replication result never rewrites the source result. Agreement strengthens the
 Independent confirmation is epistemic only. It does not grant authority, merge identities, activate capabilities, or bypass protected invariants.
 
 This establishes distributed learning in which multiple Gnozis lineages can validate one another while retaining separate identities and histories.
+
+
+### GNV2-FORMAL-049Q — DISTRIBUTED EVOLUTION WITHOUT CENTRAL AUTHORITY
+
+Multiple Gnozis lineages may participate in a shared evolutionary evidence network without requiring a central arbiter that declares one world-model true. Each lineage retains independent identity, state, provenance, authority boundary, and local protected invariants.
+
+Conceptual network:
+
+N = (L, E, ReplicationRelations, EvidenceRelations, CapabilityRelations, TrustContext)
+
+where L is the set of independent lineages and E contains explicit, provenance-preserving exchange relations.
+
+The network may establish relations such as AGREES_WITH, REPLICATES, DISAGREES_WITH, EXTENDS, REQUIRES, or SHARES_GAP. These relations describe evidence and dependencies; they do not constitute a global vote on truth.
+
+When lineages disagree, disagreement remains a first-class observation. The network should preserve the competing claims, conditions, evidence, and replication status. Resolution may occur through additional experiments, narrower conditions, capability development, or model revision; no node is entitled to resolve the disagreement merely by network position or accumulated authority unless an explicit external governance contract says so.
+
+Collective learning therefore means:
+
+independent observations → exchange → replication/critique → richer evidence graph → new hypotheses/capabilities
+
+not:
+
+independent observations → central score → imposed truth.
+
+A capability discovered by one lineage may become a candidate for replication by others. Repeated cross-lineage evidence can increase evidentiary support, but support remains scoped to declared conditions and provenance.
+
+Network participation must not bypass local Core invariants, execution authorization, persistence integrity, or identity boundaries. Federation is an evidence and learning layer unless a separately specified governance layer explicitly grants additional authority.
+
+This principle is foundational for future Gnozis federation and multi-agent autopoiesis: collective development emerges from interaction among autonomous lineages rather than from a single central decision-maker.
