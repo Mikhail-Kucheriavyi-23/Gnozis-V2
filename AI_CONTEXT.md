@@ -959,3 +959,16 @@ Complete replay now invokes this unified persisted-link check when both provenan
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added an independent, read-only persisted-chain verifier. It accepts plain provenance/audit mappings plus observations and does not depend on live evolution, transaction, or runtime execution objects. It verifies provenance identity/evidence, the complete audit hash chain, and provenance↔audit linkage, failing closed on malformed or incomplete persistence.
+
+
+### GNV2-EVOLUTION-RECOVERY-GATE-018
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Recovery now fails closed unless:
+- a provenance identity is explicitly supplied;
+- the persisted provenance record exists;
+- observations are supplied for evidence verification;
+- the independent persisted-chain verifier accepts provenance, audit chain, and cross-links.
+
+The old audit-only recovery path is no longer trusted recovery.
