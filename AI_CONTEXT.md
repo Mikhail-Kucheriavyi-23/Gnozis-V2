@@ -1465,3 +1465,38 @@ Long-term history should permit:
 CapabilityGap → CapabilityHypothesis → Tool/Capability → Test → ObservedEffect → ΔT
 
 This entry is a formal research contract; no runtime authority is introduced.
+
+
+### GNV2-FORMAL-049F — CAPABILITY HYPOTHESIS
+
+A CapabilityHypothesis is a testable proposal for a new operation, tool, procedure, model, or organizational change intended to address a specific CapabilityGap or related limitation.
+
+Conceptual form:
+
+H = (gap_id, proposed_capability, rationale, expected_effect, test_conditions, resource_bound, acceptance_evidence)
+
+The hypothesis must remain separate from implementation and authority. Proposing a capability does not create the capability, execute it, activate it, or grant permission to modify protected Core.
+
+A valid hypothesis must identify:
+
+1. the exact gap it targets;
+2. the proposed capability or change;
+3. the causal/functional rationale linking the capability to the gap;
+4. the expected observable effect;
+5. bounded test conditions and resources;
+6. evidence required to accept, reject, or leave the hypothesis unresolved.
+
+The result vocabulary should remain at least:
+
+ACCEPTED — evidence supports the stated capability under its conditions;
+REJECTED — evidence contradicts the stated capability under its conditions;
+INCONCLUSIVE — evidence is insufficient to distinguish the hypothesis;
+SUPERSEDED — a later verified hypothesis addresses the same gap under better-supported conditions.
+
+A CapabilityHypothesis must never be treated as a truth claim merely because it reduces a modeled tension. Reduction must be independently observed and provenance-bound.
+
+Long-term evolutionary history should connect:
+
+Conflict → Tension → Gap → CapabilityHypothesis → Test → Result → ΔT → Memory
+
+This entry defines the research contract only; it does not authorize autonomous activation or self-modification.
