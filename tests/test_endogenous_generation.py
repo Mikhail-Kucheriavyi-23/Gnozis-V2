@@ -61,3 +61,13 @@ def test_generated_candidates_use_normal_core_test_and_select_path():
     assert record.accepted
     assert record.candidate_id == selection.selected.candidate_id
     assert engine.state.state_id == selection.selected.proposed_state.state_id
+
+
+def test_endogenous_generation_carries_verified_memory_refs_without_changing_selection():
+    from gnosis.reflection.memory_evidence import EvolutionEvidence
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(proposal(1),))
+    memory = (EvolutionEvidence("memory:1", "candidate:old", "transition:old", "rejected", ("e1",)),)
+    result = generate_endogenous_candidates(state, report, memory_evidence=memory)
+    node = result.candidates[0].proposed_state.elements["proposal:1"]
+    assert node["memory_evidence_refs"] == ("memory:1",)
