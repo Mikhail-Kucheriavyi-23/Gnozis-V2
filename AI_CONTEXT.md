@@ -1252,3 +1252,12 @@ CI run 35338134710 SUCCESS on commit `587d3ef7358a484d959bed07d1234e1f6d921301`.
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added schema v4 `evolution_memory` as an append-only durable record of endogenous evolution attempts. Each record binds `instance_id`, `candidate_id`, `transition_id`, `state_id`, optional `proposal_id`, outcome (`accepted|rejected|inconclusive`), evidence references, timestamp, and a deterministic digest. SQLite UPDATE/DELETE triggers make the memory append-only. Added load/verify APIs and tests for round-trip integrity, digest consistency, append-only enforcement, and invalid outcomes. This memory is evidence/history, not authority and not an activation mechanism.
+
+
+### CI-VERIFIED-043
+
+CI run `35338572905` SUCCESS on `dc9a0eb34b14289cc37f25680215ad731e0026c3`. Evolution Memory schema v4, append-only storage, digest verification, and associated tests are CI-verified.
+
+### GNV2-MEMORY-TO-REFLECTION-044
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**. Added `gnosis/reflection/memory_evidence.py` as a read-only projection from verified `EvolutionMemoryRecord` to Reflection evidence. It does not create candidates, mutate Core, or grant authority. Projection is bounded by an explicit limit. Added tests for projection and bounding.
