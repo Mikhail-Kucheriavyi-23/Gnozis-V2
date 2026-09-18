@@ -59,6 +59,10 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             event_type TEXT NOT NULL,
             candidate_id TEXT NOT NULL,
             execution_id TEXT NOT NULL,
+            provenance_id TEXT NOT NULL,
+            parent_state_digest TEXT NOT NULL,
+            proposed_state_digest TEXT NOT NULL,
+            evidence_digest TEXT NOT NULL,
             payload_digest TEXT NOT NULL,
             previous_digest TEXT NOT NULL,
             record_digest TEXT NOT NULL UNIQUE
@@ -338,6 +342,10 @@ def append_evolution_audit(
     event_type: str,
     candidate_id: str,
     execution_id: str,
+    provenance_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
+    evidence_digest: str,
     payload: dict[str, Any],
 ) -> EvolutionAuditRecord:
     """Append exactly one record; prior audit records are never updated."""
@@ -352,6 +360,10 @@ def append_evolution_audit(
         event_type=event_type,
         candidate_id=candidate_id,
         execution_id=execution_id,
+        provenance_id=provenance_id,
+        parent_state_digest=parent_state_digest,
+        proposed_state_digest=proposed_state_digest,
+        evidence_digest=evidence_digest,
         payload=payload,
         previous_digest=previous_digest,
     )
