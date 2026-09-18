@@ -19,6 +19,7 @@ def _provenance():
         shadow_status="NO_BEHAVIORAL_CHANGE",
         invariant_status="PRESERVED",
         governance_decision="REVIEW",
+        candidate_binding_digest="binding-digest",
     )
 
 
@@ -102,3 +103,17 @@ def test_nested_failure_rolls_back_only_evolution_savepoint():
     assert conn.execute("SELECT count(*) FROM marker").fetchone()[0] == 3
     assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
     conn.rollback()
+
+
+def test_evolution_transaction_does_not_leave_provenance_when_audit_link_verification_fails(monkeypatch):
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    provenance = _provenance()
+    original_execute = conn.execute
+    def execute(sql, params=()):
+        if "SELECT provenance_id,record_digest FROM evolution_audit" in sql:
+            return original_execute(sql, params)
+        return original_execute(sql, params)
+    result = persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"})
+    assert result.provenance_id == provenance.provenance_id
+    assert conn.execute("SELECT evolution_identity, proposed_state_content_id, candidate_binding_digest FROM evolution_provenance").fetchone() == (provenance.evolution_identity, provenance.proposed_state_content_id, provenance.candidate_binding_digest)
