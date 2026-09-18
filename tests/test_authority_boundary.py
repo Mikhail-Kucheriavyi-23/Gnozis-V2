@@ -204,6 +204,7 @@ def test_sqlite_execution_commit_adapter_rejects_before_mutation():
     from gnosis.storage import connect, load_instance, save_instance
     conn = connect()
     instance = Instance.create_root("user-1", State(elements={"a": 1}))
+    initial_state_id = instance.engine.state.state_id
     save_instance(conn, instance)
     proposed = instance.engine.state.with_elements({"b": 2})
     candidate = Candidate(instance.engine.state.state_id, proposed, "test")
