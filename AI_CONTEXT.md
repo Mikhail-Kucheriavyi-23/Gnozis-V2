@@ -1186,3 +1186,8 @@ Added a read-only `run_reflection_gate()` orchestration boundary. It verifies ca
 ### CI-FIX-040
 
 CI run 35333646417 found a defect in the new Reflection Gate test path: `verify_durable_graph()` returns the audit-chain tuple, not an instance-id collection. The gate incorrectly tested `instance_id in durable`, causing a false negative despite successful durable verification. Fixed the gate to treat successful completion of `verify_durable_graph()` as the durable-graph proof; exceptions remain fail-closed. No persistence semantics changed.
+
+
+### CI-VERIFIED-040
+
+CI run 35333760106 SUCCESS after the Reflection Gate correction. The end-to-end read-only Reflection Gate is now CI-verified. The gate proves canonical Core history, durable SQLite graph verification, recovery/state-head consistency, reflection evidence generation, and READ_ONLY diagnostic artifact production; failure remains fail-closed.
