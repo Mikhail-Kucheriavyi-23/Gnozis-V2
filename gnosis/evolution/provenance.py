@@ -104,7 +104,6 @@ def build_provenance(
         proposed_state_digest=proposed_state_digest,
         evidence_digest=evidence_digest,
         proposed_state_content_id=proposed_state_content_id,
-        proposed_state_content_id=proposed_state_content_id,
         evaluation_status=evaluation_status,
         shadow_status=shadow_status,
         invariant_status=invariant_status,
