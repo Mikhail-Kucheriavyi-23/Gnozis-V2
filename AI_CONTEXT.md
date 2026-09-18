@@ -1087,3 +1087,10 @@ CI evidence: run 35296869203 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 The existing authority boundary is now explicit about execution: `ExecutionAuthorization` is a fail-closed marker, and `require_execution_authorization()` rejects missing authorization, non-owner-approved authorization, or authorization without provenance. This does not grant authority to promotion or Core Engine; it establishes the execution boundary that future activation code must call. No autonomous path is enabled by this change.
+
+
+### GNV2-EXECUTION-AUTHORIZATION-BINDING-032
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+`ExecutionAuthorization` is now bound to both `request_provenance` and the exact `evolution_identity`. `require_execution_authorization()` requires an exact match and fails closed on missing, unapproved, empty, or mismatched authorization. This remains a boundary-only capability; no Core promotion or autonomous execution path is enabled by this change.
