@@ -1856,3 +1856,37 @@ AutopoieticCore = A ∧ B ∧ C ∧ D ∧ E ∧ F ∧ G ∧ H ∧ L ∧ M
 J and K become required for the stronger claim of distributed/networked autopoiesis. I becomes required for the stronger claim of predictive autopoietic adaptation.
 
 Until the corresponding runtime evidence exists, these conditions remain a roadmap and acceptance gate, not a statement that the current implementation satisfies them.
+
+
+### GNV2-FORMAL-049T — ENDOGENOUS CAPABILITY-GAP DETECTION
+
+Endogenous gap detection is the first transition from externally supplied evolution toward an autopoietic research loop. The system must be able to derive a candidate capability gap from its own accumulated state, evidence, history, regressions, unresolved conflicts, or forecast errors without the caller explicitly naming the gap.
+
+Conceptual operator:
+
+Gap_t = DetectGap(State_t, Evidence_t, EvolutionMemory_t, TensionField_t, ForecastError_t)
+
+Detection must produce a structured hypothesis rather than an authority-bearing command:
+
+GapHypothesis = (gap_id, source_records, affected_conflicts, missing_capability_description, conditions, counterevidence, confidence_status)
+
+A gap may be triggered by patterns such as:
+
+- repeated unresolved conflict;
+- recurring regression after apparently successful capabilities;
+- repeated forecast error indicating a missing predictive capability;
+- repeated failure of candidate tests for the same structural reason;
+- a shared gap supported across multiple conflicts or lineages;
+- an observed transition that exposes a missing operation or representation.
+
+The detector must preserve provenance to the records from which the hypothesis was derived. Temporal correlation alone must not be represented as causal proof.
+
+Gap detection must be conservative: when evidence is insufficient, it returns INCONCLUSIVE rather than inventing a missing capability. Counterevidence remains attached to the hypothesis.
+
+Most importantly, endogenous gap detection does not authorize mutation. Its output enters the same bounded hypothesis/test/governance pipeline as externally proposed gaps.
+
+Acceptance target for this phase:
+
+External caller supplies State/history only → detector identifies a reproducible unresolved pattern → emits GapHypothesis with provenance → no Core mutation and no execution authority are granted.
+
+This is the first required runtime capability for demonstrating that future evolution can originate from the system's own history rather than solely from an external operator.
