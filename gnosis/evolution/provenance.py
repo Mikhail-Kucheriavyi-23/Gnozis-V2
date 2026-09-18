@@ -98,6 +98,8 @@ def build_provenance(
 ) -> EvidenceProvenance:
     if not parent_state_digest or not proposed_state_digest:
         raise ValueError("state digests are required")
+    if not candidate_binding_digest:
+        raise ValueError("candidate binding digest is required")
     if not verify_evidence_digest(observations, evidence_digest):
         raise ValueError("evidence digest mismatch")
     return EvidenceProvenance(
