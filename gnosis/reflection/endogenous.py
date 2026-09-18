@@ -43,6 +43,7 @@ def generate_endogenous_candidates(
     state: State,
     report: ReflectionReport,
     *,
+    memory_evidence: Sequence[object] = (),
     max_candidates: int | None = None,
     budget: Budget | None = None,
 ) -> EndogenousGeneration:
@@ -59,6 +60,7 @@ def generate_endogenous_candidates(
     limit = requested if budget is None else min(requested, budget.remaining)
     proposals = tuple(report.proposals[:limit])
     candidates: list[Candidate] = []
+    memory_refs = tuple(str(getattr(item, "memory_id")) for item in memory_evidence if getattr(item, "memory_id", None))
     for proposal in proposals:
         proposed_state = state.with_elements({
             REFLECTION_NODE: {"kind": "reflection"},
@@ -70,6 +72,7 @@ def generate_endogenous_candidates(
                 "proposed_version": proposal.proposed_version,
                 "hypothesis": proposal.hypothesis,
                 "evidence_refs": proposal.evidence_refs,
+                "memory_evidence_refs": memory_refs,
             },
         }).with_relations((_proposal_relation(proposal),))
         candidates.append(
