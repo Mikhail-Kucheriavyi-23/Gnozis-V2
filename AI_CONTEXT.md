@@ -1245,3 +1245,10 @@ CI run 35337956893 showed the previous test-source fix was insufficient: `gnosis
 ### CI-VERIFIED-042
 
 CI run 35338134710 SUCCESS on commit `587d3ef7358a484d959bed07d1234e1f6d921301`. Endogenous candidate generation is now CI-verified after fixing source-formatting defects and the earlier Ψ=(X,R) dangling-relation invariant failure. 042 is complete: bounded endogenous Generate, Core Budget binding, valid X/R proposal representation, and normal Core Test/Select path are verified.
+
+
+### GNV2-EVOLUTION-MEMORY-043
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added schema v4 `evolution_memory` as an append-only durable record of endogenous evolution attempts. Each record binds `instance_id`, `candidate_id`, `transition_id`, `state_id`, optional `proposal_id`, outcome (`accepted|rejected|inconclusive`), evidence references, timestamp, and a deterministic digest. SQLite UPDATE/DELETE triggers make the memory append-only. Added load/verify APIs and tests for round-trip integrity, digest consistency, append-only enforcement, and invalid outcomes. This memory is evidence/history, not authority and not an activation mechanism.
