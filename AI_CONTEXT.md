@@ -1225,3 +1225,8 @@ CI run 35337420893 SUCCESS after budget binding. Endogenous generation now has C
 ### CI-FIX-ENDOGENOUS-042
 
 CI run 35337563386 exposed a real Core invariant failure in the new endogenous integration test: proposal relations referenced `__gnozis_reflection__` and `proposal:<id>` as relation endpoints without placing them in State.X. This correctly triggered `transition_validity`. Fixed by making both nodes explicit elements in the proposed State before adding the relation. This preserves Ψ=(X,R): endogenous proposal evidence is now represented as valid X nodes plus an R edge, rather than dangling metadata. New test asserts the reflection node is part of X. Awaiting CI verification.
+
+
+### CI-FIX-ENDOGENOUS-042-TEST-FORMAT
+
+CI run 35337753436 failed during test collection, before executing tests. Cause: the added assertion in `tests/test_endogenous_generation.py` contained a literal escaped `\\n` sequence in source, producing a SyntaxError. Fixed only the test formatting; no production code changed. Awaiting CI verification.
