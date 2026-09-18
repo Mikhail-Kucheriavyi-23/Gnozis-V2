@@ -652,8 +652,9 @@ Current handoff:
 
 The first bounded evolution evidence slice is now implemented outside Core.
 
-Implementation commit:
+Implementation commits:
 - c40a9d6d2c18d14d9060398bb6f14794797774bd
+- bee676de71c96d954900e12e85f53f297a88993e
 
 Added:
 - gnosis/evolution/__init__.py
@@ -675,7 +676,7 @@ Properties:
 
 Important limitation:
 - This is the first bounded evidence slice, not a full OS/process/network sandbox.
-- The current budget counts the experiment invocation as one operation; finer-grained gas/resource accounting remains a later gate.
+- The current budget charges one gas/operation per worker invocation; finer-grained internal gas accounting remains a later gate.
 - Evaluator semantics are intentionally minimal and do not yet constitute scientific/task-specific validation.
 - PromotionCandidate is not an authorization mechanism.
 
@@ -691,13 +692,19 @@ Status:
 - GNV2-EVOLUTION-EVIDENCE-001: VERIFIED for this bounded slice
 - Full autonomous/canonical evolution: CLOSED
 
-Next required gate:
-GNV2-EVOLUTION-SANDBOX-002
-- replace the minimal callable sandbox with an explicitly resource-bounded execution boundary
-- define gas/operation accounting
-- define timeout/failure semantics
-- ensure experimental execution cannot receive Core authority
-- persist execution evidence and link it to Reflection/Promotion provenance
+Sandbox-002 implementation is now present and awaiting CI verification:
+- child-process execution boundary
+- one-operation gas charge per invocation, hard maximum 20
+- explicit positive wall-clock timeout
+- timeout terminates the worker and fails closed
+- worker failure/exception becomes FAILED evidence
+- Core authority remains outside the worker contract
+
+Next gate after CI verification:
+GNV2-EVOLUTION-PROVENANCE-003
+- persist execution evidence
+- link sandbox digest to Reflection/Promotion provenance
+- add tamper/mismatch detection
 - keep canonical promotion closed
 
 ## 20. CONTEXT INTEGRITY
