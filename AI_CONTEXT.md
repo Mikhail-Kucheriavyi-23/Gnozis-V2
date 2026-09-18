@@ -1136,3 +1136,10 @@ Added `ExecutionCommitRequest` and `require_execution_commit()` as a composed pr
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added immutable `ExecutionReceipt` as post-commit evidence. It contains execution_id, provenance_id, evolution_identity, parent_state_digest, resulting_state_digest, and candidate_binding_digest. `ExecutionReceipt.after_commit()` requires the full pre-commit gate and a non-empty resulting-state digest; `require_execution_receipt()` rejects missing or cross-bound receipts. The receipt does not itself mutate state or grant authority; it records a result only after the caller supplies the committed result digest.
+
+
+### GNV2-RESULTING-STATE-DIGEST-BINDING-037
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+`ExecutionReceipt.after_commit()` no longer accepts a caller-asserted result digest. It receives resulting state content, computes the canonical SHA-256 digest internally, and rejects the result unless that digest equals the evolution's authorized `proposed_state_digest`. Added tests for valid content, missing result state, and tampered result content. This still does not perform persistence itself; it establishes the evidence-binding contract for the future commit/storage boundary.
