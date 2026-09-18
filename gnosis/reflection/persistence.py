@@ -235,6 +235,14 @@ def list_reflection_reports(conn: sqlite3.Connection) -> tuple[dict[str, Any], .
     return tuple({"report_id": row[0], "created_at": row[1], "payload": json.loads(row[2])} for row in rows)
 
 
+def classify_evolution_provenance(row: dict[str, Any]) -> str:
+    """Classify persisted provenance without silently upgrading legacy records."""
+    identity = row.get("evolution_identity")
+    if identity is None or identity == "":
+        return "legacy_unverified"
+    return "canonical"
+
+
 def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
     """Persist immutable provenance metadata; never activates the candidate."""
     ensure_reflection_schema(conn)
