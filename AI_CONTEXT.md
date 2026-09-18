@@ -1100,3 +1100,10 @@ The existing authority boundary is now explicit about execution: `ExecutionAutho
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 `ExecutionAuthorization` is now bound to both `request_provenance` and the exact `evolution_identity`. `require_execution_authorization()` requires an exact match and fails closed on missing, unapproved, empty, or mismatched authorization. This remains a boundary-only capability; no Core promotion or autonomous execution path is enabled by this change.
+
+
+### GNV2-EXECUTION-INTENT-SNAPSHOT-033
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added `ExecutionIntentSnapshot`, a frozen identity snapshot containing provenance_id, execution_id, evolution_identity, candidate_binding_digest, and proposed_state_content_id. `require_execution_intent_snapshot()` fails closed unless the snapshot exactly matches the current provenance. This is a boundary primitive only; it is not yet wired to autonomous execution or Core mutation.
