@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from .governance import GovernanceDecision
 from gnosis.evolution.provenance import canonical_digest
+from gnosis.storage import load_state, persist_transition
 
 
 @dataclass(frozen=True)
@@ -149,7 +150,7 @@ class ExecutionReceipt:
     @classmethod
     def after_commit(cls, request: ExecutionCommitRequest, resulting_state: object) -> "ExecutionReceipt":
         require_execution_commit(request)
-        resulting_state_digest = canonical_digest(resulting_state)
+        resulting_state_digest = str(getattr(resulting_state, "state_id", canonical_digest(resulting_state)))
         if not resulting_state_digest:
             raise ValueError("resulting state digest is required for an execution receipt")
         p = request.provenance
@@ -180,3 +181,24 @@ def require_execution_receipt(receipt: ExecutionReceipt | None, request: Executi
     """Fail closed unless a post-commit receipt is bound to the authorized evolution."""
     if receipt is None or not receipt.resulting_state_digest or not receipt.matches_request(request):
         raise PermissionError("execution receipt does not match committed evolution")
+
+
+@dataclass(frozen=True)
+class ExecutionCommitResult:
+    receipt: ExecutionReceipt
+    resulting_state_id: str
+
+
+class SQLiteExecutionCommitAdapter:
+    """Narrow persistence adapter: authorization is checked before durable mutation."""
+
+    def commit(self, conn: object, instance: object, candidate: object, record: object, request: ExecutionCommitRequest, *, actor: str) -> ExecutionCommitResult:
+        require_execution_commit(request)
+        if str(request.provenance.evolution_identity) != request.evolution_identity:
+            raise PermissionError("execution commit identity mismatch")
+        persist_transition(conn, instance, candidate, record, actor=actor)
+        resulting = load_state(conn, record.to_state_id)
+        if resulting.state_id != str(request.provenance.proposed_state_digest):
+            raise PermissionError("persisted resulting state does not match authorized evolution")
+        receipt = ExecutionReceipt.after_commit(request, resulting)
+        return ExecutionCommitResult(receipt=receipt, resulting_state_id=resulting.state_id)
