@@ -88,7 +88,17 @@ class Candidate:
 
     @property
     def candidate_id(self) -> str:
-        return _stable_hash({"parent_state_id": self.parent_state_id, "proposed_state_id": self.proposed_state.state_id, "origin": self.origin, "seed": self.seed})
+        return _stable_hash({"parent_state_id": self.parent_state_id, "proposed_state_content_id": self.proposed_state.content_id, "origin": self.origin, "seed": self.seed})
+
+
+    def binding_digest(self, parent_state_digest: str) -> str:
+        if not parent_state_digest:
+            raise ValueError("parent state digest is required")
+        return _stable_hash({
+            "candidate_id": self.candidate_id,
+            "parent_state_digest": parent_state_digest,
+            "proposed_state_content_id": self.proposed_state.content_id,
+        })
 
 
 @dataclass(frozen=True)
