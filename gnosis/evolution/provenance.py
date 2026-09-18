@@ -72,6 +72,8 @@ def build_provenance(
     invariant_status: str,
     governance_decision: str,
 ) -> EvidenceProvenance:
+    if not parent_state_digest or not proposed_state_digest:
+        raise ValueError("state digests are required")
     if not verify_evidence_digest(observations, evidence_digest):
         raise ValueError("evidence digest mismatch")
     return EvidenceProvenance(
