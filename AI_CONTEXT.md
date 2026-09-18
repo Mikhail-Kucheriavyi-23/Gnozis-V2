@@ -1033,3 +1033,10 @@ Provenance now carries `proposed_state_content_id` as an explicit content-bindin
 ### GNV2-EVOLUTION-STATE-CONTENT-IDENTITY-025 — VERIFIED
 
 CI evidence: runs 35295152230 / 35295152199 SUCCESS on Python 3.11 and 3.12; diagnostic suite reports 57 passed, 3 warnings. Canonical `State.content_id` remains the single content identity; no second state identity model was introduced.
+
+
+### GNV2-EVOLUTION-STATE-CONTENT-RECONCILIATION-026
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Trusted recovery now requires the recovered/provided `State` and independently recomputes `State.content_id`, comparing it to persisted `proposed_state_content_id`. A missing proposed state fails closed. Recovery tests were updated to exercise actual State content reconciliation and tampering remains rejected.
