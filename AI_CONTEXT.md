@@ -956,7 +956,9 @@ Complete replay now invokes this unified persisted-link check when both provenan
 
 ### GNV2-EVOLUTION-CHAIN-VERIFIER-017
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35293106084 SUCCESS; Python 3.11 and 3.12 SUCCESS; 225 passed, 10 warnings.
 
 Added an independent, read-only persisted-chain verifier. It accepts plain provenance/audit mappings plus observations and does not depend on live evolution, transaction, or runtime execution objects. It verifies provenance identity/evidence, the complete audit hash chain, and provenance↔audit linkage, failing closed on malformed or incomplete persistence.
 
