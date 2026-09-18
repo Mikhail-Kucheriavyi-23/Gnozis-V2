@@ -1084,7 +1084,9 @@ CI evidence: run 35296869203 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 ### GNV2-EXECUTION-AUTHORIZATION-GATE-031
 
-Implementation status: **IMPLEMENTED — CI exposed two stale test calls; corrected. Awaiting CI verification.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35297620989 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 CI run 35297545942: 238 passed, 1 failed. The final remaining failure was the missing-authorization assertion still expecting the pre-binding error text. Updated it to the unified fail-closed mismatch contract. Production `require_execution_authorization()` is correctly the exact-binding API. The failures were test calls still using the pre-032 signature / message. Updated tests to pass both binding arguments and assert the current fail-closed mismatch contract.
 
