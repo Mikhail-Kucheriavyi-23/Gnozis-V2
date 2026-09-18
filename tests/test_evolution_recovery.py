@@ -103,3 +103,28 @@ def test_recovery_rejects_legacy_provenance_without_identity():
     report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
     assert not report.replay_valid
     assert "legacy provenance identity is unverified" in report.reasons
+
+
+def test_recovery_rejects_tampered_proposed_state_content_identity():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    observations = {"status": "PASS"}
+    p = build_provenance(
+        candidate_id="c2", parent_state_id="s2", parent_state_digest="pd2",
+        proposed_state_digest="sd2", proposed_state_content_id="state-content-2",
+        observations=observations, evidence_digest=canonical_digest(observations),
+        evaluation_status="PASS", shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED", governance_decision="REVIEW",
+    )
+    pid = save_evolution_provenance(conn, p)
+    append_evolution_audit(
+        conn, event_type="PROVENANCE", candidate_id=p.candidate_id,
+        execution_id=p.execution_id, provenance_id=pid,
+        parent_state_digest=p.parent_state_digest,
+        proposed_state_digest=p.proposed_state_digest,
+        evidence_digest=p.evidence_digest, payload={"status": "PASS"},
+    )
+    conn.execute("UPDATE evolution_provenance SET proposed_state_content_id='tampered'")
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    assert not report.replay_valid
+    assert "evolution identity mismatch" in " ".join(report.reasons)
