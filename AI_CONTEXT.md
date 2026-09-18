@@ -1721,3 +1721,22 @@ Identity(L_1) = Identity(L_2)
 Branch failure is retained as evidence and is not treated as deletion of the branch's history. Successful branches also remain subject to later regression evidence.
 
 This branching model is a prerequisite for future multi-agent and networked autopoietic evolution. It permits parallel exploration while preserving independent provenance, state, and authority boundaries.
+
+
+### GNV2-FORMAL-049O — CROSS-LINEAGE EVIDENCE EXCHANGE
+
+Independent evolutionary lineages may exchange evidence, hypotheses, capability descriptions, and replication results through explicit provenance-preserving records. Exchange does not merge lineage identities, mutable state, authority, or protected Core.
+
+Conceptual exchange record:
+
+X = (source_lineage, source_identity, artifact_id, artifact_type, provenance, conditions, integrity, receiving_lineage, receipt)
+
+Artifact types may include EVIDENCE, HYPOTHESIS, CAPABILITY_DESCRIPTION, TEST_RESULT, FORECAST, or REPLICATION_RESULT. Each received artifact must retain its source provenance and conditions. The receiving lineage may classify it as ACCEPTED_FOR_REPLICATION, REQUIRES_REVIEW, REJECTED, or INCONCLUSIVE without rewriting the source record.
+
+Cross-lineage evidence should be distinguished from locally reproduced evidence. A claim imported from another lineage is not equivalent to an independently reproduced observation until the receiving lineage performs a bounded replication or otherwise obtains qualifying evidence.
+
+Exchange must be fail-closed with respect to identity and integrity: malformed, unverifiable, condition-mismatched, or provenance-incomplete artifacts must not enter the trusted evidence set.
+
+A capability description may be shared without granting execution authority. An evidence exchange may influence future hypothesis generation, but cannot itself mutate Core, activate a capability, merge identities, or bypass protected invariants.
+
+This establishes the conceptual bridge for future networked Gnozis: independent agents can learn from one another while preserving independent histories and authority boundaries.
