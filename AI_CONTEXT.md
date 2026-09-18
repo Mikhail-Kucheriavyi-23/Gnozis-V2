@@ -1215,3 +1215,8 @@ Added `generate_endogenous_candidates()` in `gnosis/reflection/endogenous.py`. I
 ### GNV2-ENDOGENOUS-BUDGET-BINDING
 
 042 refinement: endogenous candidate generation now accepts the existing Core `Budget` and caps generation by `budget.remaining`; an exhausted budget produces zero candidates. The legacy `20` remains the default upper bound, not a mathematical constant. Added tests for partial and exhausted budgets. Awaiting CI verification.
+
+
+### CI-VERIFIED-ENDOGENOUS-BUDGET-042
+
+CI run 35337420893 SUCCESS after budget binding. Endogenous generation now has CI verification for partial/exhausted budgets. Added a Core-path integration test to prove generated candidates are passed to the existing `Test/Select` path (`Engine.step_select`) rather than a parallel evolution mechanism. Awaiting CI for this new integration test.
