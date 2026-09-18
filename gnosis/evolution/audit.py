@@ -14,6 +14,10 @@ class EvolutionAuditRecord:
     event_type: str
     candidate_id: str
     execution_id: str
+    provenance_id: str
+    parent_state_digest: str
+    proposed_state_digest: str
+    evidence_digest: str
     payload_digest: str
     previous_digest: str
     record_digest: str
@@ -25,6 +29,10 @@ def audit_record_digest(
     event_type: str,
     candidate_id: str,
     execution_id: str,
+    provenance_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
+    evidence_digest: str,
     payload_digest: str,
     previous_digest: str,
 ) -> str:
@@ -33,6 +41,10 @@ def audit_record_digest(
         "event_type": event_type,
         "candidate_id": candidate_id,
         "execution_id": execution_id,
+        "provenance_id": provenance_id,
+        "parent_state_digest": parent_state_digest,
+        "proposed_state_digest": proposed_state_digest,
+        "evidence_digest": evidence_digest,
         "payload_digest": payload_digest,
         "previous_digest": previous_digest,
     })
@@ -44,6 +56,10 @@ def make_audit_record(
     event_type: str,
     candidate_id: str,
     execution_id: str,
+    provenance_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
+    evidence_digest: str,
     payload: Mapping[str, Any],
     previous_digest: str = "",
 ) -> EvolutionAuditRecord:
@@ -57,6 +73,10 @@ def make_audit_record(
         event_type=event_type,
         candidate_id=candidate_id,
         execution_id=execution_id,
+        provenance_id=provenance_id,
+        parent_state_digest=parent_state_digest,
+        proposed_state_digest=proposed_state_digest,
+        evidence_digest=evidence_digest,
         payload_digest=payload_digest,
         previous_digest=previous_digest,
     )
@@ -85,6 +105,10 @@ def verify_audit_chain(records: list[EvolutionAuditRecord]) -> tuple[bool, tuple
             event_type=record.event_type,
             candidate_id=record.candidate_id,
             execution_id=record.execution_id,
+            provenance_id=record.provenance_id,
+            parent_state_digest=record.parent_state_digest,
+            proposed_state_digest=record.proposed_state_digest,
+            evidence_digest=record.evidence_digest,
             payload_digest=record.payload_digest,
             previous_digest=record.previous_digest,
         )
