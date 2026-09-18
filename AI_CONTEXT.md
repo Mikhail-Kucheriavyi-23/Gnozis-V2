@@ -836,3 +836,20 @@ Added:
 - regression tests for atomic success and simulated audit-write failure
 
 This is persistence atomicity only; it does not grant activation authority.
+
+
+### GNV2-EVOLUTION-STATE-BINDING-010
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added state binding to evolution provenance/execution:
+- parent state content digest
+- proposed state content digest
+- execution identity includes both state digests
+- provenance identity includes both state digests
+- persisted provenance stores both digests
+- sandbox execution records both digests
+- replay identity verifies both digests
+- regression test rejects parent-state digest tampering
+
+This binds evolution evidence to the concrete parent/proposed state content while preserving REVIEW_ONLY / no activation authority.
