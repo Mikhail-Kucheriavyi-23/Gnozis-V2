@@ -1,5 +1,5 @@
 from gnosis.core import Candidate, State
-from gnosis.evolution.replay import replay_evidence, replay_identity
+from gnosis.evolution.replay import replay_complete, replay_evidence, replay_identity
 from gnosis.evolution.sandbox import run_sandbox
 
 
@@ -51,3 +51,35 @@ def test_replay_identity_rejects_wrong_candidate_or_parent():
         parent_state_digest=result.execution.parent_state_digest,
         proposed_state_digest=result.execution.proposed_state_digest,
     ).reproducible
+
+
+def test_complete_replay_fails_closed_when_provenance_or_audit_is_missing():
+    state = State(elements={"a": 1})
+    result = run_sandbox(state, _candidate(state), _observer)
+    missing_provenance = replay_complete(
+        result.execution, None, object(), observations=result.execution.observations
+    )
+    assert not missing_provenance.reproducible
+    assert "provenance missing" in missing_provenance.reasons
+
+    missing_audit = replay_complete(
+        result.execution, None, None, observations=result.execution.observations
+    )
+    assert not missing_audit.reproducible
+    assert "audit record missing" in missing_audit.reasons
+
+
+def test_complete_replay_rejects_audit_identity_mismatch():
+    state = State(elements={"a": 1})
+    result = run_sandbox(state, _candidate(state), _observer)
+
+    class Audit:
+        candidate_id = "wrong"
+        execution_id = result.execution.execution_id
+
+    replay = replay_complete(
+        result.execution, None, Audit(), observations=result.execution.observations
+    )
+    assert not replay.reproducible
+    assert "provenance missing" in replay.reasons
+    assert "audit candidate mismatch" in replay.reasons
