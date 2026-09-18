@@ -989,7 +989,9 @@ Recovery now closes the persistence→verification→replay loop by recomputing 
 
 ### GNV2-EVOLUTION-RECOVERY-STATE-IDENTITY-020
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35293979611 SUCCESS; Python 3.11 and 3.12 SUCCESS; 228 passed, 10 warnings.
 
 Recovery replay now revalidates persisted provenance identity fields against recovered observations and persisted evidence, not only the evidence digest. A tampered proposed-state digest is explicitly rejected during recovery replay.
 
