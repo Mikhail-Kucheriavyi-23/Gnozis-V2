@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .audit import EvolutionAuditRecord, make_audit_record
-from .provenance import EvidenceProvenance
+from .provenance import EvidenceProvenance, canonical_digest
 
 
 
@@ -33,6 +33,34 @@ def persist_evolution_transaction(
             conn.execute("BEGIN IMMEDIATE")
         else:
             conn.execute(f"SAVEPOINT {savepoint}")
+        existing = conn.execute(
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,candidate_binding_digest FROM evolution_provenance WHERE provenance_id=?",
+            (provenance.provenance_id,),
+        ).fetchone()
+        if existing is not None:
+            expected = (
+                provenance.provenance_id, provenance.execution_id, provenance.candidate_id,
+                provenance.parent_state_digest, provenance.proposed_state_digest, provenance.evidence_digest,
+                provenance.evolution_identity, provenance.proposed_state_content_id,
+                provenance.candidate_binding_digest,
+            )
+            if existing != expected:
+                raise RuntimeError("conflicting replay for existing provenance")
+            existing_audit = conn.execute(
+                "SELECT sequence,event_type,candidate_id,execution_id,provenance_id,parent_state_digest,proposed_state_digest,evidence_digest,payload_digest,previous_digest,record_digest FROM evolution_audit WHERE provenance_id=?",
+                (provenance.provenance_id,),
+            ).fetchone()
+            if existing_audit is None:
+                raise RuntimeError("existing provenance has no audit record")
+            existing_record = EvolutionAuditRecord(*existing_audit)
+            if existing_record.event_type != event_type or existing_record.payload_digest != canonical_digest(payload):
+                raise RuntimeError("conflicting replay for existing audit record")
+            if owns_transaction:
+                conn.commit()
+            else:
+                conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+            return EvolutionTransactionResult(provenance_id=provenance.provenance_id, audit_record=existing_record)
+
         row = conn.execute(
             "SELECT sequence, record_digest FROM evolution_audit ORDER BY sequence DESC LIMIT 1"
         ).fetchone()
