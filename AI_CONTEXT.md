@@ -1220,3 +1220,8 @@ Added `generate_endogenous_candidates()` in `gnosis/reflection/endogenous.py`. I
 ### CI-VERIFIED-ENDOGENOUS-BUDGET-042
 
 CI run 35337420893 SUCCESS after budget binding. Endogenous generation now has CI verification for partial/exhausted budgets. Added a Core-path integration test to prove generated candidates are passed to the existing `Test/Select` path (`Engine.step_select`) rather than a parallel evolution mechanism. Awaiting CI for this new integration test.
+
+
+### CI-FIX-ENDOGENOUS-042
+
+CI run 35337563386 exposed a real Core invariant failure in the new endogenous integration test: proposal relations referenced `__gnozis_reflection__` and `proposal:<id>` as relation endpoints without placing them in State.X. This correctly triggered `transition_validity`. Fixed by making both nodes explicit elements in the proposed State before adding the relation. This preserves Ψ=(X,R): endogenous proposal evidence is now represented as valid X nodes plus an R edge, rather than dangling metadata. New test asserts the reflection node is part of X. Awaiting CI verification.
