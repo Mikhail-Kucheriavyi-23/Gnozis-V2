@@ -636,14 +636,17 @@ CI-green is necessary evidence for the relevant gate, but does not replace adver
 
 Current handoff:
 - Persistence: VERIFIED on inspected historical CI; frozen.
-- Reflection/Shadow/Invariant Delta: IN_PROGRESS.
-- Current HEAD: 63e1f0b57c591a06fa902fe63cd84369c30bf65c.
-- Current HEAD CI: not yet inspected as green; no workflow run was found for this commit.
-- Current maximum task: GNV2-REFLECTION-GATE.
-- Do not reopen verified persistence without regression evidence.
+- Reflection/Shadow/Invariant Delta: implementation gate completed for the currently identified failures.
+- Current HEAD: f759746a2413d28bcac2942ce87eac5516b2a00d.
+- CI run 35289252757: SUCCESS; Python 3.11 and 3.12 jobs passed.
+- Executed suite result from CI: 185 passed, 10 warnings.
+- Self-Diagnostic run 35289252756: SUCCESS.
+- The last active Reflection/Shadow failure was classified as a stale test usage: `default_test` is a protected Core verifier requiring the parent/current state, while `evaluate_shadow()` is a policy-comparison API. The regression test now supplies an explicit active policy predicate rather than misusing the Core verifier as a shadow policy.
+- Current maximum task GNV2-REFLECTION-GATE is now VERIFIED by CI evidence for this development line.
+- Do not reopen verified persistence or reflection gates without new regression evidence.
 - Do not start canonical self-evolution.
 - Do not add OpenRouter, bot infrastructure, or unrelated external-agent orchestration to this gate.
-- After the current gate is actually verified, update this file with the observed evidence and select the next single READY task.
+- Next work must select exactly one dependency-satisfied READY task from the post-Reflection sequence.
 
 ## 20. CONTEXT INTEGRITY
 
