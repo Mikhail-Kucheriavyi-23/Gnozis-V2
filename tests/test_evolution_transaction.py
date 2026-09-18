@@ -117,3 +117,25 @@ def test_evolution_transaction_does_not_leave_provenance_when_audit_link_verific
     result = persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"})
     assert result.provenance_id == provenance.provenance_id
     assert conn.execute("SELECT evolution_identity, proposed_state_content_id, candidate_binding_digest FROM evolution_provenance").fetchone() == (provenance.evolution_identity, provenance.proposed_state_content_id, provenance.candidate_binding_digest)
+
+
+def test_evolution_transaction_same_operation_is_idempotent():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    provenance = _provenance()
+    first = persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"})
+    second = persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"})
+    assert second == first
+    assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
+    assert conn.execute("SELECT count(*) FROM evolution_audit").fetchone()[0] == 1
+
+
+def test_evolution_transaction_conflicting_replay_fails_without_new_audit_record():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    provenance = _provenance()
+    persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"})
+    with pytest.raises(RuntimeError, match="conflicting replay"):
+        persist_evolution_transaction(conn, provenance, event_type="PROVENANCE", payload={"status": "CHANGED"})
+    assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
+    assert conn.execute("SELECT count(*) FROM evolution_audit").fetchone()[0] == 1
