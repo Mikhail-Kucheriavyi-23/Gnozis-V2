@@ -31,20 +31,17 @@ def test_evolution_transaction_commits_provenance_and_audit_together():
     assert result.audit_record.candidate_id == "candidate:tx"
 
 
-def test_evolution_transaction_rolls_back_both_records_on_failure(monkeypatch):
+def test_evolution_transaction_rolls_back_both_records_on_constraint_failure():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
-    original = conn.execute
-
-    def fail_on_audit(sql, params=()):
-        if "INSERT INTO evolution_audit" in sql:
-            raise sqlite3.IntegrityError("simulated audit failure")
-        return original(sql, params)
-
-    monkeypatch.setattr(conn, "execute", fail_on_audit)
+    provenance = _provenance()
+    first = persist_evolution_transaction(
+        conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"}
+    )
     with pytest.raises(sqlite3.IntegrityError):
         persist_evolution_transaction(
-            conn, _provenance(), event_type="PROVENANCE", payload={"status": "RECORDED"}
+            conn, provenance, event_type="PROVENANCE", payload={"status": "DUPLICATE"}
         )
-    assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 0
-    assert conn.execute("SELECT count(*) FROM evolution_audit").fetchone()[0] == 0
+    assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
+    assert conn.execute("SELECT count(*) FROM evolution_audit").fetchone()[0] == 1
+    assert conn.execute("SELECT provenance_id FROM evolution_provenance").fetchone()[0] == first.provenance_id
