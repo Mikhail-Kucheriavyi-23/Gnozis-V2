@@ -1181,3 +1181,8 @@ CI run 35333354866 SUCCESS. The corrected fail-closed SQLite execution adapter t
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added a read-only `run_reflection_gate()` orchestration boundary. It verifies canonical Core history exists, validates the durable SQLite graph, recovers the instance and compares the recovered state with the canonical engine head, runs reflection against canonical history plus prior persisted reflection evidence, and produces a machine-readable SELF-DIAGNOSTIC artifact explicitly marked `READ_ONLY`. It does not issue authority, activate proposals, mutate Core, or change invariants. Added positive and fail-closed integration tests.
+
+
+### CI-FIX-040
+
+CI run 35333646417 found a defect in the new Reflection Gate test path: `verify_durable_graph()` returns the audit-chain tuple, not an instance-id collection. The gate incorrectly tested `instance_id in durable`, causing a false negative despite successful durable verification. Fixed the gate to treat successful completion of `verify_durable_graph()` as the durable-graph proof; exceptions remain fail-closed. No persistence semantics changed.
