@@ -1,5 +1,5 @@
 import pytest
-from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, ExecutionReceipt, SQLiteExecutionCommitAdapter, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit, require_execution_receipt
+from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, OwnerApproval, issue_execution_authorization, ExecutionIntentSnapshot, ExecutionReceipt, SQLiteExecutionCommitAdapter, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit, require_execution_receipt
 from gnosis.reflection.governance import GovernanceDecision
 
 
@@ -214,3 +214,17 @@ def test_sqlite_execution_commit_adapter_rejects_before_mutation():
             "bad", "bad", object()), actor="user-1")
     assert load_instance(conn, instance.instance_id).engine.state.state_id == instance.engine.state.state_id
     conn.close()
+
+
+def test_owner_approval_issuer_fails_closed_until_trusted_issuer_exists():
+    with pytest.raises(PermissionError, match="owner approval"):
+        issue_execution_authorization(None, request_provenance="p", evolution_identity="e")
+    approval = OwnerApproval("approval-1", "p", "e")
+    with pytest.raises(NotImplementedError, match="trusted owner-authority issuer"):
+        issue_execution_authorization(approval, request_provenance="p", evolution_identity="e")
+
+
+def test_owner_approval_cannot_cross_bind_evolution():
+    approval = OwnerApproval("approval-1", "p", "e")
+    with pytest.raises(PermissionError, match="owner approval"):
+        issue_execution_authorization(approval, request_provenance="p", evolution_identity="other")
