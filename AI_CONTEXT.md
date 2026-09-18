@@ -855,3 +855,18 @@ Added state binding to evolution provenance/execution:
 - regression test rejects parent-state digest tampering
 
 This binds evolution evidence to the concrete parent/proposed state content while preserving REVIEW_ONLY / no activation authority.
+
+
+### GNV2-EVOLUTION-CANDIDATE-BINDING-011
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Candidate identity is strengthened to bind:
+- parent state identity
+- proposed state content identity
+- origin
+- deterministic seed
+
+A separate candidate binding digest additionally binds the concrete parent state content digest. This composes with the state-bound provenance contract without granting activation authority.
+
+Regression tests cover origin, seed, proposed-content and parent-digest tampering.
