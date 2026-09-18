@@ -771,3 +771,17 @@ Added a non-authoritative PromotionGate:
 - regression tests cover eligible, provenance-failure and unsafe-status cases
 
 This gate is an eligibility/proof boundary, not an authorization boundary.
+
+
+### GNV2-EVOLUTION-REPLAY-006
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added:
+- deterministic replay of recorded evidence without re-executing or activating a candidate
+- digest recomputation against recorded observations
+- replay identity check for candidate and parent state
+- fail-closed mismatch reporting
+- regression tests for intact, tampered and identity-mismatched evidence
+
+Replay is verification only. It has no Core mutation or activation authority.
