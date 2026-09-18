@@ -1106,7 +1106,9 @@ CI evidence: run 35297775009 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 ### GNV2-EXECUTION-INTENT-SNAPSHOT-033
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35297917002 SUCCESS.
 
 Added `ExecutionIntentSnapshot`, a frozen identity snapshot containing provenance_id, execution_id, evolution_identity, candidate_binding_digest, and proposed_state_content_id. `require_execution_intent_snapshot()` fails closed unless the snapshot exactly matches the current provenance. This is a boundary primitive only; it is not yet wired to autonomous execution or Core mutation.
 
