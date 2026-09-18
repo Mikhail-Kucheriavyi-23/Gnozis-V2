@@ -75,3 +75,35 @@ def require_execution_authorization(
         or auth.evolution_identity != evolution_identity
     ):
         raise PermissionError("execution authorization does not match evolution")
+
+
+@dataclass(frozen=True)
+class ExecutionIntentSnapshot:
+    """Immutable identity snapshot of the exact evolution authorized for execution."""
+    provenance_id: str
+    execution_id: str
+    evolution_identity: str
+    candidate_binding_digest: str
+    proposed_state_content_id: str
+
+    @classmethod
+    def from_provenance(cls, provenance: object) -> "ExecutionIntentSnapshot":
+        return cls(
+            provenance_id=str(provenance.provenance_id),
+            execution_id=str(provenance.execution_id),
+            evolution_identity=str(provenance.evolution_identity),
+            candidate_binding_digest=str(provenance.candidate_binding_digest),
+            proposed_state_content_id=str(provenance.proposed_state_content_id),
+        )
+
+    def matches_provenance(self, provenance: object) -> bool:
+        return self == type(self).from_provenance(provenance)
+
+
+def require_execution_intent_snapshot(
+    snapshot: ExecutionIntentSnapshot | None,
+    provenance: object,
+) -> None:
+    """Fail closed unless the immutable snapshot exactly matches current provenance."""
+    if snapshot is None or not snapshot.matches_provenance(provenance):
+        raise PermissionError("execution intent snapshot does not match evolution")
