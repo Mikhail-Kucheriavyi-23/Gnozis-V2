@@ -20,6 +20,8 @@ class EvidenceProvenance:
     execution_id: str
     candidate_id: str
     parent_state_id: str
+    parent_state_digest: str
+    proposed_state_digest: str
     evidence_digest: str
     evaluation_status: str
     shadow_status: str
@@ -33,6 +35,8 @@ class EvidenceProvenance:
             "execution_id": self.execution_id,
             "candidate_id": self.candidate_id,
             "parent_state_id": self.parent_state_id,
+            "parent_state_digest": self.parent_state_digest,
+            "proposed_state_digest": self.proposed_state_digest,
             "evidence_digest": self.evidence_digest,
             "evaluation_status": self.evaluation_status,
             "shadow_status": self.shadow_status,
@@ -41,11 +45,11 @@ class EvidenceProvenance:
         })[:24]
 
 
-def execution_id(candidate_id: str, parent_state_id: str, evidence_digest: str) -> str:
+def execution_id(candidate_id: str, parent_state_id: str, evidence_digest: str, parent_state_digest: str = "", proposed_state_digest: str = "") -> str:
     if not candidate_id or not parent_state_id or not evidence_digest:
         raise ValueError("execution provenance requires candidate, parent state and evidence digest")
     return "execution:" + canonical_digest(
-        {"candidate_id": candidate_id, "parent_state_id": parent_state_id, "evidence_digest": evidence_digest}
+        {"candidate_id": candidate_id, "parent_state_id": parent_state_id, "parent_state_digest": parent_state_digest, "proposed_state_digest": proposed_state_digest, "evidence_digest": evidence_digest}
     )[:24]
 
 
@@ -59,6 +63,8 @@ def build_provenance(
     *,
     candidate_id: str,
     parent_state_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
     observations: Mapping[str, Any],
     evidence_digest: str,
     evaluation_status: str,
@@ -69,9 +75,11 @@ def build_provenance(
     if not verify_evidence_digest(observations, evidence_digest):
         raise ValueError("evidence digest mismatch")
     return EvidenceProvenance(
-        execution_id=execution_id(candidate_id, parent_state_id, evidence_digest),
+        execution_id=execution_id(candidate_id, parent_state_id, evidence_digest, parent_state_digest, proposed_state_digest),
         candidate_id=candidate_id,
         parent_state_id=parent_state_id,
+        parent_state_digest=parent_state_digest,
+        proposed_state_digest=proposed_state_digest,
         evidence_digest=evidence_digest,
         evaluation_status=evaluation_status,
         shadow_status=shadow_status,
@@ -91,6 +99,8 @@ def crosscheck_provenance(
     provenance: EvidenceProvenance,
     candidate_id: str,
     parent_state_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
     observations: Mapping[str, Any],
     evidence_digest: str,
     execution_id_value: str,
@@ -105,6 +115,10 @@ def crosscheck_provenance(
         reasons.append("candidate_id mismatch")
     if provenance.parent_state_id != parent_state_id:
         reasons.append("parent_state_id mismatch")
+    if provenance.parent_state_digest != parent_state_digest:
+        reasons.append("parent_state_digest mismatch")
+    if provenance.proposed_state_digest != proposed_state_digest:
+        reasons.append("proposed_state_digest mismatch")
     if provenance.evidence_digest != evidence_digest:
         reasons.append("evidence_digest mismatch")
     if provenance.execution_id != execution_id_value:
@@ -119,7 +133,7 @@ def crosscheck_provenance(
         reasons.append("governance_decision mismatch")
     if not verify_evidence_digest(observations, evidence_digest):
         reasons.append("observation digest mismatch")
-    expected_execution = execution_id(candidate_id, parent_state_id, evidence_digest)
+    expected_execution = execution_id(candidate_id, parent_state_id, evidence_digest, parent_state_digest, proposed_state_digest)
     if execution_id_value != expected_execution:
         reasons.append("execution identity mismatch")
     expected_provenance = EvidenceProvenance(
