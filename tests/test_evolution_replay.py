@@ -57,7 +57,7 @@ def test_complete_replay_fails_closed_when_provenance_or_audit_is_missing():
     state = State(elements={"a": 1})
     result = run_sandbox(state, _candidate(state), _observer)
     missing_provenance = replay_complete(
-        result.execution, None, object(), observations=result.execution.observations
+        result.execution, None, None, observations=result.execution.observations
     )
     assert not missing_provenance.reproducible
     assert "provenance missing" in missing_provenance.reasons
@@ -75,7 +75,7 @@ def test_complete_replay_rejects_audit_identity_mismatch():
 
     class Audit:
         candidate_id = "wrong"
-        execution_id = result.execution.execution_id
+        execution_id = result.execution.candidate_id
 
     replay = replay_complete(
         result.execution, None, Audit(), observations=result.execution.observations
