@@ -1124,7 +1124,9 @@ CI run 35298070747: 244 passed, 2 failed. Both failures were NameError in the ne
 
 ### GNV2-EXECUTION-COMMIT-GATE-035
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35328181440 SUCCESS.
 
 Added `ExecutionCommitRequest` and `require_execution_commit()` as a composed pre-commit gate. It requires exact authorization binding, exact evolution identity agreement with the immutable intent snapshot, and current provenance/snapshot equality. The gate itself performs no mutation and grants no autonomous authority; it is a fail-closed precondition for a future executor.
 
