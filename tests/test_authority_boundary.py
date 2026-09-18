@@ -76,3 +76,19 @@ def test_execution_intent_snapshot_fails_closed_when_missing():
     provenance = _snapshot_provenance()
     with pytest.raises(PermissionError, match="does not match evolution"):
         require_execution_intent_snapshot(None, provenance)
+
+
+def test_execution_intent_snapshot_fails_when_parent_state_is_stale():
+    provenance = _snapshot_provenance()
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    changed = type(provenance)(**{**provenance.__dict__, "parent_state_digest": "new-parent-digest"})
+    with pytest.raises(PermissionError, match="does not match evolution"):
+        require_execution_intent_snapshot(snapshot, changed)
+
+
+def test_execution_intent_snapshot_binds_parent_state_id():
+    provenance = _snapshot_provenance()
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    changed = type(provenance)(**{**provenance.__dict__, "parent_state_id": "new-parent"})
+    with pytest.raises(PermissionError, match="does not match evolution"):
+        require_execution_intent_snapshot(snapshot, changed)
