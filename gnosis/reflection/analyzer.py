@@ -92,6 +92,7 @@ class ReflectionReport:
     counterexamples: tuple[CounterexampleCandidate, ...] = field(default_factory=tuple)
     proposals: tuple[RuleProposal, ...] = field(default_factory=tuple)
     counterexample_results: tuple[object, ...] = field(default_factory=tuple)
+    evolution_evidence: tuple[object, ...] = field(default_factory=tuple)
 
 
 class ReflectionAnalyzer:
