@@ -1007,7 +1007,9 @@ Added deterministic `evolution_identity` covering candidate, execution, parent/p
 
 ### GNV2-EVOLUTION-RECOVERY-CANONICAL-IDENTITY-022
 
-Implementation status: **IMPLEMENTED — CI fix applied: missing classifier import detected.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35294497370 SUCCESS; Python 3.11 and 3.12 SUCCESS; 230 passed, 10 warnings.
 
 Recovery now reconstructs the persisted EvidenceProvenance and compares its canonical `evolution_identity` with the persisted identity. Tampering the canonical identity fails recovery replay closed.
 
