@@ -1145,3 +1145,10 @@ Added immutable `ExecutionReceipt` as post-commit evidence. It contains executio
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 `ExecutionReceipt.after_commit()` no longer accepts a caller-asserted result digest. It receives resulting state content, computes the canonical SHA-256 digest internally, and rejects the result unless that digest equals the evolution's authorized `proposed_state_digest`. Added tests for valid content, missing result state, and tampered result content. This still does not perform persistence itself; it establishes the evidence-binding contract for the future commit/storage boundary.
+
+
+### GNV2-ACTUAL-COMMIT-ADAPTER-038
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added `SQLiteExecutionCommitAdapter` as a narrow persistence boundary. It calls the complete execution commit gate before `persist_transition()`, performs no authorization of its own, reloads the persisted resulting state, verifies its actual `state_id` equals the authorized proposed-state digest, and only then creates `ExecutionReceipt`. Added integration coverage for successful durable commit/receipt creation and fail-closed rejection before mutation. Existing SQLite persistence remains the source of truth; no second persistence model was introduced.
