@@ -121,3 +121,46 @@ def verify_audit_chain(records: list[EvolutionAuditRecord]) -> tuple[bool, tuple
         expected_previous = record.record_digest
         expected_sequence += 1
     return not reasons, tuple(reasons)
+
+
+@dataclass(frozen=True)
+class ProvenanceAuditCrossCheck:
+    valid: bool
+    reasons: tuple[str, ...]
+
+
+def crosscheck_provenance_audit(
+    provenance: Any,
+    audit_record: EvolutionAuditRecord,
+) -> ProvenanceAuditCrossCheck:
+    """Fail-closed cross-check of all identity-bearing provenance/audit fields."""
+    reasons: list[str] = []
+    for field in (
+        "candidate_id",
+        "execution_id",
+        "parent_state_digest",
+        "proposed_state_digest",
+        "evidence_digest",
+    ):
+        if getattr(provenance, field, None) != getattr(audit_record, field, None):
+            reasons.append(f"{field} mismatch")
+    expected_provenance_id = getattr(provenance, "provenance_id", None)
+    if not expected_provenance_id:
+        reasons.append("provenance identity missing")
+    elif audit_record.provenance_id != expected_provenance_id:
+        reasons.append("provenance_id mismatch")
+    expected_record = audit_record_digest(
+        sequence=audit_record.sequence,
+        event_type=audit_record.event_type,
+        candidate_id=audit_record.candidate_id,
+        execution_id=audit_record.execution_id,
+        provenance_id=audit_record.provenance_id,
+        parent_state_digest=audit_record.parent_state_digest,
+        proposed_state_digest=audit_record.proposed_state_digest,
+        evidence_digest=audit_record.evidence_digest,
+        payload_digest=audit_record.payload_digest,
+        previous_digest=audit_record.previous_digest,
+    )
+    if audit_record.record_digest != expected_record:
+        reasons.append("audit record digest mismatch")
+    return ProvenanceAuditCrossCheck(valid=not reasons, reasons=tuple(dict.fromkeys(reasons)))
