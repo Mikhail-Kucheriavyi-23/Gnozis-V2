@@ -43,6 +43,7 @@ def recover_evolution_audit(
         [record.__dict__ for record in records],
         observations=observations,
     )
+    provenance_row = provenance_rows[0]
     expected_digest = provenance_row["evidence_digest"]
     actual_digest = canonical_digest(observations)
     provenance_row = provenance_rows[0]
