@@ -47,13 +47,34 @@ def request_authorization(decision: GovernanceDecision) -> AuthorityRequest:
 
 @dataclass(frozen=True)
 class ExecutionAuthorization:
-    """Opaque authorization marker; construction is intentionally fail-closed."""
+    """Authorization bound to one exact evolution provenance."""
     request_provenance: str
     owner_approved: bool = False
+    evolution_identity: str = ""
 
     @property
     def can_execute(self) -> bool:
-        return self.owner_approved and bool(self.request_provenance)
+        return (
+            self.owner_approved
+            and bool(self.request_provenance)
+            and bool(self.evolution_identity)
+        )
+
+
+def require_execution_authorization(
+    auth: ExecutionAuthorization | None,
+    *,
+    request_provenance: str,
+    evolution_identity: str,
+) -> None:
+    """Fail closed unless authorization exactly matches the requested evolution."""
+    if (
+        auth is None
+        or not auth.can_execute
+        or auth.request_provenance != request_provenance
+        or auth.evolution_identity != evolution_identity
+    ):
+        raise PermissionError("execution authorization does not match evolution")
 
 
 def require_execution_authorization(auth: ExecutionAuthorization | None) -> None:
