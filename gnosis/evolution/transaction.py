@@ -7,7 +7,7 @@ from typing import Any
 
 from .audit import EvolutionAuditRecord, make_audit_record
 from .provenance import EvidenceProvenance
-from ..reflection.persistence import ensure_reflection_schema
+
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,19 @@ def persist_evolution_transaction(
     payload: dict[str, Any],
 ) -> EvolutionTransactionResult:
     """Atomically persist provenance and its audit event, or persist neither."""
-    ensure_reflection_schema(conn)
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS evolution_provenance (
+            provenance_id TEXT PRIMARY KEY, execution_id TEXT NOT NULL, candidate_id TEXT NOT NULL,
+            parent_state_id TEXT NOT NULL, evidence_digest TEXT NOT NULL,
+            evaluation_status TEXT NOT NULL, shadow_status TEXT NOT NULL,
+            invariant_status TEXT NOT NULL, governance_decision TEXT NOT NULL, status TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS evolution_audit (
+            sequence INTEGER PRIMARY KEY, event_type TEXT NOT NULL, candidate_id TEXT NOT NULL,
+            execution_id TEXT NOT NULL, payload_digest TEXT NOT NULL, previous_digest TEXT NOT NULL,
+            record_digest TEXT NOT NULL UNIQUE
+        );
+    """)
     owns_transaction = conn.in_transaction is False
     try:
         if owns_transaction:
