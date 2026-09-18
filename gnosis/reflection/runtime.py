@@ -16,6 +16,8 @@ from .analyzer import ReflectionAnalyzer, ReflectionReport
 from .counterexample import CounterexampleEngine
 from .history import HistoricalFinding, ReflectionHistorySummary, summarize_reflection_history, unresolved_findings
 from .persistence import list_reflection_reports, reflection_id, save_reflection_report
+from .memory_evidence import EvolutionEvidence, project_evolution_memory
+from gnosis.storage.evolution_memory import load_evolution_memory
 
 
 @dataclass(frozen=True)
@@ -23,6 +25,7 @@ class CumulativeReflectionReport:
     current: ReflectionReport
     history: ReflectionHistorySummary
     recurring_unresolved: tuple[HistoricalFinding, ...]
+    evolution_evidence: tuple[EvolutionEvidence, ...] = ()
 
 
 def reflect(engine: Any, minimum_repetitions: int = 2) -> ReflectionReport:
@@ -51,11 +54,14 @@ def reflect_with_history(
     previous = list_reflection_reports(conn)
     history = summarize_reflection_history(previous)
     recurring = unresolved_findings(previous)
+    evolution_records = load_evolution_memory(conn, getattr(engine, "instance_id", "")) if getattr(engine, "instance_id", None) else ()
+    evolution_evidence = project_evolution_memory(evolution_records)
     current = reflect(engine, minimum_repetitions=minimum_repetitions)
     return CumulativeReflectionReport(
         current=current,
         history=history,
         recurring_unresolved=recurring,
+        evolution_evidence=evolution_evidence,
     )
 
 
