@@ -1,5 +1,5 @@
 import pytest
-from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, ExecutionReceipt, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit, require_execution_receipt
+from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, ExecutionReceipt, SQLiteExecutionCommitAdapter, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit, require_execution_receipt
 from gnosis.reflection.governance import GovernanceDecision
 
 
@@ -161,3 +161,56 @@ def test_execution_receipt_rejects_unproven_result_content():
     request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
     with pytest.raises(PermissionError, match="resulting state does not match"):
         ExecutionReceipt.after_commit(request, {"state": "tampered"})
+
+
+def test_sqlite_execution_commit_adapter_persists_and_receipts_actual_state():
+    from gnosis.core import Candidate, State
+    from gnosis.evolution.provenance import build_provenance, canonical_digest
+    from gnosis.instances.instance import Instance
+    from gnosis.storage import connect
+    conn = connect()
+    instance = Instance.create_root("user-1", State(elements={"a": 1}))
+    from gnosis.storage import save_instance
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    record = instance.engine.step(candidate)
+    observations = {"result": "ok"}
+    provenance = build_provenance(
+        candidate_id=candidate.candidate_id,
+        parent_state_id=instance.engine.state.state_id,
+        parent_state_digest=instance.engine.state.state_id,
+        proposed_state_digest=proposed.state_id,
+        observations=observations,
+        proposed_state_content_id=proposed.content_id,
+        candidate_binding_digest=candidate.binding_digest(instance.engine.state.state_id),
+        evidence_digest=canonical_digest(observations),
+        evaluation_status="PASS", shadow_status="UNCHANGED",
+        invariant_status="PRESERVED", governance_decision="ALLOW",
+    )
+    auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
+    result = SQLiteExecutionCommitAdapter().commit(conn, instance, candidate, record, request, actor="user-1")
+    assert result.resulting_state_id == proposed.state_id
+    assert result.receipt.resulting_state_digest == proposed.state_id
+    conn.close()
+
+
+def test_sqlite_execution_commit_adapter_rejects_before_mutation():
+    from gnosis.core import Candidate, State
+    from gnosis.instances.instance import Instance
+    from gnosis.storage import connect, load_instance, save_instance
+    conn = connect()
+    instance = Instance.create_root("user-1", State(elements={"a": 1}))
+    save_instance(conn, instance)
+    proposed = instance.engine.state.with_elements({"b": 2})
+    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    record = instance.engine.step(candidate)
+    with pytest.raises(PermissionError):
+        SQLiteExecutionCommitAdapter().commit(conn, instance, candidate, record, ExecutionCommitRequest(
+            ExecutionAuthorization("bad", False, "bad"),
+            ExecutionIntentSnapshot("", "", "", "", "", "", ""),
+            "bad", "bad", object()), actor="user-1")
+    assert load_instance(conn, instance.instance_id).engine.state.state_id == instance.engine.state.state_id
+    conn.close()
