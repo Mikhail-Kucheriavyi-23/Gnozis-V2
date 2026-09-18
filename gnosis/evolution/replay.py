@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from .provenance import canonical_digest, verify_evidence_digest
+from .provenance import EvidenceProvenance, canonical_digest, crosscheck_provenance, execution_id, verify_evidence_digest
 from .sandbox import SandboxExecution
 
 
@@ -33,6 +33,45 @@ def replay_evidence(
         expected_digest=execution.evidence_digest,
         actual_digest=actual,
     )
+
+
+def replay_complete(
+    execution: SandboxExecution,
+    provenance: EvidenceProvenance | None,
+    audit_record: Any | None,
+    *,
+    observations: Mapping[str, Any],
+) -> ReplayResult:
+    """Fail closed unless candidate, states, evidence, provenance and audit are all present and consistent."""
+    reasons: list[str] = []
+    if provenance is None:
+        reasons.append("provenance missing")
+    if audit_record is None:
+        reasons.append("audit record missing")
+    evidence = replay_evidence(execution, observations)
+    reasons.extend(evidence.reasons)
+    if provenance is not None:
+        check = crosscheck_provenance(
+            provenance=provenance,
+            candidate_id=execution.candidate_id,
+            parent_state_id=execution.parent_state_id,
+            parent_state_digest=execution.parent_state_digest,
+            proposed_state_digest=execution.proposed_state_digest,
+            observations=observations,
+            evidence_digest=execution.evidence_digest,
+            execution_id_value=execution.execution_id,
+            evaluation_status=execution.evaluation_status,
+            shadow_status=execution.shadow_status,
+            invariant_status=execution.invariant_status,
+            governance_decision=execution.governance_decision,
+        )
+        reasons.extend(check.reasons)
+    if audit_record is not None:
+        if audit_record.candidate_id != execution.candidate_id:
+            reasons.append("audit candidate mismatch")
+        if audit_record.execution_id != execution.execution_id:
+            reasons.append("audit execution mismatch")
+    return ReplayResult(reproducible=not reasons, reasons=tuple(dict.fromkeys(reasons)))
 
 
 def replay_identity(
