@@ -40,6 +40,8 @@ def replay_identity(
     *,
     candidate_id: str,
     parent_state_id: str,
+    parent_state_digest: str,
+    proposed_state_digest: str,
 ) -> ReplayResult:
     """Check that replay inputs still identify the same execution."""
     reasons: list[str] = []
@@ -47,4 +49,8 @@ def replay_identity(
         reasons.append("candidate identity mismatch")
     if execution.parent_state_id != parent_state_id:
         reasons.append("parent state identity mismatch")
+    if execution.parent_state_digest != parent_state_digest:
+        reasons.append("parent state digest mismatch")
+    if execution.proposed_state_digest != proposed_state_digest:
+        reasons.append("proposed state digest mismatch")
     return ReplayResult(reproducible=not reasons, reasons=tuple(reasons))
