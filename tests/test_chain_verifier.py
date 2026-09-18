@@ -50,3 +50,20 @@ def test_independent_verifier_fails_closed_on_tampered_persisted_data():
     result = verify_persisted_chain(provenance, [], observations=observations)
     assert not result.valid
     assert "audit chain missing" in result.reasons
+
+
+def test_persisted_provenance_carries_canonical_evolution_identity():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    observations = {"result": "ok"}
+    p = build_provenance(
+        candidate_id="c", parent_state_id="s", parent_state_digest="pd",
+        proposed_state_digest="sd", observations=observations,
+        evidence_digest=canonical_digest(observations), evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE", invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    from gnosis.reflection.persistence import save_evolution_provenance, load_evolution_provenance
+    pid = save_evolution_provenance(conn, p)
+    row = load_evolution_provenance(conn, pid)
+    assert row["evolution_identity"] == p.evolution_identity
