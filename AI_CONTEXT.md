@@ -820,3 +820,17 @@ Added:
 - regression tests for intact persistence and persisted tampering
 
 Recovery does not trust process memory and has no Core mutation or activation authority.
+
+
+### GNV2-EVOLUTION-TRANSACTION-009
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added:
+- atomic SQLite transaction for evolution provenance + audit event
+- BEGIN IMMEDIATE / COMMIT boundary when the caller is not already in a transaction
+- rollback of both records on any persistence failure
+- result object linking provenance_id to its audit record
+- regression tests for atomic success and simulated audit-write failure
+
+This is persistence atomicity only; it does not grant activation authority.
