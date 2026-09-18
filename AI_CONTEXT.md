@@ -1084,7 +1084,9 @@ CI evidence: run 35296869203 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 ### GNV2-EXECUTION-AUTHORIZATION-GATE-031
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI exposed a shadowed legacy function; removed. Awaiting CI verification.**
+
+Run 35297369166: 237 passed, 2 failed. Both failures were caused by a duplicate legacy `require_execution_authorization(auth)` definition shadowing the new exact-binding signature. Production intent was correct; the stale duplicate has been removed.
 
 The existing authority boundary is now explicit about execution: `ExecutionAuthorization` is a fail-closed marker, and `require_execution_authorization()` rejects missing authorization, non-owner-approved authorization, or authorization without provenance. This does not grant authority to promotion or Core Engine; it establishes the execution boundary that future activation code must call. No autonomous path is enabled by this change.
 
