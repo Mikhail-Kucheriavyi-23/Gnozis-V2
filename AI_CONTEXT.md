@@ -938,7 +938,9 @@ Regression tests cover audit-side failure, duplicate provenance failure, nested 
 
 ### GNV2-EVOLUTION-PROVENANCE-AUDIT-CROSSCHECK-016
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35292667700 SUCCESS; Python 3.11 and 3.12 SUCCESS; 222 passed, 10 warnings.
 
 Added one fail-closed cross-check covering:
 - candidate_id
