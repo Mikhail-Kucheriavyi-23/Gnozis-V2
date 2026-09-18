@@ -1191,3 +1191,10 @@ CI run 35333646417 found a defect in the new Reflection Gate test path: `verify_
 ### CI-VERIFIED-040
 
 CI run 35333760106 SUCCESS after the Reflection Gate correction. The end-to-end read-only Reflection Gate is now CI-verified. The gate proves canonical Core history, durable SQLite graph verification, recovery/state-head consistency, reflection evidence generation, and READ_ONLY diagnostic artifact production; failure remains fail-closed.
+
+
+### GNV2-REFLECTION-EVIDENCE-GATE-041
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added `run_reflection_evidence_gate()` as a read-only orchestration boundary over existing ShadowEvaluation, InvariantDelta, and GovernanceDecision. It requires blocking decisions to have actual regression/invariant evidence, requires REVIEW to have behavioral change or improvement evidence, treats insufficient input as HOLD, and asserts governance never grants activation or rollback authority. Exceptions fail closed to HOLD/INSUFFICIENT_EVIDENCE. Added integration tests for regression/BLOCK and empty-input/HOLD paths.
