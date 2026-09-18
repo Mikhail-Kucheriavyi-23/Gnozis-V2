@@ -140,6 +140,8 @@ def crosscheck_provenance(
         execution_id=execution_id_value,
         candidate_id=candidate_id,
         parent_state_id=parent_state_id,
+        parent_state_digest=parent_state_digest,
+        proposed_state_digest=proposed_state_digest,
         evidence_digest=evidence_digest,
         evaluation_status=evaluation_status,
         shadow_status=shadow_status,
