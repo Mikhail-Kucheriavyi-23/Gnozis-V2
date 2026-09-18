@@ -1562,3 +1562,29 @@ Forecast_t → Observed_{t+k} → ForecastError → Memory
 This creates a second-order learning loop in which Gnozis can improve not only its capabilities but also its ability to anticipate where capabilities will be needed.
 
 No single scalar forecasting score is required. Forecast quality should initially be represented through provenance, calibration evidence, uncertainty, conditions, and later observed outcomes.
+
+
+### GNV2-FORMAL-049I — TENSION FIELD AND COUPLED CONFLICTS
+
+Conflicts must not be assumed independent. Multiple conflict observations may share claims, constraints, conditions, capabilities, resources, or world-model boundaries. A tension field represents these dependencies without collapsing them into a single truth score.
+
+Conceptual form:
+
+F_T = (Conflicts, SharedConstraints, Dependencies, Couplings, Conditions, Evidence)
+
+A coupling exists when a verified or explicitly unresolved relation indicates that changing one conflict may alter another conflict, capability gap, or resource requirement. Couplings should be typed and provenance-bound rather than inferred solely from temporal coincidence.
+
+Important patterns include:
+
+- COUPLED_REDUCTION — one capability reduces multiple related tensions;
+- TRADEOFF — reducing one tension increases another under stated conditions;
+- DISPLACEMENT — a conflict is reduced locally while a related conflict emerges elsewhere;
+- SHARED_GAP — multiple conflicts depend on the same missing capability;
+- CASCADE — a verified transition changes a chain of dependent conflicts;
+- INDEPENDENT — available evidence supports treating conflicts as unrelated under the observed conditions.
+
+The field should support identifying shared capability gaps. This permits Gnozis to search for a capability that addresses several tensions simultaneously without assuming that such a capability is automatically preferable.
+
+A coupled-conflict record must preserve the individual conflict identities and their provenance. Aggregation must never erase the underlying observations.
+
+No global scalar tension field or automatic optimization rule is introduced. This is a representation and analysis contract for future evolution research.
