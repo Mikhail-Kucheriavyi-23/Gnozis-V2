@@ -69,7 +69,7 @@ def replay_complete(
     if audit_record is not None:
         if audit_record.candidate_id != execution.candidate_id:
             reasons.append("audit candidate mismatch")
-        if audit_record.execution_id != execution.execution_id:
+        if audit_record.execution_id != getattr(execution, "execution_id", execution.candidate_id):
             reasons.append("audit execution mismatch")
     return ReplayResult(reproducible=not reasons, reasons=tuple(dict.fromkeys(reasons)))
 
