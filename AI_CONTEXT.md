@@ -934,3 +934,19 @@ Evolution persistence now uses:
 - preservation of the caller's outer transaction when nested.
 
 Regression tests cover audit-side failure, duplicate provenance failure, nested success, and nested failure isolation.
+
+
+### GNV2-EVOLUTION-PROVENANCE-AUDIT-CROSSCHECK-016
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added one fail-closed cross-check covering:
+- candidate_id
+- execution_id
+- parent_state_digest
+- proposed_state_digest
+- evidence_digest
+- provenance_id
+- audit record digest integrity
+
+Complete replay now invokes this unified persisted-link check when both provenance and audit are present.
