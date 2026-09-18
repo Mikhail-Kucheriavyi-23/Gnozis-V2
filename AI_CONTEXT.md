@@ -922,7 +922,9 @@ Added recovery integrity regression coverage:
 
 ### GNV2-EVOLUTION-ATOMIC-COMMIT-015
 
-Implementation status: **IMPLEMENTED — CI re-verification in progress after SQLite transaction semantics correction.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35292400779 SUCCESS; Python 3.11 and 3.12 SUCCESS; 221 passed, 10 warnings. Initial CI exposed SQLite nested-transaction and audit-failure test defects; the implementation and tests were corrected before final verification.
 
 Evolution persistence now uses:
 - one transaction when it owns the connection transaction;
