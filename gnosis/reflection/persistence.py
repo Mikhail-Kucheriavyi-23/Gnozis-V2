@@ -342,10 +342,10 @@ def append_evolution_audit(
     event_type: str,
     candidate_id: str,
     execution_id: str,
-    provenance_id: str,
-    parent_state_digest: str,
-    proposed_state_digest: str,
-    evidence_digest: str,
+    provenance_id: str = "",
+    parent_state_digest: str = "",
+    proposed_state_digest: str = "",
+    evidence_digest: str = "",
     payload: dict[str, Any],
 ) -> EvolutionAuditRecord:
     """Append exactly one record; prior audit records are never updated."""
