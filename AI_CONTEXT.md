@@ -1316,3 +1316,8 @@ This principle is recorded as a FUTURE architectural direction. It is not an imp
 ### GNV2-MEMORY-AWARE-GENERATE-045
 
 Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now accepts verified `EvolutionEvidence` as an explicit input and carries its immutable memory identifiers into the proposed-state evidence record. This is evidence binding only: historical memory does not automatically reject, accept, rank, or activate a proposal. Selection semantics remain unchanged. Added regression coverage for the binding. This preserves the distinction Memory → Evidence → Hypothesis while preparing the next phase for genuine memory-informed hypothesis formation.
+
+
+### CI-VERIFIED-045
+
+CI run `35340047648` SUCCESS on `335a77cab1ea81ee571797b6131628048d011df7`. Memory-aware endogenous generation is CI-verified. Evolution memory is now carried from verified storage through Reflection into Generate as explicit evidence references without changing selection or granting authority.
