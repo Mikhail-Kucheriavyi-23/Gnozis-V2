@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 GENESIS_HASH = "0" * 64
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS candidates (candidate_id TEXT PRIMARY KEY, parent_sta
 CREATE TABLE IF NOT EXISTS instances (instance_id TEXT PRIMARY KEY, parent_instance_id TEXT, owner_id TEXT NOT NULL, root_state_id TEXT NOT NULL, current_state_id TEXT NOT NULL, generation INTEGER NOT NULL CHECK(generation >= 0), status TEXT NOT NULL CHECK(status IN ('active','stopped','archived')), budget_total INTEGER NOT NULL CHECK(budget_total >= 0), budget_spent INTEGER NOT NULL CHECK(budget_spent >= 0), created_at TEXT NOT NULL, FOREIGN KEY(parent_instance_id) REFERENCES instances(instance_id), FOREIGN KEY(root_state_id) REFERENCES states(state_id), FOREIGN KEY(current_state_id) REFERENCES states(state_id));
 CREATE TABLE IF NOT EXISTS transitions (transition_id TEXT PRIMARY KEY, instance_id TEXT NOT NULL, candidate_id TEXT NOT NULL, from_state_id TEXT NOT NULL, to_state_id TEXT NOT NULL, accepted INTEGER NOT NULL CHECK(accepted IN(0,1)), reasons TEXT NOT NULL, test_rule_id TEXT NOT NULL DEFAULT 'test-rule:unspecified', created_at TEXT NOT NULL, FOREIGN KEY(instance_id) REFERENCES instances(instance_id), FOREIGN KEY(candidate_id) REFERENCES candidates(candidate_id), FOREIGN KEY(from_state_id) REFERENCES states(state_id), FOREIGN KEY(to_state_id) REFERENCES states(state_id));
 CREATE INDEX IF NOT EXISTS idx_transitions_instance ON transitions(instance_id);
+CREATE TABLE IF NOT EXISTS evolution_memory (memory_id TEXT PRIMARY KEY, instance_id TEXT NOT NULL, candidate_id TEXT NOT NULL, transition_id TEXT NOT NULL, state_id TEXT NOT NULL, proposal_id TEXT, outcome TEXT NOT NULL CHECK(outcome IN ('accepted','rejected','inconclusive')), evidence TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(instance_id) REFERENCES instances(instance_id), FOREIGN KEY(candidate_id) REFERENCES candidates(candidate_id), FOREIGN KEY(transition_id) REFERENCES transitions(transition_id), FOREIGN KEY(state_id) REFERENCES states(state_id));
+CREATE INDEX IF NOT EXISTS idx_evolution_memory_instance ON evolution_memory(instance_id);
+CREATE TRIGGER IF NOT EXISTS evolution_memory_no_update BEFORE UPDATE ON evolution_memory BEGIN SELECT RAISE(ABORT,'evolution_memory is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS evolution_memory_no_delete BEFORE DELETE ON evolution_memory BEGIN SELECT RAISE(ABORT,'evolution_memory is append-only'); END;
 CREATE TABLE IF NOT EXISTS audit_events (event_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL UNIQUE CHECK(sequence > 0), transition_id TEXT, actor TEXT NOT NULL, action TEXT NOT NULL, resource TEXT NOT NULL, result TEXT NOT NULL, timestamp TEXT NOT NULL, prev_hash TEXT NOT NULL, event_hash TEXT NOT NULL UNIQUE, FOREIGN KEY(transition_id) REFERENCES transitions(transition_id));
 CREATE TRIGGER IF NOT EXISTS audit_events_no_update BEFORE UPDATE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_events_no_delete BEFORE DELETE ON audit_events BEGIN SELECT RAISE(ABORT,'audit_events are append-only'); END;
@@ -36,6 +40,8 @@ def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
         if stored is not None:
             version = int(stored[0])
             if version == 3:
+                conn.execute("UPDATE schema_meta SET value=? WHERE key='schema_version'", (str(SCHEMA_VERSION),))
+                # Existing v3 databases are structurally compatible; v4 adds evolution_memory.
                 columns = {
                     row[1]
                     for row in conn.execute("PRAGMA table_info(transitions)")
