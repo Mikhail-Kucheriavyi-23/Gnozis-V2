@@ -918,3 +918,17 @@ Added recovery integrity regression coverage:
 - audit record continuity survives persistence recovery;
 - persisted audit tampering is detected by record-digest verification;
 - recovered audit chain remains append-only/verifiable.
+
+
+### GNV2-EVOLUTION-ATOMIC-COMMIT-015
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Evolution persistence now uses:
+- one transaction when it owns the connection transaction;
+- a SAVEPOINT when called inside an existing transaction;
+- explicit post-write verification that provenance and audit are mutually linked;
+- rollback of the complete evolution unit on failure;
+- preservation of the caller's outer transaction when nested.
+
+Regression tests cover audit-side failure, duplicate provenance failure, nested success, and nested failure isolation.
