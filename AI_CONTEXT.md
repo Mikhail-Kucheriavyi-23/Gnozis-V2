@@ -1935,3 +1935,44 @@ This boundary prevents circular self-authorization:
 SelfModification ≠ SelfAuthorization.
 
 These sections incorporate the additional architectural audit while preserving the existing Ψ/Core, provenance, evidence, lineage, and authority model. They are roadmap/acceptance contracts unless corresponding runtime evidence exists.
+
+
+### GNV2-FORMAL-049V2 — MINIMUM RUNTIME AUTOPOIETIC LOOP CONTRACT
+
+Before autonomous activation is considered, implement and test the smallest runtime loop capable of demonstrating endogenous evolutionary proposal generation while preserving the existing authority boundary.
+
+Required runtime stages:
+
+1. READ_HISTORY — consume immutable accepted evolution records, current state, evidence, tensions, regressions, and forecast errors;
+2. DETECT_GAP — produce zero or more provenance-bound GapHypotheses;
+3. SYNTHESIZE_CAPABILITY — derive zero or more bounded CapabilityHypotheses from eligible gaps;
+4. PLAN_TEST — produce an explicit bounded test plan for each candidate;
+5. SANDBOX_TEST — execute only inside the existing bounded sandbox/test contract;
+6. RECORD_EVIDENCE — persist observed results without rewriting source history;
+7. PROPOSE_TRANSITION — construct a proposed state transition, but do not commit it autonomously;
+8. EMIT_AUDIT — record the complete provenance chain needed for independent reconstruction.
+
+The first implementation may use deliberately simple deterministic detectors and capability templates. Complexity is not an acceptance criterion. The critical property is endogenous causation: the caller supplies the state/history/environmental observations, but does not name the missing capability or final proposal.
+
+Hard constraints:
+
+- no direct Core mutation from detection or synthesis;
+- no generated code executed outside sandbox;
+- no generated capability receives authority automatically;
+- protected invariants remain enforced;
+- insufficient evidence yields no proposal or an explicitly INCONCLUSIVE proposal;
+- every generated artifact has deterministic identity and provenance;
+- failed candidates remain in memory as evidence;
+- the loop must be bounded by operation/gas limits and terminate deterministically;
+- existing Test/Select/authorization semantics must not be bypassed.
+
+Acceptance evidence should demonstrate at minimum:
+
+A. identical input history produces identical GapHypothesis identity;
+B. changing relevant evidence can change the detected gap;
+C. the detector can discover a gap not explicitly named by the caller;
+D. a generated capability remains a proposal after testing;
+E. failed tests do not mutate protected Core;
+F. complete provenance reconstructs History → Gap → Capability → Test → Evidence → Proposal.
+
+This is the first concrete runtime milestone toward autopoiesis. It intentionally stops one step before autonomous state activation.
