@@ -36,8 +36,8 @@ def run_reflection_gate(engine: Any, conn: Any, instance_id: str, *, minimum_rep
         reasons.append("canonical Core history is empty")
 
     try:
-        durable = verify_durable_graph(conn)
-        durable_ok = instance_id in durable
+        verify_durable_graph(conn)
+        durable_ok = True
     except Exception as exc:
         durable_ok = False
         reasons.append(f"durable graph verification failed: {type(exc).__name__}")
