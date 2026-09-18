@@ -1198,3 +1198,8 @@ CI run 35333760106 SUCCESS after the Reflection Gate correction. The end-to-end 
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added `run_reflection_evidence_gate()` as a read-only orchestration boundary over existing ShadowEvaluation, InvariantDelta, and GovernanceDecision. It requires blocking decisions to have actual regression/invariant evidence, requires REVIEW to have behavioral change or improvement evidence, treats insufficient input as HOLD, and asserts governance never grants activation or rollback authority. Exceptions fail closed to HOLD/INSUFFICIENT_EVIDENCE. Added integration tests for regression/BLOCK and empty-input/HOLD paths.
+
+
+### CI-VERIFIED-041
+
+CI run 35336802374 SUCCESS. Reflection Evidence Gate is CI-verified. Shadow → Invariant Delta → Governance is now connected through a read-only, fail-closed evidence boundary; governance remains non-authoritative (`can_activate=False`, `can_rollback=False`).
