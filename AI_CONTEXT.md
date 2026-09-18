@@ -721,7 +721,9 @@ Do not maintain historical claims that are contradicted by current repository/ru
 
 ### GNV2-EVOLUTION-PROVENANCE-003
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35289871794 SUCCESS; Python 3.11 and 3.12 SUCCESS; 195 passed, 10 warnings; Self-Diagnostic run 35289865670 SUCCESS.
 
 Added:
 - tamper-evident canonical evidence digest verification
