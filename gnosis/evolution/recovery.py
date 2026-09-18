@@ -7,7 +7,7 @@ from typing import Any
 
 from .chain_verifier import verify_persisted_chain
 from .provenance import canonical_digest, EvidenceProvenance
-from ..reflection.persistence import list_evolution_audit, list_evolution_provenance
+from ..reflection.persistence import classify_evolution_provenance, list_evolution_audit, list_evolution_provenance
 
 
 @dataclass(frozen=True)
