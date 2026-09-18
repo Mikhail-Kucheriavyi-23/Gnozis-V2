@@ -70,6 +70,7 @@ def recover_evolution_audit(
                 invariant_status=provenance_row["invariant_status"],
                 governance_decision=provenance_row["governance_decision"],
                 proposed_state_content_id=provenance_row.get("proposed_state_content_id", ""),
+                candidate_binding_digest=provenance_row.get("candidate_binding_digest", ""),
             )
             identity_valid = recovered_provenance.evolution_identity == persisted_identity
         except (KeyError, TypeError, ValueError):
