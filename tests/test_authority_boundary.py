@@ -1,5 +1,5 @@
 import pytest
-from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit
+from gnosis.reflection.authority import ExecutionAuthorization, ExecutionCommitRequest, ExecutionIntentSnapshot, ExecutionReceipt, request_authorization, require_execution_authorization, require_execution_intent_snapshot, require_execution_commit, require_execution_receipt
 from gnosis.reflection.governance import GovernanceDecision
 
 
@@ -118,3 +118,35 @@ def test_execution_commit_gate_rejects_cross_bound_evolution():
     request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, "wrong", provenance)
     with pytest.raises(PermissionError):
         require_execution_commit(request)
+
+
+def test_execution_receipt_is_created_after_commit_and_matches_request():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
+    receipt = ExecutionReceipt.after_commit(request, "result-digest")
+    assert receipt.resulting_state_digest == "result-digest"
+    assert receipt.matches_request(request)
+    require_execution_receipt(receipt, request)
+
+
+def test_execution_receipt_requires_result_digest():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
+    with pytest.raises(ValueError, match="resulting state digest is required"):
+        ExecutionReceipt.after_commit(request, "")
+
+
+def test_execution_receipt_rejects_cross_evolution():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
+    receipt = ExecutionReceipt.after_commit(request, "result-digest")
+    changed = type(provenance)(**{**provenance.__dict__, "candidate_binding_digest": "tampered"})
+    changed_request = ExecutionCommitRequest(auth, ExecutionIntentSnapshot.from_provenance(changed), provenance.provenance_id, provenance.evolution_identity, changed)
+    with pytest.raises(PermissionError, match="does not match committed evolution"):
+        require_execution_receipt(receipt, changed_request)
