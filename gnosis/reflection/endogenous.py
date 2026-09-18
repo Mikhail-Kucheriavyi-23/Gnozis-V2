@@ -22,7 +22,7 @@ class EndogenousGeneration:
     bounded: bool = True
 
 
-def _proposal_relation(proposal: RuleProposal) -> Relation:
+def _proposal_relation(proposal: RuleProposal, memory_outcomes: tuple[str, ...] = ()) -> Relation:
     return Relation(
         source=REFLECTION_NODE,
         target=proposal.proposal_id,
@@ -34,6 +34,7 @@ def _proposal_relation(proposal: RuleProposal) -> Relation:
             "proposed_version": proposal.proposed_version,
             "hypothesis": proposal.hypothesis,
             "evidence_refs": proposal.evidence_refs,
+            "historical_memory_outcomes": memory_outcomes,
         },
     )
 
@@ -75,7 +76,7 @@ def generate_endogenous_candidates(
                 "memory_evidence_refs": memory_refs,
                 "historical_memory_outcomes": memory_outcomes,
             },
-        }).with_relations((_proposal_relation(proposal),))
+        }).with_relations((_proposal_relation(proposal, memory_outcomes),))
         candidates.append(
             Candidate(
                 parent_state_id=state.state_id,
