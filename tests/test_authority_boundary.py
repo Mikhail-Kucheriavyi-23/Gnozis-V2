@@ -25,14 +25,14 @@ def test_execution_authorization_fails_closed_without_explicit_owner_approval():
     with pytest.raises(PermissionError, match="execution authorization required"):
         require_execution_authorization(None, request_provenance="p", evolution_identity="e")
     auth = ExecutionAuthorization(request_provenance="p", owner_approved=False)
-    with pytest.raises(PermissionError, match="execution authorization required"):
+    with pytest.raises(PermissionError, match="does not match evolution"):
         require_execution_authorization(auth, request_provenance="p", evolution_identity="e")
 
 
 def test_execution_authorization_requires_nonempty_provenance():
-    auth = ExecutionAuthorization(request_provenance="", owner_approved=True)
-    with pytest.raises(PermissionError, match="execution authorization required"):
-        require_execution_authorization(auth)
+    auth = ExecutionAuthorization(request_provenance="", evolution_identity="e", owner_approved=True)
+    with pytest.raises(PermissionError, match="does not match evolution"):
+        require_execution_authorization(auth, request_provenance="p", evolution_identity="e")
 
 
 def test_execution_authorization_must_match_exact_evolution():
