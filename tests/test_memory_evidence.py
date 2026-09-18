@@ -23,3 +23,4 @@ def test_cumulative_reflection_reads_instance_scoped_evolution_memory():
     conn=connect(); instance=Instance.create_root("u", State(elements={"a":1})); save_instance(conn, instance)
     result=reflect_with_history(instance.engine, conn, instance_id=instance.instance_id)
     assert result.evolution_evidence == ()
+    assert result.current.evolution_evidence == ()
