@@ -78,7 +78,7 @@ def persist_evolution_transaction(
             ),
         )
         stored_provenance = conn.execute(
-            "SELECT provenance_id FROM evolution_provenance WHERE provenance_id=?",
+            "SELECT provenance_id,execution_id,evolution_identity,proposed_state_content_id,candidate_binding_digest FROM evolution_provenance WHERE provenance_id=?",
             (provenance.provenance_id,),
         ).fetchone()
         stored_audit = conn.execute(
@@ -87,6 +87,8 @@ def persist_evolution_transaction(
         ).fetchone()
         if stored_provenance is None or stored_audit is None:
             raise RuntimeError("atomic evolution persistence verification failed")
+        if stored_provenance[1:] != (provenance.execution_id, provenance.evolution_identity, provenance.proposed_state_content_id, provenance.candidate_binding_digest):
+            raise RuntimeError("atomic evolution provenance mismatch")
         if stored_audit[0] != provenance.provenance_id or stored_audit[1] != record.record_digest:
             raise RuntimeError("atomic evolution persistence link mismatch")
         if owns_transaction:
