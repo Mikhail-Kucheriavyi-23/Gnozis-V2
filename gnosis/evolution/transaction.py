@@ -24,19 +24,8 @@ def persist_evolution_transaction(
     payload: dict[str, Any],
 ) -> EvolutionTransactionResult:
     """Atomically persist provenance and its audit event, or persist neither."""
-    conn.executescript("""
-        CREATE TABLE IF NOT EXISTS evolution_provenance (
-            provenance_id TEXT PRIMARY KEY, execution_id TEXT NOT NULL, candidate_id TEXT NOT NULL,
-            parent_state_id TEXT NOT NULL, parent_state_digest TEXT NOT NULL, proposed_state_digest TEXT NOT NULL, evidence_digest TEXT NOT NULL,
-            evaluation_status TEXT NOT NULL, shadow_status TEXT NOT NULL,
-            invariant_status TEXT NOT NULL, governance_decision TEXT NOT NULL, status TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS evolution_audit (
-            sequence INTEGER PRIMARY KEY, event_type TEXT NOT NULL, candidate_id TEXT NOT NULL,
-            execution_id TEXT NOT NULL, provenance_id TEXT NOT NULL, parent_state_digest TEXT NOT NULL, proposed_state_digest TEXT NOT NULL, evidence_digest TEXT NOT NULL, payload_digest TEXT NOT NULL, previous_digest TEXT NOT NULL,
-            record_digest TEXT NOT NULL UNIQUE
-        );
-    """)
+    # Schema must already exist. Do not run executescript here: SQLite's executescript
+    # can implicitly commit an outer transaction and would violate nested atomicity.
     owns_transaction = not conn.in_transaction
     savepoint = "evolution_atomic"
     try:
