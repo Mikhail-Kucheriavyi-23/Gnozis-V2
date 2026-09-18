@@ -22,7 +22,7 @@ def test_authority_request_requires_owner_and_grants_no_capability() -> None:
 
 
 def test_execution_authorization_fails_closed_without_explicit_owner_approval():
-    with pytest.raises(PermissionError, match="execution authorization required"):
+    with pytest.raises(PermissionError, match="does not match evolution"):
         require_execution_authorization(None, request_provenance="p", evolution_identity="e")
     auth = ExecutionAuthorization(request_provenance="p", owner_approved=False)
     with pytest.raises(PermissionError, match="does not match evolution"):
