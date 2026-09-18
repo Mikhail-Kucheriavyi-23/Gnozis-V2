@@ -11,6 +11,7 @@ def test_provenance_accepts_matching_evidence_digest():
         observations=observations,
         parent_state_digest="parent-digest",
         proposed_state_digest="proposed-digest",
+    candidate_binding_digest="binding-digest",
         evidence_digest=digest,
         evaluation_status="PASS",
         shadow_status="NO_BEHAVIORAL_CHANGE",
