@@ -1415,3 +1415,26 @@ Conceptual relation:
 T_after ≺ T_before  iff  verified_reduction(T_after, T_before) ∧ invariants_preserved
 
 No implementation of a scalar tension score is authorized by this task. The first runtime layer should preserve the structured evidence needed for later comparison.
+
+
+### GNV2-FORMAL-049D — EVOLUTIONARY TENSION LOOP + PREDICTION
+
+The conflict model is extended into a long-horizon evolutionary loop. Persistent or significant tension should create pressure to develop and record tools/capabilities targeted at the boundary of the contradiction. The historical record must preserve the conflict, tension structure, proposed capability, intervention, test evidence, observed change, and forecast context.
+
+Conceptual loop:
+
+T_t → CapabilityGap_t → CapabilityHypothesis_t → Test → Integration → T_{t+1}
+
+The system should also support a predictive branch:
+
+History_t → Forecast(T_{t+k}) → PreventiveCapabilityHypothesis → Test → Integration
+
+The desired long-term behavior is not zero tension everywhere. The objective is reduction of destructive or unresolved tension while preserving diversity, exploration, protected invariants, and the ability to generate new possibilities. Some tension may remain useful as evolutionary pressure.
+
+A historical trajectory may therefore contain:
+
+T_0, Tool_0, ΔT_0, T_1, Tool_1, ΔT_1, ...
+
+A repeated failure to reduce a tension should be evidence that the capability class or hypothesis class may be inadequate, not a reason to repeatedly apply the same intervention. A forecast of rising tension may justify generating preventive capability hypotheses before the predicted conflict manifests.
+
+This is a future research/architecture principle. No automatic authority, mutation, or scalar tension objective is introduced by this entry.
