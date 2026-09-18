@@ -1039,7 +1039,9 @@ CI evidence: runs 35295152230 / 35295152199 SUCCESS on Python 3.11 and 3.12; dia
 
 ### GNV2-EVOLUTION-STATE-CONTENT-RECONCILIATION-026
 
-Implementation status: **IMPLEMENTED — CI isolated final persistence column/placeholder mismatch; fixed.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35295966630 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 Trusted recovery now requires the recovered/provided `State` and independently recomputes `State.content_id`, comparing it to persisted `proposed_state_content_id`. A missing proposed state fails closed. Recovery tests were updated to exercise actual State content reconciliation and tampering remains rejected.
 
