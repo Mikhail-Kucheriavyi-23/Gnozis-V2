@@ -1611,3 +1611,30 @@ Temporal correlation alone is insufficient. A capability that happened to affect
 Shared-gap discovery produces a hypothesis and evidence record, not a selector. It may prioritize future investigation only through an explicitly defined research policy; it cannot itself authorize mutation or capability activation.
 
 Acceptance for 049J: preserve individual conflict provenance, expose supporting and counterevidence, record conditions, distinguish observed dependency from inferred dependency, and fail closed when evidence is insufficient.
+
+
+### GNV2-FORMAL-049K — CAPABILITY SYNTHESIS ACROSS COUPLED TENSIONS
+
+When a Shared Gap is sufficiently evidenced, Gnozis may form a CapabilitySynthesis hypothesis: a proposed capability intended to address multiple coupled tensions through one explicit mechanism. Synthesis is a hypothesis-generation operation, not an assumption that one tool is globally preferable.
+
+Conceptual form:
+
+CS = (shared_gap_id, target_conflicts, mechanism, expected_effects, possible_side_effects, test_plan, resource_bound)
+
+The synthesis must specify which conflicts it targets, the hypothesized mechanism connecting the capability to each target, expected local effects, expected cross-effects, plausible new tensions or regressions, and bounded tests/resource limits.
+
+Evaluation must use an effect vector rather than a single aggregate score:
+
+DeltaT = (DeltaT_1, DeltaT_2, ..., DeltaT_n, DeltaT_new)
+
+DeltaT_new records newly observed or displaced tensions. A capability is not considered successful merely because selected effects are favorable if it creates a destructive new conflict or violates protected invariants.
+
+The synthesis loop is:
+
+multiple tensions → shared gap → capability hypothesis → bounded test → effect vector → memory
+
+and:
+
+capability → new tension → new conflict record → updated field
+
+No scalar global utility function or autonomous authority is introduced by this task. Trade-offs remain explicit and provenance-preserving.
