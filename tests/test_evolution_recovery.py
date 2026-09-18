@@ -73,3 +73,13 @@ def test_recovery_replay_equality_fails_closed_on_changed_observations():
     assert report.replay_valid is False
     assert report.expected_digest != report.actual_digest
     assert "observation digest mismatch" in report.reasons
+
+
+def test_recovery_replay_fails_when_persisted_state_identity_is_tampered():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    pid, observations = _persist(conn)
+    conn.execute("UPDATE evolution_provenance SET proposed_state_digest='tampered'")
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    assert not report.replay_valid
+    assert report.reasons
