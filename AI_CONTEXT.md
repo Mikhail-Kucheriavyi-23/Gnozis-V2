@@ -1890,3 +1890,48 @@ Acceptance target for this phase:
 External caller supplies State/history only → detector identifies a reproducible unresolved pattern → emits GapHypothesis with provenance → no Core mutation and no execution authority are granted.
 
 This is the first required runtime capability for demonstrating that future evolution can originate from the system's own history rather than solely from an external operator.
+
+
+### GNV2-FORMAL-049U2 — ARCHITECTURAL CORRECTION: EVOLUTIONARY RULES VS PROTECTED CORE
+
+The autopoietic roadmap must distinguish evolutionary rules from protected Core invariants. Full autopoiesis does not require the system to rewrite its own protected validation boundaries. Evolution may propose changes to models, capabilities, strategies, agents, and other mutable organizational structures, but protected Core invariants remain an external constraint on that evolution.
+
+Therefore:
+
+ProtectedCore ≠ EvolutionRules ≠ MutableWorkspace
+
+Self-modification must not become circular authority in which the system changes the rules that authorize its own change. Discovery, hypothesis generation, testing, and evidence may be endogenous; authorization remains separately constrained.
+
+### GNV2-FORMAL-049V — AUTOPOIETIC CANDIDATE GENERATION LOOP
+
+Target loop:
+
+History → Gap → CapabilityHypothesis → BoundedTest → Evidence → ProposedStateTransition → History'
+
+The loop is considered endogenous when Gap detection and CapabilityHypothesis generation can originate from the system's own accumulated evidence/history without a caller naming the target capability. Until activation authority is explicitly implemented and accepted, the loop remains proposal-producing and cannot mutate protected Core.
+
+### GNV2-FORMAL-049W — SELF-IMMUNITY AS A CONTROLLED EVOLUTION LAYER
+
+Threat handling is modeled as a specialized application of the same evidence-driven evolutionary loop, not as an independent authority center:
+
+Threat → Observation → ImmunityHypothesis → Isolation/Sandbox → Test → Evidence → DefensiveCapability → AuthorizationBoundary
+
+A Sentinel/Observer may monitor events, memory access patterns, task flows, and integrity signals through an isolated event channel, but it must not acquire unrestricted authority over Core. Generated defensive agents or patches must be treated as untrusted artifacts until static inspection, bounded sandbox execution, and declared tests produce evidence.
+
+### GNV2-FORMAL-049X — EXTERNAL PERCEPTION BOUNDARY
+
+External world data must enter through a perception boundary:
+
+ExternalData → Bridge → Perception/Filtering → Pattern/Evidence → EvolutionPipeline
+
+External content must not be treated as executable instructions merely because it arrived through a trusted bridge. Pattern extraction may produce observations or hypotheses; it cannot directly mutate Core or grant authority.
+
+### GNV2-FORMAL-049Y — IMMUTABLE CORE / MUTABLE EVOLUTION BOUNDARY
+
+The architecture must explicitly classify what may evolve and what may not. Mutable candidates may include models, capabilities, strategies, agent definitions, declarative graphs, and workspace structures. Protected invariants, provenance integrity, authorization boundaries, identity separation, and fail-closed safety constraints remain protected unless an explicitly external governance contract changes them.
+
+This boundary prevents circular self-authorization:
+
+SelfModification ≠ SelfAuthorization.
+
+These sections incorporate the additional architectural audit while preserving the existing Ψ/Core, provenance, evidence, lineage, and authority model. They are roadmap/acceptance contracts unless corresponding runtime evidence exists.
