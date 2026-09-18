@@ -998,7 +998,9 @@ Recovery replay now revalidates persisted provenance identity fields against rec
 
 ### GNV2-EVOLUTION-CANONICAL-IDENTITY-021
 
-Implementation status: **IMPLEMENTED — CI fix applied after dataclass reconstruction defect.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35294179445 SUCCESS; Python 3.11 and 3.12 SUCCESS; 229 passed, 10 warnings.
 
 Added deterministic `evolution_identity` covering candidate, execution, parent/proposed state identity, evidence, evaluation/shadow/invariant/governance status, and provenance identity. Persistence stores the identity; the independent chain verifier rejects a supplied persisted identity mismatch.
 
