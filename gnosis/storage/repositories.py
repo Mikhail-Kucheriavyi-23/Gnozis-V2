@@ -127,7 +127,6 @@ def verify_durable_graph(conn: sqlite3.Connection)->tuple[int,str]:
             if accepted and accepted[-1][3]!=row[2]: raise StorageCorruptionError("current head lacks accepted transition provenance")
             expected=row[1]
             for t in transitions:
-                expected_tid = transition_id(load_transition_records(conn,row[0])[0]) if False else None
                 cand=load_candidate(conn,t[1])
                 if cand.parent_state_id!=t[2] or cand.proposed_state.state_id!=t[3]: raise StorageCorruptionError("transition/candidate mismatch")
                 record=TransitionRecord(from_state_id=t[2],to_state_id=t[3],candidate_id=t[1],test_result=TestResult(passed=bool(t[4]),reasons=tuple(json.loads(conn.execute("SELECT reasons FROM transitions WHERE transition_id=?",(t[0],)).fetchone()[0]))),accepted=bool(t[4]),reason=("committed" if t[4] else "rejected"),test_rule_id=conn.execute("SELECT test_rule_id FROM transitions WHERE transition_id=?",(t[0],)).fetchone()[0])
