@@ -922,7 +922,7 @@ Added recovery integrity regression coverage:
 
 ### GNV2-EVOLUTION-ATOMIC-COMMIT-015
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI re-verification in progress after SQLite transaction semantics correction.**
 
 Evolution persistence now uses:
 - one transaction when it owns the connection transaction;
