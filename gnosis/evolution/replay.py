@@ -69,6 +69,11 @@ def replay_complete(
     if audit_record is not None:
         if audit_record.candidate_id != execution.candidate_id:
             reasons.append("audit candidate mismatch")
+        if getattr(audit_record, "provenance_id", None) != provenance.provenance_id if provenance is not None else True:
+            reasons.append("audit provenance mismatch")
+        for field in ("parent_state_digest", "proposed_state_digest", "evidence_digest"):
+            if getattr(audit_record, field, None) != getattr(execution, field, None):
+                reasons.append(f"audit {field} mismatch")
         if audit_record.execution_id != getattr(execution, "execution_id", execution.candidate_id):
             reasons.append("audit execution mismatch")
     return ReplayResult(reproducible=not reasons, reasons=tuple(dict.fromkeys(reasons)))
