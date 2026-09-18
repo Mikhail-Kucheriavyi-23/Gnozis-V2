@@ -93,3 +93,13 @@ def test_recovery_rejects_tampered_canonical_evolution_identity():
     report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
     assert not report.replay_valid
     assert "recovery evolution identity mismatch" in report.reasons
+
+
+def test_recovery_rejects_legacy_provenance_without_identity():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    pid, observations = _persist(conn)
+    conn.execute("UPDATE evolution_provenance SET evolution_identity=''")
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
+    assert not report.replay_valid
+    assert "legacy provenance identity is unverified" in report.reasons
