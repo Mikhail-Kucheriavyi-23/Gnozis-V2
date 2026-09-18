@@ -1118,3 +1118,10 @@ Added `ExecutionIntentSnapshot`, a frozen identity snapshot containing provenanc
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 `ExecutionIntentSnapshot` now includes `parent_state_id` and `parent_state_digest`, binding the authorization snapshot to the exact parent state from which the evolution was derived. A changed parent state identity or digest therefore invalidates the snapshot through the existing fail-closed match check. No global clock or second state model is introduced.
+
+
+### GNV2-EXECUTION-COMMIT-GATE-035
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added `ExecutionCommitRequest` and `require_execution_commit()` as a composed pre-commit gate. It requires exact authorization binding, exact evolution identity agreement with the immutable intent snapshot, and current provenance/snapshot equality. The gate itself performs no mutation and grants no autonomous authority; it is a fail-closed precondition for a future executor.
