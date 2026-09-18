@@ -1007,7 +1007,7 @@ Added deterministic `evolution_identity` covering candidate, execution, parent/p
 
 ### GNV2-EVOLUTION-RECOVERY-CANONICAL-IDENTITY-022
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI fix applied: missing classifier import detected.**
 
 Recovery now reconstructs the persisted EvidenceProvenance and compares its canonical `evolution_identity` with the persisted identity. Tampering the canonical identity fails recovery replay closed.
 
