@@ -1240,3 +1240,8 @@ CI run 35337753436 failed during test collection due to an accidentally literal 
 ### CI-FIX-042-PRODUCT-SYNTAX
 
 CI run 35337956893 showed the previous test-source fix was insufficient: `gnosis/reflection/endogenous.py` itself contained literal `\\n` escape sequences in the multiline `with_elements()` block. Corrected the production source in commit `14c1cc03e20f7e1ff434c7cf43ef354ca8d1d6b8`. This is a source-generation/formatting defect, not a semantic change. Awaiting CI verification.
+
+
+### CI-VERIFIED-042
+
+CI run 35338134710 SUCCESS on commit `587d3ef7358a484d959bed07d1234e1f6d921301`. Endogenous candidate generation is now CI-verified after fixing source-formatting defects and the earlier Ψ=(X,R) dangling-relation invariant failure. 042 is complete: bounded endogenous Generate, Core Budget binding, valid X/R proposal representation, and normal Core Test/Select path are verified.
