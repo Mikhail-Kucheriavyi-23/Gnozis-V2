@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Sequence
 from gnosis.core.types import Candidate, Relation, State
 from gnosis.core.budget import Budget
+from gnosis.core.budget import Budget
 from .analyzer import ReflectionReport, RuleProposal
 
 MAX_ENDOGENOUS_CANDIDATES = 20  # default; bounded by caller-provided evolution budget
@@ -50,9 +51,13 @@ def generate_endogenous_candidates(
     Candidates are hypotheses encoded as ordinary Core state transitions. No
     proposal is activated and no Engine state is mutated by this function.
     """
-    if not 1 <= max_candidates <= MAX_ENDOGENOUS_CANDIDATES:
+    if budget is not None and budget.remaining < 1:
+        return EndogenousGeneration(candidates=(), proposal_ids=())
+    requested = MAX_ENDOGENOUS_CANDIDATES if max_candidates is None else max_candidates
+    if not 1 <= requested <= MAX_ENDOGENOUS_CANDIDATES:
         raise ValueError("max_candidates must be in range 1..20")
-    proposals = tuple(report.proposals[:max_candidates])
+    limit = requested if budget is None else min(requested, budget.remaining)
+    proposals = tuple(report.proposals[:limit])
     candidates: list[Candidate] = []
     for proposal in proposals:
         proposed_state = state.with_relations((_proposal_relation(proposal),))
