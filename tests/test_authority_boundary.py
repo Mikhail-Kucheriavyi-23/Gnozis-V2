@@ -92,3 +92,29 @@ def test_execution_intent_snapshot_binds_parent_state_id():
     changed = type(provenance)(**{**provenance.__dict__, "parent_state_id": "new-parent"})
     with pytest.raises(PermissionError, match="does not match evolution"):
         require_execution_intent_snapshot(snapshot, changed)
+
+
+def test_execution_commit_gate_requires_all_boundaries():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(
+        request_provenance=provenance.provenance_id,
+        evolution_identity=provenance.evolution_identity,
+        owner_approved=True,
+    )
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(
+        authorization=auth, intent_snapshot=snapshot,
+        request_provenance=provenance.provenance_id,
+        evolution_identity=provenance.evolution_identity,
+        provenance=provenance,
+    )
+    require_execution_commit(request)
+
+
+def test_execution_commit_gate_rejects_cross_bound_evolution():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(request_provenance=provenance.provenance_id, evolution_identity="wrong", owner_approved=True)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, "wrong", provenance)
+    with pytest.raises(PermissionError):
+        require_execution_commit(request)
