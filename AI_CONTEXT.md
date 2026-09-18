@@ -1174,3 +1174,10 @@ Run 35333218308 still failed because the previous correction inserted `initial_s
 ### CI-VERIFIED-038-039
 
 CI run 35333354866 SUCCESS. The corrected fail-closed SQLite execution adapter test passes. Python 3.11/3.12 workflow checks are green. 038 is now CI-VERIFIED. 039 boundary tests are also CI-VERIFIED; trusted owner-authority issuance remains intentionally NOT IMPLEMENTED.
+
+
+### GNV2-REFLECTION-GATE-040
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added a read-only `run_reflection_gate()` orchestration boundary. It verifies canonical Core history exists, validates the durable SQLite graph, recovers the instance and compares the recovered state with the canonical engine head, runs reflection against canonical history plus prior persisted reflection evidence, and produces a machine-readable SELF-DIAGNOSTIC artifact explicitly marked `READ_ONLY`. It does not issue authority, activate proposals, mutate Core, or change invariants. Added positive and fail-closed integration tests.
