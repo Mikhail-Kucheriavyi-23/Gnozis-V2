@@ -980,7 +980,9 @@ The old audit-only recovery path is no longer trusted recovery.
 
 ### GNV2-EVOLUTION-RECOVERY-REPLAY-019
 
-Implementation status: **IMPLEMENTED — third CI fix applied; recovery now uses the persisted-chain adapter boundary consistently.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35293773495 SUCCESS; Python 3.11 and 3.12 SUCCESS; 227 passed, 10 warnings.
 
 Recovery now closes the persistence→verification→replay loop by recomputing the canonical evidence digest from recovered observations and requiring equality with persisted provenance evidence. The recovery report exposes expected/actual digests and a separate replay_valid gate. Changed observations fail closed.
 
