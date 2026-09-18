@@ -37,10 +37,13 @@ def persist_evolution_transaction(
             record_digest TEXT NOT NULL UNIQUE
         );
     """)
-    owns_transaction = conn.in_transaction is False
+    owns_transaction = not conn.in_transaction
+    savepoint = "evolution_atomic"
     try:
         if owns_transaction:
             conn.execute("BEGIN IMMEDIATE")
+        else:
+            conn.execute(f"SAVEPOINT {savepoint}")
         row = conn.execute(
             "SELECT sequence, record_digest FROM evolution_audit ORDER BY sequence DESC LIMIT 1"
         ).fetchone()
@@ -83,8 +86,22 @@ def persist_evolution_transaction(
                 record.previous_digest, record.record_digest,
             ),
         )
+        stored_provenance = conn.execute(
+            "SELECT provenance_id FROM evolution_provenance WHERE provenance_id=?",
+            (provenance.provenance_id,),
+        ).fetchone()
+        stored_audit = conn.execute(
+            "SELECT provenance_id,record_digest FROM evolution_audit WHERE sequence=?",
+            (record.sequence,),
+        ).fetchone()
+        if stored_provenance is None or stored_audit is None:
+            raise RuntimeError("atomic evolution persistence verification failed")
+        if stored_audit[0] != provenance.provenance_id or stored_audit[1] != record.record_digest:
+            raise RuntimeError("atomic evolution persistence link mismatch")
         if owns_transaction:
             conn.commit()
+        else:
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
         return EvolutionTransactionResult(
             provenance_id=provenance.provenance_id,
             audit_record=record,
@@ -92,4 +109,7 @@ def persist_evolution_transaction(
     except Exception:
         if owns_transaction:
             conn.rollback()
+        else:
+            conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+            conn.execute(f"RELEASE SAVEPOINT {savepoint}")
         raise
