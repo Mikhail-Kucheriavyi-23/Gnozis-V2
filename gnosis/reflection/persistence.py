@@ -71,6 +71,8 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             execution_id TEXT NOT NULL,
             candidate_id TEXT NOT NULL,
             parent_state_id TEXT NOT NULL,
+            parent_state_digest TEXT NOT NULL,
+            proposed_state_digest TEXT NOT NULL,
             evidence_digest TEXT NOT NULL,
             evaluation_status TEXT NOT NULL,
             shadow_status TEXT NOT NULL,
@@ -231,7 +233,7 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
     payload = _json(provenance)
     conn.execute(
         """INSERT OR IGNORE INTO evolution_provenance
-        (provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,
+        (provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
          evaluation_status,shadow_status,invariant_status,governance_decision,status)
         VALUES (?,?,?,?,?,?,?,?,?,?)""",
         (
@@ -239,6 +241,8 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
             provenance.execution_id,
             provenance.candidate_id,
             provenance.parent_state_id,
+            provenance.parent_state_digest,
+            provenance.proposed_state_digest,
             provenance.evidence_digest,
             provenance.evaluation_status,
             provenance.shadow_status,
@@ -253,7 +257,7 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
 def load_evolution_provenance(conn: sqlite3.Connection, provenance_id: str) -> dict[str, Any]:
     ensure_reflection_schema(conn)
     row = conn.execute(
-        """SELECT provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,
+        """SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
                   evaluation_status,shadow_status,invariant_status,governance_decision,status
            FROM evolution_provenance WHERE provenance_id=?""",
         (provenance_id,),
@@ -261,7 +265,7 @@ def load_evolution_provenance(conn: sqlite3.Connection, provenance_id: str) -> d
     if row is None:
         raise KeyError(provenance_id)
     keys = (
-        "provenance_id","execution_id","candidate_id","parent_state_id","evidence_digest",
+        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest",
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return dict(zip(keys, row))
