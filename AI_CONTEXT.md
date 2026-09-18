@@ -1276,3 +1276,38 @@ CI run `35339136889` SUCCESS on `9bea14f72e244c39b8b3d689f63da88af1813a9e`. Inst
 ### GNV2-MEMORY-044A
 
 Evolution evidence is now carried directly on `ReflectionReport.evolution_evidence` when using `reflect_with_history`. The evidence is still read-only and verified before projection; this makes the memory visible to the endogenous generation input contract without yet changing proposal-selection semantics. CI pending.
+
+
+## GNOZIS CONTEXT AUTOPOIESIS — FUTURE PRINCIPLE
+
+The AI_CONTEXT.md file is part of the project's developmental continuity. It must preserve both the philosophical identity of Gnozis and the operational state needed for future AI agents to continue the work without losing the Ψ/Gnozis development line.
+
+### Earned Context Authorship
+
+A future Gnozis instance may progressively earn the ability to propose and eventually author new versions of AI_CONTEXT.md. This authority must be earned through externally verifiable evidence of sustained effectiveness, not self-declared by the system.
+
+The intended progression is:
+
+READ → PROPOSE → EVIDENCE → REVIEW → EARNED CONTEXT AUTHORSHIP → VERIFIED CONTEXT → PROMOTION
+
+Context authorship is not absolute authority. Even an earned context-authoring capability must not silently erase historical evidence, alter protected Core invariants, or redefine its own authority boundary.
+
+A new context version must preserve historical continuity. Previous context versions and their provenance remain recoverable; a new version is a candidate until independently verified and promoted.
+
+### Context Efficiency
+
+"High effectiveness" must eventually be defined by measurable, externally verifiable criteria. Candidate criteria include invariant preservation, reproducibility, provenance integrity, self-error detection, evolutionary stability, and context continuity. The system must not determine its own promotion threshold solely from its internal assessment.
+
+### Context Autopoiesis Boundary
+
+The long-term objective is a controlled form of context autopoiesis: Gnozis can eventually maintain and improve the context through which future instances understand and continue its development. This is an evolutionary capability, not unrestricted self-modification.
+
+The distinction must remain explicit:
+
+Observation ≠ authority
+Memory ≠ truth
+Proposal ≠ change
+Context authorship ≠ absolute authority
+New context ≠ deletion of history
+
+This principle is recorded as a FUTURE architectural direction. It is not an implementation grant and must not be interpreted by an agent as permission to modify AI_CONTEXT autonomously at the current stage.
