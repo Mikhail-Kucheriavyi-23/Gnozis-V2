@@ -1051,3 +1051,10 @@ Trusted recovery now requires the recovered/provided `State` and independently r
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 The existing `Candidate.binding_digest(parent_state_digest)` is now elevated into persisted provenance as `candidate_binding_digest`. Provenance identity includes the binding; persistence stores/migrates it; chain verification and recovery reconstruct it. New provenance requires a non-empty candidate binding digest, preventing a proposed state/content identity from being trusted without an explicit parent→candidate→proposed-state transition binding.
+
+
+### GNV2-EVOLUTION-ATOMIC-PERSISTENCE-028
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Audited the existing `persist_evolution_transaction()` and retained its existing BEGIN IMMEDIATE / SAVEPOINT model. Fixed the transaction writer so canonical provenance fields (`evolution_identity`, `proposed_state_content_id`, `candidate_binding_digest`) are persisted atomically with the audit record. Existing rollback and nested-savepoint tests remain the primary atomicity gates; a regression assertion verifies the canonical fields survive the atomic write.
