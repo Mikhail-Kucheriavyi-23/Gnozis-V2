@@ -43,21 +43,22 @@ def recover_evolution_audit(
         [record.__dict__ for record in records],
         observations=observations,
     )
-    expected_digest = provenance_rows[0]["evidence_digest"]
+    expected_digest = provenance_row["evidence_digest"]
     actual_digest = canonical_digest(observations)
+    provenance_row = provenance_rows[0]
     provenance_check = crosscheck_provenance(
-        provenance=provenance_rows[0],
-        candidate_id=provenance_rows[0]["candidate_id"],
-        parent_state_id=provenance_rows[0]["parent_state_id"],
-        parent_state_digest=provenance_rows[0]["parent_state_digest"],
-        proposed_state_digest=provenance_rows[0]["proposed_state_digest"],
+        provenance=provenance_row,
+        candidate_id=provenance_row["candidate_id"],
+        parent_state_id=provenance_row["parent_state_id"],
+        parent_state_digest=provenance_row["parent_state_digest"],
+        proposed_state_digest=provenance_row["proposed_state_digest"],
         observations=observations,
         evidence_digest=provenance_rows[0]["evidence_digest"],
-        execution_id_value=provenance_rows[0]["execution_id"],
-        evaluation_status=provenance_rows[0]["evaluation_status"],
-        shadow_status=provenance_rows[0]["shadow_status"],
-        invariant_status=provenance_rows[0]["invariant_status"],
-        governance_decision=provenance_rows[0]["governance_decision"],
+        execution_id_value=provenance_row["execution_id"],
+        evaluation_status=provenance_row["evaluation_status"],
+        shadow_status=provenance_row["shadow_status"],
+        invariant_status=provenance_row["invariant_status"],
+        governance_decision=provenance_row["governance_decision"],
     )
     replay_valid = result.valid and provenance_check.valid and actual_digest == expected_digest
     reasons = list(result.reasons)
