@@ -1529,3 +1529,36 @@ Long-horizon evaluation must preserve the full trajectory rather than overwrite 
 The evolution loop should prefer evidence of durable tension reduction, but must not convert this into an unconditional scalar objective. Diversity, exploration, safety invariants, and capability creation remain part of the evaluation context.
 
 This is a research contract only. Evaluation produces evidence and does not itself grant authority to activate or deploy a capability.
+
+
+### GNV2-FORMAL-049H — LONG-HORIZON TENSION TRAJECTORY AND FORECAST
+
+Forecasting must predict possible future tension patterns, not declare future truth. A forecast is an evidence-bound hypothesis derived from historical tension trajectories, capability effects, conditions, and unresolved gaps.
+
+Conceptual forecast record:
+
+F = (history_window, target_conditions, observed_trend, uncertainty, predicted_gap_or_tension, supporting_evidence)
+
+A forecast may identify:
+
+- persistent tension — repeated unresolved incompatibility under comparable conditions;
+- emerging tension — a trend suggesting that an existing capability or condition is approaching a known boundary;
+- recurrent tension — a conflict that repeatedly returns after temporary reduction;
+- displaced tension — reduction in one conflict accompanied by appearance of a related conflict elsewhere;
+- insufficient evidence — history does not support a defensible directional inference.
+
+Forecasts must preserve uncertainty and their conditioning assumptions. They must never be treated as guaranteed future states or as authority for autonomous mutation.
+
+A future preventive hypothesis may be generated when:
+
+Forecast(T_{t+k} | H_t, Conditions) indicates a supported unresolved or emerging capability gap
+
+but the forecast itself remains a hypothesis until subsequent evidence validates or falsifies it.
+
+Long-horizon learning should compare predicted and observed trajectories:
+
+Forecast_t → Observed_{t+k} → ForecastError → Memory
+
+This creates a second-order learning loop in which Gnozis can improve not only its capabilities but also its ability to anticipate where capabilities will be needed.
+
+No single scalar forecasting score is required. Forecast quality should initially be represented through provenance, calibration evidence, uncertainty, conditions, and later observed outcomes.
