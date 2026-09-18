@@ -90,7 +90,7 @@ def run_sandbox(
     if budget.max_operations < 1:
         raise ValueError("sandbox operation budget exhausted")
 
-    ctx = multiprocessing.get_context("spawn")
+    ctx = multiprocessing.get_context("fork" if "fork" in multiprocessing.get_all_start_methods() else "spawn")
     output = ctx.Queue(maxsize=1)
     process = ctx.Process(target=_worker, args=(output, state, candidate, observe))
     process.start()
