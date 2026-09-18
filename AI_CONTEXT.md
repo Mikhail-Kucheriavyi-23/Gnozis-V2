@@ -983,3 +983,10 @@ The old audit-only recovery path is no longer trusted recovery.
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Recovery now closes the persistence→verification→replay loop by recomputing the canonical evidence digest from recovered observations and requiring equality with persisted provenance evidence. The recovery report exposes expected/actual digests and a separate replay_valid gate. Changed observations fail closed.
+
+
+### GNV2-EVOLUTION-RECOVERY-STATE-IDENTITY-020
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Recovery replay now revalidates persisted provenance identity fields against recovered observations and persisted evidence, not only the evidence digest. A tampered proposed-state digest is explicitly rejected during recovery replay.
