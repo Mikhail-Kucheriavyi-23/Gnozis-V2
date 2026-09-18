@@ -36,6 +36,8 @@ def test_recovery_rebuilds_and_verifies_persisted_chain():
     report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
     assert report.recovered_records == 1
     assert report.chain_valid
+    assert report.replay_valid
+    assert report.expected_digest == report.actual_digest
     assert report.reasons == ()
 
 
@@ -59,3 +61,15 @@ def test_recovery_fails_closed_on_tampered_persisted_chain():
     report = recover_evolution_audit(conn, provenance_id=pid, observations=observations)
     assert not report.chain_valid
     assert report.reasons
+
+
+def test_recovery_replay_equality_fails_closed_on_changed_observations():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    pid, observations = _persist(conn)
+    changed = {"status": "CHANGED"}
+    report = recover_evolution_audit(conn, provenance_id=pid, observations=changed)
+    assert report.chain_valid is False
+    assert report.replay_valid is False
+    assert report.expected_digest != report.actual_digest
+    assert "observation digest mismatch" in report.reasons
