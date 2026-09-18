@@ -1500,3 +1500,32 @@ Long-term evolutionary history should connect:
 Conflict → Tension → Gap → CapabilityHypothesis → Test → Result → ΔT → Memory
 
 This entry defines the research contract only; it does not authorize autonomous activation or self-modification.
+
+
+### GNV2-FORMAL-049G — CAPABILITY EVALUATION AND LONG-HORIZON EFFECT
+
+A capability evaluation must distinguish immediate local effect from durable evolutionary effect. A capability is not considered successful merely because a single observation shows lower tension.
+
+Conceptual evaluation record:
+
+E_cap = (hypothesis_id, test_execution, conditions, observed_effect, ΔT_local, ΔT_longitudinal, invariant_status, provenance)
+
+Evaluation should inspect at least three levels:
+
+1. LOCAL — did the capability resolve or reduce the targeted incompatibility under the stated test conditions?
+2. STABILITY — does the effect persist across subsequent observations/transitions rather than immediately regress?
+3. GENERALIZATION — does the capability remain useful across relevant variations of conditions without violating protected invariants?
+
+A capability may therefore be:
+
+LOCALLY_EFFECTIVE — immediate evidence supports the target effect;
+STABLE_EFFECTIVE — repeated evidence supports persistence;
+GENERALIZED_EFFECTIVE — evidence supports usefulness across specified condition classes;
+REGRESSED — the observed benefit later disappears or reverses;
+INCONCLUSIVE — evidence is insufficient.
+
+Long-horizon evaluation must preserve the full trajectory rather than overwrite earlier observations. A later regression does not erase a previous success; it becomes new evidence about the boundary conditions of the capability.
+
+The evolution loop should prefer evidence of durable tension reduction, but must not convert this into an unconditional scalar objective. Diversity, exploration, safety invariants, and capability creation remain part of the evaluation context.
+
+This is a research contract only. Evaluation produces evidence and does not itself grant authority to activate or deploy a capability.
