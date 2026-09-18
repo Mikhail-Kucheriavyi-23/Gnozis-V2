@@ -60,7 +60,7 @@ def generate_endogenous_candidates(
     proposals = tuple(report.proposals[:limit])
     candidates: list[Candidate] = []
     for proposal in proposals:
-        proposed_state = state.with_relations((_proposal_relation(proposal),))
+        proposed_state = state.with_elements({\n            REFLECTION_NODE: {"kind": "reflection"},\n            proposal.proposal_id: {\n                "kind": "rule_proposal",\n                "finding_id": proposal.finding_id,\n                "rule_id": proposal.rule_id,\n                "current_version": proposal.current_version,\n                "proposed_version": proposal.proposed_version,\n                "hypothesis": proposal.hypothesis,\n                "evidence_refs": proposal.evidence_refs,\n            },\n        }).with_relations((_proposal_relation(proposal),))
         candidates.append(
             Candidate(
                 parent_state_id=state.state_id,
