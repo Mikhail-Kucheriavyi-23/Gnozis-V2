@@ -1097,7 +1097,9 @@ The existing authority boundary is now explicit about execution: `ExecutionAutho
 
 ### GNV2-EXECUTION-AUTHORIZATION-BINDING-032
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35297775009 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 `ExecutionAuthorization` is now bound to both `request_provenance` and the exact `evolution_identity`. `require_execution_authorization()` requires an exact match and fails closed on missing, unapproved, empty, or mismatched authorization. This remains a boundary-only capability; no Core promotion or autonomous execution path is enabled by this change.
 
