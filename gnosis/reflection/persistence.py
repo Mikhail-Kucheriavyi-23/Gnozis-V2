@@ -12,6 +12,7 @@ from .governance import GovernanceDecision
 from .invariant_delta import InvariantDelta
 from .shadow import ShadowEvaluation
 from gnosis.evolution.provenance import EvidenceProvenance, crosscheck_provenance
+from gnosis.evolution.audit import EvolutionAuditRecord, make_audit_record
 
 
 def _json(value: Any) -> str:
@@ -53,6 +54,18 @@ def ensure_reflection_schema(conn: sqlite3.Connection) -> None:
             payload TEXT NOT NULL,
             FOREIGN KEY(report_id) REFERENCES reflection_reports(report_id)
         );
+        CREATE TABLE IF NOT EXISTS evolution_audit (
+            sequence INTEGER PRIMARY KEY,
+            event_type TEXT NOT NULL,
+            candidate_id TEXT NOT NULL,
+            execution_id TEXT NOT NULL,
+            payload_digest TEXT NOT NULL,
+            previous_digest TEXT NOT NULL,
+            record_digest TEXT NOT NULL UNIQUE
+        );
+        CREATE INDEX IF NOT EXISTS idx_evolution_audit_candidate
+            ON evolution_audit(candidate_id);
+
         CREATE TABLE IF NOT EXISTS evolution_provenance (
             provenance_id TEXT PRIMARY KEY,
             execution_id TEXT NOT NULL,
@@ -309,3 +322,46 @@ def crosscheck_stored_provenance(
         invariant_status=row["invariant_status"],
         governance_decision=row["governance_decision"],
     )
+
+
+def append_evolution_audit(
+    conn: sqlite3.Connection,
+    *,
+    event_type: str,
+    candidate_id: str,
+    execution_id: str,
+    payload: dict[str, Any],
+) -> EvolutionAuditRecord:
+    """Append exactly one record; prior audit records are never updated."""
+    ensure_reflection_schema(conn)
+    row = conn.execute(
+        "SELECT sequence, record_digest FROM evolution_audit ORDER BY sequence DESC LIMIT 1"
+    ).fetchone()
+    sequence = 0 if row is None else row[0] + 1
+    previous_digest = "" if row is None else row[1]
+    record = make_audit_record(
+        sequence=sequence,
+        event_type=event_type,
+        candidate_id=candidate_id,
+        execution_id=execution_id,
+        payload=payload,
+        previous_digest=previous_digest,
+    )
+    conn.execute(
+        """INSERT INTO evolution_audit
+        (sequence,event_type,candidate_id,execution_id,payload_digest,previous_digest,record_digest)
+        VALUES (?,?,?,?,?,?,?)""",
+        (record.sequence, record.event_type, record.candidate_id, record.execution_id,
+         record.payload_digest, record.previous_digest, record.record_digest),
+    )
+    return record
+
+
+def list_evolution_audit(conn: sqlite3.Connection) -> tuple[EvolutionAuditRecord, ...]:
+    ensure_reflection_schema(conn)
+    rows = conn.execute(
+        """SELECT sequence,event_type,candidate_id,execution_id,payload_digest,
+                  previous_digest,record_digest
+           FROM evolution_audit ORDER BY sequence"""
+    ).fetchall()
+    return tuple(EvolutionAuditRecord(*row) for row in rows)
