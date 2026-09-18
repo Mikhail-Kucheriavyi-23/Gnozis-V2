@@ -1396,3 +1396,22 @@ Incompatibility = (claim_a, claim_b, relation_type, conditions, evidence_refs)
 Conditions are part of the identity of an observed conflict. Removing or changing conditions must produce a distinct conflict observation rather than silently generalizing the original one.
 
 Acceptance for 049B: the representation is deterministic, immutable, provenance-preserving, condition-scoped, and does not itself imply truth, priority, selection, or authority.
+
+
+### GNV2-FORMAL-049C — STRUCTURED TENSION, NOT TRUTH SCORE
+
+Tension is defined initially as a structured relation over observed incompatibilities, affected constraints, conditions, evidence strength, and unresolved capability gaps. It is not a universal scalar truth score.
+
+Conceptual form:
+
+T(C) = (Incompatibilities, Conditions, ConstraintImpact, EvidenceStatus, CapabilityGap)
+
+A tension state may be partially ordered when one state has strictly fewer or weaker unresolved incompatibilities under comparable conditions while preserving the same required evidence basis and protected invariants. This relation is observational and does not select a world-model.
+
+A transition may be described as tension-reducing only when it is independently testable and demonstrates at least one of: removal of an incompatibility under its stated conditions; relaxation of a verified constraint conflict; or creation of a verified capability that makes previously incompatible requirements jointly satisfiable. The transition must not achieve this by deleting evidence, weakening protected invariants, or silently changing the conflict conditions.
+
+Conceptual relation:
+
+T_after ≺ T_before  iff  verified_reduction(T_after, T_before) ∧ invariants_preserved
+
+No implementation of a scalar tension score is authorized by this task. The first runtime layer should preserve the structured evidence needed for later comparison.
