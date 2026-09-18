@@ -980,7 +980,7 @@ The old audit-only recovery path is no longer trusted recovery.
 
 ### GNV2-EVOLUTION-RECOVERY-REPLAY-019
 
-Implementation status: **IMPLEMENTED — second CI fix applied after persisted-row initialization defect was detected.**
+Implementation status: **IMPLEMENTED — third CI fix applied; recovery now uses the persisted-chain adapter boundary consistently.**
 
 Recovery now closes the persistence→verification→replay loop by recomputing the canonical evidence digest from recovered observations and requiring equality with persisted provenance evidence. The recovery report exposes expected/actual digests and a separate replay_valid gate. Changed observations fail closed.
 
