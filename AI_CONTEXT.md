@@ -1152,3 +1152,10 @@ Implementation status: **IMPLEMENTED — awaiting CI verification**.
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Added `SQLiteExecutionCommitAdapter` as a narrow persistence boundary. It calls the complete execution commit gate before `persist_transition()`, performs no authorization of its own, reloads the persisted resulting state, verifies its actual `state_id` equals the authorized proposed-state digest, and only then creates `ExecutionReceipt`. Added integration coverage for successful durable commit/receipt creation and fail-closed rejection before mutation. Existing SQLite persistence remains the source of truth; no second persistence model was introduced.
+
+
+### GNV2-AUTHORIZATION-ISSUANCE-039
+
+Implementation status: **BOUNDARY DEFINED — trusted issuer intentionally not implemented; awaiting CI verification**.
+
+Added `OwnerApproval` and `issue_execution_authorization()` to make the missing owner-authority source explicit. The issuer rejects absent or cross-bound approval evidence and, even with syntactically valid evidence, raises `NotImplementedError` until a trusted owner-authority mechanism exists. This prevents a boolean `owner_approved=True` from being treated as proof of legitimate ownership. Existing execution tests continue to construct authorization fixtures directly as test fixtures; they do not establish production authority.
