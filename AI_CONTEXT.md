@@ -992,3 +992,10 @@ Recovery now closes the persistence→verification→replay loop by recomputing 
 Implementation status: **IMPLEMENTED — awaiting CI verification**.
 
 Recovery replay now revalidates persisted provenance identity fields against recovered observations and persisted evidence, not only the evidence digest. A tampered proposed-state digest is explicitly rejected during recovery replay.
+
+
+### GNV2-EVOLUTION-CANONICAL-IDENTITY-021
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added deterministic `evolution_identity` covering candidate, execution, parent/proposed state identity, evidence, evaluation/shadow/invariant/governance status, and provenance identity. Persistence stores the identity; the independent chain verifier rejects a supplied persisted identity mismatch.
