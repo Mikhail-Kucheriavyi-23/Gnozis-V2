@@ -31,6 +31,8 @@ def test_provenance_rejects_tampered_observations():
         build_provenance(
             candidate_id="candidate:1",
             parent_state_id="state:1",
+            parent_state_digest="parent-digest",
+            proposed_state_digest="proposed-digest",
             observations={"metric": 2},
             evidence_digest=digest,
             evaluation_status="PASS",
@@ -56,6 +58,8 @@ def test_provenance_persists_and_reloads_without_activation():
     provenance = build_provenance(
         candidate_id="candidate:2",
         parent_state_id="state:2",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
         observations=observations,
         evidence_digest=canonical_digest(observations),
         evaluation_status="PASS",
@@ -83,6 +87,8 @@ def test_crosscheck_accepts_intact_provenance():
     provenance = build_provenance(
         candidate_id="candidate:3",
         parent_state_id="state:3",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
         observations=observations,
         evidence_digest=digest,
         evaluation_status="PASS",
@@ -113,6 +119,8 @@ def test_crosscheck_rejects_chain_mismatch():
     provenance = build_provenance(
         candidate_id="candidate:4",
         parent_state_id="state:4",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
         observations=observations,
         evidence_digest=digest,
         evaluation_status="PASS",
@@ -149,6 +157,8 @@ def test_stored_provenance_crosscheck_detects_tampering():
     provenance = build_provenance(
         candidate_id="candidate:5",
         parent_state_id="state:5",
+        parent_state_digest="parent-digest",
+        proposed_state_digest="proposed-digest",
         observations=observations,
         evidence_digest=digest,
         evaluation_status="PASS",
