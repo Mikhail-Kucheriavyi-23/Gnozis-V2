@@ -59,6 +59,7 @@ def reflect_with_history(
     evolution_records = load_evolution_memory(conn, resolved_instance_id) if resolved_instance_id else ()
     evolution_evidence = project_evolution_memory(evolution_records)
     current = reflect(engine, minimum_repetitions=minimum_repetitions)
+    current = replace(current, evolution_evidence=evolution_evidence)
     return CumulativeReflectionReport(
         current=current,
         history=history,
