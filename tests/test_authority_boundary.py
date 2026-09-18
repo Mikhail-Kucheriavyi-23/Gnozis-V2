@@ -172,8 +172,9 @@ def test_sqlite_execution_commit_adapter_persists_and_receipts_actual_state():
     instance = Instance.create_root("user-1", State(elements={"a": 1}))
     from gnosis.storage import save_instance
     save_instance(conn, instance)
+    initial_state_id = instance.engine.state.state_id
     proposed = instance.engine.state.with_elements({"b": 2})
-    candidate = Candidate(instance.engine.state.state_id, proposed, "test")
+    candidate = Candidate(initial_state_id, proposed, "test")
     record = instance.engine.step(candidate)
     observations = {"result": "ok"}
     provenance = build_provenance(
@@ -212,7 +213,7 @@ def test_sqlite_execution_commit_adapter_rejects_before_mutation():
             ExecutionAuthorization("bad", False, "bad"),
             ExecutionIntentSnapshot("", "", "", "", "", "", ""),
             "bad", "bad", object()), actor="user-1")
-    assert load_instance(conn, instance.instance_id).engine.state.state_id == instance.engine.state.state_id
+    assert load_instance(conn, instance.instance_id).engine.state.state_id == initial_state_id
     conn.close()
 
 
