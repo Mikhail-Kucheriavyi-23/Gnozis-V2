@@ -27,7 +27,7 @@ def persist_evolution_transaction(
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS evolution_provenance (
             provenance_id TEXT PRIMARY KEY, execution_id TEXT NOT NULL, candidate_id TEXT NOT NULL,
-            parent_state_id TEXT NOT NULL, evidence_digest TEXT NOT NULL,
+            parent_state_id TEXT NOT NULL, parent_state_digest TEXT NOT NULL, proposed_state_digest TEXT NOT NULL, evidence_digest TEXT NOT NULL,
             evaluation_status TEXT NOT NULL, shadow_status TEXT NOT NULL,
             invariant_status TEXT NOT NULL, governance_decision TEXT NOT NULL, status TEXT NOT NULL
         );
@@ -56,7 +56,7 @@ def persist_evolution_transaction(
         )
         conn.execute(
             """INSERT INTO evolution_provenance
-            (provenance_id,execution_id,candidate_id,parent_state_id,evidence_digest,
+            (provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
              evaluation_status,shadow_status,invariant_status,governance_decision,status)
             VALUES (?,?,?,?,?,?,?,?,?,?)""",
             (
