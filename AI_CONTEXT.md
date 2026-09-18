@@ -635,6 +635,7 @@ CI-green is necessary evidence for the relevant gate, but does not replace adver
 ## 19. HANDOFF
 
 Current handoff:
+- GNV2-EVOLUTION-SANDBOX-002: VERIFIED by CI (192 passed, 10 warnings).
 - Persistence: VERIFIED on inspected historical CI; frozen.
 - Reflection/Shadow/Invariant Delta: implementation gate completed for the currently identified failures.
 - Current HEAD: f759746a2413d28bcac2942ce87eac5516b2a00d.
@@ -692,7 +693,7 @@ Status:
 - GNV2-EVOLUTION-EVIDENCE-001: VERIFIED for this bounded slice
 - Full autonomous/canonical evolution: CLOSED
 
-Sandbox-002 implementation is now present and awaiting CI verification:
+Sandbox-002 implementation is now VERIFIED by CI:
 - child-process execution boundary
 - one-operation gas charge per invocation, hard maximum 20
 - explicit positive wall-clock timeout
