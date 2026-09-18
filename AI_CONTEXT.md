@@ -1321,3 +1321,8 @@ Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous 
 ### CI-VERIFIED-045
 
 CI run `35340047648` SUCCESS on `335a77cab1ea81ee571797b6131628048d011df7`. Memory-aware endogenous generation is CI-verified. Evolution memory is now carried from verified storage through Reflection into Generate as explicit evidence references without changing selection or granting authority.
+
+
+### GNV2-MEMORY-FORMATION-046
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**. Endogenous Generate now incorporates verified historical memory outcomes into each generated hypothesis state's evidence payload (`historical_memory_outcomes`) alongside immutable memory references. This is contextual formation, not selection: outcomes are recorded as historical evidence and do not automatically veto, approve, rank, or activate a candidate. Candidate testing and selection remain governed by Core.
