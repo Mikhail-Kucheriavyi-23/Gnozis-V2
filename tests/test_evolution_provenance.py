@@ -132,3 +132,32 @@ def test_crosscheck_rejects_chain_mismatch():
     )
     assert not result.valid
     assert any("candidate_id mismatch" in reason for reason in result.reasons)
+
+
+def test_stored_provenance_crosscheck_detects_tampering():
+    import sqlite3
+    from gnosis.evolution.provenance import canonical_digest
+    from gnosis.reflection.persistence import (
+        crosscheck_stored_provenance,
+        ensure_reflection_schema,
+        save_evolution_provenance,
+    )
+    observations = {"metric": 11}
+    digest = canonical_digest(observations)
+    provenance = build_provenance(
+        candidate_id="candidate:5",
+        parent_state_id="state:5",
+        observations=observations,
+        evidence_digest=digest,
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="REVIEW",
+    )
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    stored = save_evolution_provenance(conn, provenance)
+    assert crosscheck_stored_provenance(conn, stored, observations=observations).valid
+    result = crosscheck_stored_provenance(conn, stored, observations={"metric": 999})
+    assert not result.valid
+    assert any("observation digest mismatch" in reason for reason in result.reasons)
