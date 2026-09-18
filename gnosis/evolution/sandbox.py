@@ -147,6 +147,8 @@ def run_sandbox(
         SandboxExecution(
             candidate.candidate_id,
             state.state_id,
+            state.content_id,
+            candidate.proposed_state.content_id,
             1,
             "COMPLETED",
             _digest(observations),
