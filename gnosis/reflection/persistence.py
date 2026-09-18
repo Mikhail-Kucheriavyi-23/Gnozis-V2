@@ -11,6 +11,7 @@ from .counterexample import CounterexampleResult
 from .governance import GovernanceDecision
 from .invariant_delta import InvariantDelta
 from .shadow import ShadowEvaluation
+from gnosis.evolution.provenance import EvidenceProvenance, crosscheck_provenance
 
 
 def _json(value: Any) -> str:
@@ -275,3 +276,36 @@ def list_evolution_provenance(
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return tuple(dict(zip(keys, row)) for row in rows)
+
+
+def crosscheck_stored_provenance(
+    conn: sqlite3.Connection,
+    provenance_id: str,
+    *,
+    observations: dict[str, Any],
+) -> Any:
+    """Re-validate stored identity/evidence links against supplied observations."""
+    row = load_evolution_provenance(conn, provenance_id)
+    provenance = EvidenceProvenance(
+        execution_id=row["execution_id"],
+        candidate_id=row["candidate_id"],
+        parent_state_id=row["parent_state_id"],
+        evidence_digest=row["evidence_digest"],
+        evaluation_status=row["evaluation_status"],
+        shadow_status=row["shadow_status"],
+        invariant_status=row["invariant_status"],
+        governance_decision=row["governance_decision"],
+        status=row["status"],
+    )
+    return crosscheck_provenance(
+        provenance=provenance,
+        candidate_id=row["candidate_id"],
+        parent_state_id=row["parent_state_id"],
+        observations=observations,
+        evidence_digest=row["evidence_digest"],
+        execution_id_value=row["execution_id"],
+        evaluation_status=row["evaluation_status"],
+        shadow_status=row["shadow_status"],
+        invariant_status=row["invariant_status"],
+        governance_decision=row["governance_decision"],
+    )
