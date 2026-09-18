@@ -111,3 +111,25 @@ def require_execution_intent_snapshot(
     """Fail closed unless the immutable snapshot exactly matches current provenance."""
     if snapshot is None or not snapshot.matches_provenance(provenance):
         raise PermissionError("execution intent snapshot does not match evolution")
+
+
+@dataclass(frozen=True)
+class ExecutionCommitRequest:
+    """All pre-commit identity material required for one authorized execution."""
+    authorization: ExecutionAuthorization
+    intent_snapshot: ExecutionIntentSnapshot
+    request_provenance: str
+    evolution_identity: str
+    provenance: object
+
+
+def require_execution_commit(request: ExecutionCommitRequest) -> None:
+    """Fail closed unless authorization, identity and freshness all agree."""
+    require_execution_authorization(
+        request.authorization,
+        request_provenance=request.request_provenance,
+        evolution_identity=request.evolution_identity,
+    )
+    if request.authorization.evolution_identity != request.intent_snapshot.evolution_identity:
+        raise PermissionError("execution commit identity mismatch")
+    require_execution_intent_snapshot(request.intent_snapshot, request.provenance)
