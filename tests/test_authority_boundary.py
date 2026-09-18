@@ -50,7 +50,7 @@ def _snapshot_provenance():
     evidence = canonical_digest(observations)
     return build_provenance(
         candidate_id="c1", parent_state_id="s1", parent_state_digest="pd",
-        proposed_state_digest="qd", observations=observations, evidence_digest=evidence,
+        proposed_state_digest=canonical_digest({"state": "new"}), observations=observations, evidence_digest=evidence,
         proposed_state_content_id="content-1", candidate_binding_digest="binding-1",
         evaluation_status="PASS", shadow_status="UNCHANGED", invariant_status="PRESERVED",
         governance_decision="ALLOW",
@@ -121,23 +121,25 @@ def test_execution_commit_gate_rejects_cross_bound_evolution():
 
 
 def test_execution_receipt_is_created_after_commit_and_matches_request():
+    from gnosis.evolution.provenance import canonical_digest
     provenance = _snapshot_provenance()
     auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
     snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
     request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
-    receipt = ExecutionReceipt.after_commit(request, "result-digest")
-    assert receipt.resulting_state_digest == "result-digest"
+    resulting_state = {"state": "new"}
+    receipt = ExecutionReceipt.after_commit(request, resulting_state)
+    assert receipt.resulting_state_digest == canonical_digest(resulting_state)
     assert receipt.matches_request(request)
     require_execution_receipt(receipt, request)
 
 
-def test_execution_receipt_requires_result_digest():
+def test_execution_receipt_requires_result_state():
     provenance = _snapshot_provenance()
     auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
     snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
     request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
-    with pytest.raises(ValueError, match="resulting state digest is required"):
-        ExecutionReceipt.after_commit(request, "")
+    with pytest.raises((PermissionError, ValueError), match="resulting state"):
+        ExecutionReceipt.after_commit(request, None)
 
 
 def test_execution_receipt_rejects_cross_evolution():
@@ -145,8 +147,17 @@ def test_execution_receipt_rejects_cross_evolution():
     auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
     snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
     request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
-    receipt = ExecutionReceipt.after_commit(request, "result-digest")
+    receipt = ExecutionReceipt.after_commit(request, {"state": "new"})
     changed = type(provenance)(**{**provenance.__dict__, "candidate_binding_digest": "tampered"})
     changed_request = ExecutionCommitRequest(auth, ExecutionIntentSnapshot.from_provenance(changed), provenance.provenance_id, provenance.evolution_identity, changed)
     with pytest.raises(PermissionError, match="does not match committed evolution"):
         require_execution_receipt(receipt, changed_request)
+
+
+def test_execution_receipt_rejects_unproven_result_content():
+    provenance = _snapshot_provenance()
+    auth = ExecutionAuthorization(provenance.provenance_id, True, provenance.evolution_identity)
+    snapshot = ExecutionIntentSnapshot.from_provenance(provenance)
+    request = ExecutionCommitRequest(auth, snapshot, provenance.provenance_id, provenance.evolution_identity, provenance)
+    with pytest.raises(PermissionError, match="resulting state does not match"):
+        ExecutionReceipt.after_commit(request, {"state": "tampered"})
