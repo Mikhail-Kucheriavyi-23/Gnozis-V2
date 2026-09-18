@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .audit import crosscheck_provenance_audit
 from .provenance import EvidenceProvenance, canonical_digest, crosscheck_provenance, execution_id, verify_evidence_digest
 from .sandbox import SandboxExecution
 
@@ -76,6 +77,9 @@ def replay_complete(
                 reasons.append(f"audit {field} mismatch")
         if audit_record.execution_id != getattr(execution, "execution_id", execution.candidate_id):
             reasons.append("audit execution mismatch")
+        if provenance is not None:
+            link = crosscheck_provenance_audit(provenance, audit_record)
+            reasons.extend("persisted " + reason for reason in link.reasons)
     return ReplayResult(reproducible=not reasons, reasons=tuple(dict.fromkeys(reasons)))
 
 
