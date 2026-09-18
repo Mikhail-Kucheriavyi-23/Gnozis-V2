@@ -29,3 +29,20 @@ def test_endogenous_generation_is_deterministic_for_same_evidence():
     second = generate_endogenous_candidates(state, report).candidates[0]
     assert first.candidate_id == second.candidate_id
     assert first.proposed_state.content_id == second.proposed_state.content_id
+
+
+def test_endogenous_generation_respects_remaining_budget():
+    from gnosis.core.budget import Budget
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=tuple(proposal(i) for i in range(10)))
+    budget = Budget(total=3, spent=1)
+    result = generate_endogenous_candidates(state, report, budget=budget)
+    assert len(result.candidates) == 2
+
+
+def test_endogenous_generation_stops_when_budget_exhausted():
+    from gnosis.core.budget import Budget
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(proposal(1),))
+    result = generate_endogenous_candidates(state, report, budget=Budget(total=1, spent=1))
+    assert result.candidates == ()
