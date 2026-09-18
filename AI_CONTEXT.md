@@ -905,3 +905,14 @@ Audit records now bind to:
 - execution identity
 
 Complete replay verifies these links and fails closed on mismatch. Persistence schemas and atomic transaction storage were extended accordingly.
+
+
+### GNV2-EVOLUTION-RECOVERY-INTEGRITY-014
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added recovery integrity regression coverage:
+- evolution provenance survives database serialization/reopen;
+- audit record continuity survives persistence recovery;
+- persisted audit tampering is detected by record-digest verification;
+- recovered audit chain remains append-only/verifiable.
