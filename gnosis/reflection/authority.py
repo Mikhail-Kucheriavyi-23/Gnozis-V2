@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .governance import GovernanceDecision
+from gnosis.evolution.provenance import canonical_digest
 
 
 @dataclass(frozen=True)
@@ -146,11 +147,14 @@ class ExecutionReceipt:
     candidate_binding_digest: str
 
     @classmethod
-    def after_commit(cls, request: ExecutionCommitRequest, resulting_state_digest: str) -> "ExecutionReceipt":
+    def after_commit(cls, request: ExecutionCommitRequest, resulting_state: object) -> "ExecutionReceipt":
+        require_execution_commit(request)
+        resulting_state_digest = canonical_digest(resulting_state)
         if not resulting_state_digest:
             raise ValueError("resulting state digest is required for an execution receipt")
-        require_execution_commit(request)
         p = request.provenance
+        if str(p.proposed_state_digest) != resulting_state_digest:
+            raise PermissionError("resulting state does not match authorized evolution")
         return cls(
             execution_id=str(p.execution_id),
             provenance_id=str(p.provenance_id),
