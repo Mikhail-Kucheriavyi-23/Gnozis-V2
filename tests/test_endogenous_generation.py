@@ -19,7 +19,7 @@ def test_endogenous_generation_is_bounded_and_does_not_mutate_engine_state():
     assert len(result.candidates) == MAX_ENDOGENOUS_CANDIDATES
     assert state.relations == ()
     assert all(c.parent_state_id == state.state_id for c in result.candidates)
-    assert all(c.origin == "reflection:endogenous" for c in result.candidates)
+    assert all(c.origin == "reflection:endogenous" for c in result.candidates)\n    assert all("__gnozis_reflection__" in c.proposed_state.elements for c in result.candidates)
 
 
 def test_endogenous_generation_is_deterministic_for_same_evidence():
