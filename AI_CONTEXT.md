@@ -1688,3 +1688,36 @@ Forks and clones create new instance identities while retaining explicit ancestr
 Evolutionary identity must be cryptographically or deterministically bound to the relevant provenance where required by the existing persistence/evolution contracts. It must not grant authority: identity proves continuity/lineage, not permission to mutate or activate.
 
 This identity layer is required before later federation/autopoietic-network work so that multiple Gnozis instances can cooperate without collapsing their histories or authority boundaries.
+
+
+### GNV2-FORMAL-049N — EVOLUTIONARY LINEAGE AND BRANCHING
+
+An evolutionary lineage may branch when an instance, state, or capability-development path is forked for independent exploration. Branching creates distinct descendant lineages while preserving explicit ancestry and provenance.
+
+Conceptual structure:
+
+L_parent → {L_1, L_2, ..., L_n}
+
+Each branch must retain:
+
+- parent EvolutionIdentity;
+- branch-specific EvolutionIdentity;
+- fork/base StateIdentity;
+- provenance of the branching event;
+- independent subsequent transitions and evidence.
+
+Branch comparison is evidence comparison, not winner selection. A branch may provide evidence that a capability, hypothesis, or transition works under its tested conditions, but that evidence must remain scoped to those conditions and provenance.
+
+A useful result from one branch may be imported or referenced by another branch through an explicit provenance-preserving relation such as DERIVED_FROM, REPLICATED_BY, VALIDATED_BY, or REJECTED_BY. Importing evidence must not merge identities or silently copy mutable state.
+
+Lineage convergence is therefore distinct from identity convergence:
+
+L_1 + evidence(L_2) → improved hypothesis in L_1
+
+without requiring:
+
+Identity(L_1) = Identity(L_2)
+
+Branch failure is retained as evidence and is not treated as deletion of the branch's history. Successful branches also remain subject to later regression evidence.
+
+This branching model is a prerequisite for future multi-agent and networked autopoietic evolution. It permits parallel exploration while preserving independent provenance, state, and authority boundaries.
