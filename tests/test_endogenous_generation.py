@@ -83,3 +83,18 @@ def test_memory_changes_hypothesis_evidence_deterministically_without_selection(
     assert a.candidates[0].proposed_state.elements["proposal:1"]["historical_memory_outcomes"] == ()
     assert b.candidates[0].proposed_state.elements["proposal:1"]["historical_memory_outcomes"] == ("rejected",)
     assert a.proposal_ids == b.proposal_ids == ("proposal:1",)
+
+
+def test_memory_history_changes_hypothesis_context_deterministically():
+    from gnosis.reflection.memory_evidence import EvolutionEvidence
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(proposal(1),))
+    memory_a = (EvolutionEvidence("m-a","c","t","rejected",()),)
+    memory_b = (EvolutionEvidence("m-b","c","t","accepted",()),)
+    a = generate_endogenous_candidates(state, report, memory_evidence=memory_a)
+    b = generate_endogenous_candidates(state, report, memory_evidence=memory_b)
+    assert a.candidates[0].proposed_state.elements["proposal:1"]["memory_signature"] == ("m-a",)
+    assert b.candidates[0].proposed_state.elements["proposal:1"]["memory_signature"] == ("m-b",)
+    assert a.proposal_ids == b.proposal_ids == ("proposal:1",)
+    again = generate_endogenous_candidates(state, report, memory_evidence=memory_a)
+    assert again.candidates[0].proposed_state.state_id == a.candidates[0].proposed_state.state_id
