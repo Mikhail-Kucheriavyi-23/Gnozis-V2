@@ -804,3 +804,17 @@ Added:
 - regression tests for intact and tampered chains
 
 Audit records are evidence/history only and have no Core mutation or activation authority.
+
+
+### GNV2-EVOLUTION-RECOVERY-008
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added:
+- durable SQLite recovery of the evolution audit chain
+- reconstruction from persisted records only
+- chain verification after recovery
+- explicit recovery report with record count and fail-closed reasons
+- regression tests for intact persistence and persisted tampering
+
+Recovery does not trust process memory and has no Core mutation or activation authority.
