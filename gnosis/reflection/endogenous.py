@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Sequence
 from gnosis.core.types import Candidate, Relation, State
 from gnosis.core.budget import Budget
-from gnosis.core.budget import Budget
 from .analyzer import ReflectionReport, RuleProposal
 
 MAX_ENDOGENOUS_CANDIDATES = 20  # default; bounded by caller-provided evolution budget
@@ -61,6 +60,7 @@ def generate_endogenous_candidates(
     proposals = tuple(report.proposals[:limit])
     candidates: list[Candidate] = []
     memory_refs = tuple(str(getattr(item, "memory_id")) for item in memory_evidence if getattr(item, "memory_id", None))
+    memory_outcomes = tuple(sorted(str(getattr(item, "outcome")) for item in memory_evidence if getattr(item, "outcome", None)))
     for proposal in proposals:
         proposed_state = state.with_elements({
             REFLECTION_NODE: {"kind": "reflection"},
@@ -73,6 +73,7 @@ def generate_endogenous_candidates(
                 "hypothesis": proposal.hypothesis,
                 "evidence_refs": proposal.evidence_refs,
                 "memory_evidence_refs": memory_refs,
+                "historical_memory_outcomes": memory_outcomes,
             },
         }).with_relations((_proposal_relation(proposal),))
         candidates.append(
