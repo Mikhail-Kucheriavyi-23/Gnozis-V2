@@ -82,6 +82,8 @@ class ExecutionIntentSnapshot:
     """Immutable identity snapshot of the exact evolution authorized for execution."""
     provenance_id: str
     execution_id: str
+    parent_state_id: str
+    parent_state_digest: str
     evolution_identity: str
     candidate_binding_digest: str
     proposed_state_content_id: str
@@ -91,6 +93,8 @@ class ExecutionIntentSnapshot:
         return cls(
             provenance_id=str(provenance.provenance_id),
             execution_id=str(provenance.execution_id),
+            parent_state_id=str(provenance.parent_state_id),
+            parent_state_digest=str(provenance.parent_state_digest),
             evolution_identity=str(provenance.evolution_identity),
             candidate_binding_digest=str(provenance.candidate_binding_digest),
             proposed_state_content_id=str(provenance.proposed_state_content_id),
