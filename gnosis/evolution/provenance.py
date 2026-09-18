@@ -30,6 +30,23 @@ class EvidenceProvenance:
     status: str = "RECORDED"
 
     @property
+    def evolution_identity(self) -> str:
+        """Canonical identity for the complete persisted evolution unit."""
+        return "evolution:" + canonical_digest({
+            "candidate_id": self.candidate_id,
+            "execution_id": self.execution_id,
+            "parent_state_id": self.parent_state_id,
+            "parent_state_digest": self.parent_state_digest,
+            "proposed_state_digest": self.proposed_state_digest,
+            "evidence_digest": self.evidence_digest,
+            "evaluation_status": self.evaluation_status,
+            "shadow_status": self.shadow_status,
+            "invariant_status": self.invariant_status,
+            "governance_decision": self.governance_decision,
+            "provenance_id": self.provenance_id,
+        })
+
+    @property
     def provenance_id(self) -> str:
         return "provenance:" + canonical_digest({
             "execution_id": self.execution_id,
