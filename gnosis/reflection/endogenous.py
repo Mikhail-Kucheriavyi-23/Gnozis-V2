@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 from gnosis.core.types import Candidate, Relation, State
+from gnosis.core.budget import Budget
 from .analyzer import ReflectionReport, RuleProposal
 
 MAX_ENDOGENOUS_CANDIDATES = 20  # default; bounded by caller-provided evolution budget
@@ -41,7 +42,8 @@ def generate_endogenous_candidates(
     state: State,
     report: ReflectionReport,
     *,
-    max_candidates: int = MAX_ENDOGENOUS_CANDIDATES,
+    max_candidates: int | None = None,
+    budget: Budget | None = None,
 ) -> EndogenousGeneration:
     """Generate at most 20 proposal-backed candidates deterministically.
 
