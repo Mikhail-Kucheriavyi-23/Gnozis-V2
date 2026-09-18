@@ -71,3 +71,4 @@ def test_endogenous_generation_carries_verified_memory_refs_without_changing_sel
     result = generate_endogenous_candidates(state, report, memory_evidence=memory)
     node = result.candidates[0].proposed_state.elements["proposal:1"]
     assert node["memory_evidence_refs"] == ("memory:1",)
+    assert node["historical_memory_outcomes"] == ("rejected",)
