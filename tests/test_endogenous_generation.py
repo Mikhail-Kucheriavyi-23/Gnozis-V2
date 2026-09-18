@@ -46,3 +46,17 @@ def test_endogenous_generation_stops_when_budget_exhausted():
     report = ReflectionReport(proposals=(proposal(1),))
     result = generate_endogenous_candidates(state, report, budget=Budget(total=1, spent=1))
     assert result.candidates == ()
+
+
+def test_generated_candidates_use_normal_core_test_and_select_path():
+    from gnosis.core import Budget, Engine, select
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=tuple(proposal(i) for i in range(3)))
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=3))
+    engine = Engine(state=state, budget=Budget(total=3))
+    selection = select(state, generation.candidates, engine.test_fn)
+    assert selection.selected is not None
+    record = engine.step_select(generation.candidates)
+    assert record.accepted
+    assert record.candidate_id == selection.selected.candidate_id
+    assert engine.state.state_id == selection.selected.proposed_state.state_id
