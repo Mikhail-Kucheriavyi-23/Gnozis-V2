@@ -1016,7 +1016,9 @@ Recovery now reconstructs the persisted EvidenceProvenance and compares its cano
 
 ### GNV2-EVOLUTION-PERSISTENCE-IDENTITY-MIGRATION-023
 
-Implementation status: **IMPLEMENTED — CI persistence column mismatch fixed.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35294963878 SUCCESS; Python 3.11 and 3.12 SUCCESS; 231 passed, 10 warnings.
 
 Legacy persisted provenance with empty/missing `evolution_identity` is explicitly classified as `legacy_unverified` and recovery fails closed. No silent identity generation or automatic upgrade is permitted.
 
