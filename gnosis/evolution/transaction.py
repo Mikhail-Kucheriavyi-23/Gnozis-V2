@@ -62,6 +62,7 @@ def persist_evolution_transaction(
             (
                 provenance.provenance_id, provenance.execution_id,
                 provenance.candidate_id, provenance.parent_state_id,
+                provenance.parent_state_digest, provenance.proposed_state_digest,
                 provenance.evidence_digest, provenance.evaluation_status,
                 provenance.shadow_status, provenance.invariant_status,
                 provenance.governance_decision, provenance.status,
