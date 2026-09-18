@@ -48,11 +48,20 @@ def request_authorization(decision: GovernanceDecision) -> AuthorityRequest:
 
 
 @dataclass(frozen=True)
+class OwnerApproval:
+    """Opaque approval evidence from an external owner-authority boundary."""
+    approval_id: str
+    request_provenance: str
+    evolution_identity: str
+
+
+@dataclass(frozen=True)
 class ExecutionAuthorization:
     """Authorization bound to one exact evolution provenance."""
     request_provenance: str
     owner_approved: bool = False
     evolution_identity: str = ""
+    approval_id: str = ""
 
     @property
     def can_execute(self) -> bool:
@@ -62,6 +71,23 @@ class ExecutionAuthorization:
             and bool(self.evolution_identity)
         )
 
+
+
+def issue_execution_authorization(
+    approval: OwnerApproval | None,
+    *,
+    request_provenance: str,
+    evolution_identity: str,
+) -> ExecutionAuthorization:
+    """Refuse boolean-only approval; real owner issuer remains an explicit boundary."""
+    if (
+        approval is None
+        or not approval.approval_id
+        or approval.request_provenance != request_provenance
+        or approval.evolution_identity != evolution_identity
+    ):
+        raise PermissionError("owner approval does not match evolution")
+    raise NotImplementedError("trusted owner-authority issuer is not implemented")
 
 def require_execution_authorization(
     auth: ExecutionAuthorization | None,
