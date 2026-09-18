@@ -876,7 +876,9 @@ Regression tests cover origin, seed, proposed-content and parent-digest tamperin
 
 ### GNV2-EVOLUTION-REPLAY-COMPLETENESS-012
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35291797877 SUCCESS; Python 3.11 and 3.12 SUCCESS; 215 passed, 10 warnings. Initial complete-replay tests exposed contract mismatches; corrected and reverified.
 
 Added a fail-closed complete replay contract requiring:
 - execution identity
