@@ -21,7 +21,7 @@ class EvolutionMemoryRecord:
     @property
     def digest(self) -> str:
         return hashlib.sha256(canonical_json({
-            "memory_id": self.memory_id, "instance_id": self.instance_id,
+            "instance_id": self.instance_id,
             "candidate_id": self.candidate_id, "transition_id": self.transition_id,
             "state_id": self.state_id, "proposal_id": self.proposal_id,
             "outcome": self.outcome, "evidence": self.evidence,
