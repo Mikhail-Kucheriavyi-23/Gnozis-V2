@@ -1025,7 +1025,9 @@ Legacy persisted provenance with empty/missing `evolution_identity` is explicitl
 
 ### GNV2-EVOLUTION-STATE-CONTENT-BINDING-024
 
-Implementation status: **IMPLEMENTED — CI test compatibility fix applied.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35295419236 SUCCESS; Python 3.11 and 3.12 SUCCESS; 233 passed, 10 warnings.
 
 Provenance now carries `proposed_state_content_id` as an explicit content-binding field. The canonical evolution identity includes it; persistence migrates/stores it; independent chain verification and recovery reconstruct and verify it; a regression test rejects tampering. Legacy records default to an empty binding and remain subject to the existing legacy fail-closed policy.
 
