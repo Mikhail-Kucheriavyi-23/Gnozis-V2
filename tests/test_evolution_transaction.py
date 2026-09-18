@@ -78,3 +78,24 @@ def test_evolution_transaction_nested_savepoint_preserves_outer_transaction():
     conn.commit()
     assert conn.execute("SELECT count(*) FROM marker").fetchone()[0] == 2
     assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
+
+
+def test_nested_failure_rolls_back_only_evolution_savepoint():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    conn.execute("CREATE TABLE marker (value TEXT)")
+    conn.execute("INSERT INTO marker VALUES ('outer')")
+    conn.execute("BEGIN")
+    provenance = _provenance()
+    persist_evolution_transaction(
+        conn, provenance, event_type="PROVENANCE", payload={"status": "RECORDED"}
+    )
+    conn.execute("INSERT INTO marker VALUES ('before-failure')")
+    with pytest.raises(sqlite3.IntegrityError):
+        persist_evolution_transaction(
+            conn, provenance, event_type="PROVENANCE", payload={"status": "DUPLICATE"}
+        )
+    conn.execute("INSERT INTO marker VALUES ('after-failure')")
+    assert conn.execute("SELECT count(*) FROM marker").fetchone()[0] == 3
+    assert conn.execute("SELECT count(*) FROM evolution_provenance").fetchone()[0] == 1
+    conn.rollback()
