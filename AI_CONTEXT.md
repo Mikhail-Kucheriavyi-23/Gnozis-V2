@@ -859,7 +859,9 @@ This binds evolution evidence to the concrete parent/proposed state content whil
 
 ### GNV2-EVOLUTION-CANDIDATE-BINDING-011
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35291655890 SUCCESS; Python 3.11 and 3.12 SUCCESS; 213 passed, 10 warnings.
 
 Candidate identity is strengthened to bind:
 - parent state identity
