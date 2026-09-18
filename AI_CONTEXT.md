@@ -892,7 +892,9 @@ Missing provenance or audit evidence can never produce a reproducible/valid resu
 
 ### GNV2-EVOLUTION-AUDIT-CONTINUITY-013
 
-Implementation status: **IMPLEMENTED — CI verification in progress; compatibility defects found and corrected.**
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35292034036 SUCCESS; Python 3.11 and 3.12 SUCCESS; 216 passed, 10 warnings. Compatibility failures from prior runs were corrected before final verification.
 
 Audit records now bind to:
 - provenance_id
