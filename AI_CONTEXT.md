@@ -892,7 +892,7 @@ Missing provenance or audit evidence can never produce a reproducible/valid resu
 
 ### GNV2-EVOLUTION-AUDIT-CONTINUITY-013
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **IMPLEMENTED — CI verification in progress; compatibility defects found and corrected.**
 
 Audit records now bind to:
 - provenance_id
