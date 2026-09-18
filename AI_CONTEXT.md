@@ -1084,7 +1084,9 @@ CI evidence: run 35296869203 SUCCESS; Python 3.11 and 3.12 SUCCESS.
 
 ### GNV2-EXECUTION-AUTHORIZATION-GATE-031
 
-Implementation status: **IMPLEMENTED — CI exposed a shadowed legacy function; removed. Awaiting CI verification.**
+Implementation status: **IMPLEMENTED — CI exposed two stale test calls; corrected. Awaiting CI verification.**
+
+CI run 35297456802: 237 passed, 2 failed. Production `require_execution_authorization()` is correctly the exact-binding API. The failures were test calls still using the pre-032 signature / message. Updated tests to pass both binding arguments and assert the current fail-closed mismatch contract.
 
 Run 35297369166: 237 passed, 2 failed. Both failures were caused by a duplicate legacy `require_execution_authorization(auth)` definition shadowing the new exact-binding signature. Production intent was correct; the stale duplicate has been removed.
 
