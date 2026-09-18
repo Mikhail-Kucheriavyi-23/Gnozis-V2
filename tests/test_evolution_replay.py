@@ -41,9 +41,13 @@ def test_replay_identity_rejects_wrong_candidate_or_parent():
         result.execution,
         candidate_id="tampered",
         parent_state_id=state.state_id,
+        parent_state_digest=result.execution.parent_state_digest,
+        proposed_state_digest=result.execution.proposed_state_digest,
     ).reproducible
     assert not replay_identity(
         result.execution,
         candidate_id=result.execution.candidate_id,
         parent_state_id="stale",
+        parent_state_digest=result.execution.parent_state_digest,
+        proposed_state_digest=result.execution.proposed_state_digest,
     ).reproducible
