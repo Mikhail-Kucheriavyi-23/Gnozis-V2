@@ -1261,3 +1261,8 @@ CI run `35338572905` SUCCESS on `dc9a0eb34b14289cc37f25680215ad731e0026c3`. Evol
 ### GNV2-MEMORY-TO-REFLECTION-044
 
 Implementation status: **IMPLEMENTED — awaiting CI verification**. Added `gnosis/reflection/memory_evidence.py` as a read-only projection from verified `EvolutionMemoryRecord` to Reflection evidence. It does not create candidates, mutate Core, or grant authority. Projection is bounded by an explicit limit. Added tests for projection and bounding.
+
+
+### GNV2-MEMORY-TO-REFLECTION-044-BINDING
+
+044 refined: cumulative Reflection now exposes instance-scoped `EvolutionEvidence` from durable evolution memory. The binding accepts an explicit `instance_id` rather than guessing from Engine, preserving instance isolation. Memory remains read-only evidence and does not create candidates, mutate Core, or grant authority. Added a regression test for empty instance-scoped memory. Awaiting CI verification.
