@@ -72,3 +72,14 @@ def test_endogenous_generation_carries_verified_memory_refs_without_changing_sel
     node = result.candidates[0].proposed_state.elements["proposal:1"]
     assert node["memory_evidence_refs"] == ("memory:1",)
     assert node["historical_memory_outcomes"] == ("rejected",)
+
+
+def test_memory_changes_hypothesis_evidence_deterministically_without_selection():
+    from gnosis.reflection.memory_evidence import EvolutionEvidence
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(proposal(1),))
+    a = generate_endogenous_candidates(state, report, memory_evidence=())
+    b = generate_endogenous_candidates(state, report, memory_evidence=(EvolutionEvidence("m2","c","t","rejected",()),))
+    assert a.candidates[0].proposed_state.elements["proposal:1"]["historical_memory_outcomes"] == ()
+    assert b.candidates[0].proposed_state.elements["proposal:1"]["historical_memory_outcomes"] == ("rejected",)
+    assert a.proposal_ids == b.proposal_ids == ("proposal:1",)
