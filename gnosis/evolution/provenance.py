@@ -28,6 +28,7 @@ class EvidenceProvenance:
     invariant_status: str
     governance_decision: str
     status: str = "RECORDED"
+    proposed_state_content_id: str = ""
 
     @property
     def evolution_identity(self) -> str:
@@ -38,6 +39,7 @@ class EvidenceProvenance:
             "parent_state_id": self.parent_state_id,
             "parent_state_digest": self.parent_state_digest,
             "proposed_state_digest": self.proposed_state_digest,
+            "proposed_state_content_id": self.proposed_state_content_id,
             "evidence_digest": self.evidence_digest,
             "evaluation_status": self.evaluation_status,
             "shadow_status": self.shadow_status,
@@ -83,6 +85,7 @@ def build_provenance(
     parent_state_digest: str,
     proposed_state_digest: str,
     observations: Mapping[str, Any],
+    proposed_state_content_id: str = "",
     evidence_digest: str,
     evaluation_status: str,
     shadow_status: str,
@@ -100,6 +103,8 @@ def build_provenance(
         parent_state_digest=parent_state_digest,
         proposed_state_digest=proposed_state_digest,
         evidence_digest=evidence_digest,
+        proposed_state_content_id=proposed_state_content_id,
+        proposed_state_content_id=proposed_state_content_id,
         evaluation_status=evaluation_status,
         shadow_status=shadow_status,
         invariant_status=invariant_status,
@@ -127,6 +132,7 @@ def crosscheck_provenance(
     shadow_status: str,
     invariant_status: str,
     governance_decision: str,
+    proposed_state_content_id: str = "",
 ) -> ProvenanceCrossCheck:
     """Verify every identity-bearing link before provenance can be trusted."""
     reasons: list[str] = []
@@ -138,6 +144,8 @@ def crosscheck_provenance(
         reasons.append("parent_state_digest mismatch")
     if provenance.proposed_state_digest != proposed_state_digest:
         reasons.append("proposed_state_digest mismatch")
+    if provenance.proposed_state_content_id != proposed_state_content_id:
+        reasons.append("proposed_state_content_id mismatch")
     if provenance.evidence_digest != evidence_digest:
         reasons.append("evidence_digest mismatch")
     if provenance.execution_id != execution_id_value:
