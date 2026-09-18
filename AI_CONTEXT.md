@@ -754,7 +754,9 @@ Next step after CI:
 
 ### GNV2-EVOLUTION-PROMOTION-GATE-005
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35290236269 SUCCESS; Python 3.11 and 3.12 SUCCESS; 201 passed, 10 warnings.
 
 Added a non-authoritative PromotionGate:
 - validates provenance cross-check status
