@@ -1740,3 +1740,22 @@ Exchange must be fail-closed with respect to identity and integrity: malformed, 
 A capability description may be shared without granting execution authority. An evidence exchange may influence future hypothesis generation, but cannot itself mutate Core, activate a capability, merge identities, or bypass protected invariants.
 
 This establishes the conceptual bridge for future networked Gnozis: independent agents can learn from one another while preserving independent histories and authority boundaries.
+
+
+### GNV2-FORMAL-049P — REPLICATION AND INDEPENDENT CONFIRMATION
+
+A result originating in one evolutionary lineage becomes independently confirmed only when another lineage reproduces the relevant claim, capability effect, or transition under explicitly recorded conditions and obtains qualifying evidence through an independent execution path.
+
+Conceptual replication record:
+
+R = (source_result, source_provenance, receiving_lineage, replication_conditions, execution_identity, observed_result, comparison, independence_status)
+
+Replication must preserve the distinction between SOURCE_RESULT, REPLICATION_RESULT, and CONFIRMATION. Independence is contextual, not absolute: shared data, artifacts, implementations, or conditions that weaken independence must be disclosed.
+
+Possible outcomes: CONFIRMED, PARTIAL, FAILED, INCONCLUSIVE, DEPENDENCY_CONSTRAINED.
+
+A replication result never rewrites the source result. Agreement strengthens the provenance graph; disagreement becomes new evidence and may expose boundary conditions, model conflict, or hidden dependencies.
+
+Independent confirmation is epistemic only. It does not grant authority, merge identities, activate capabilities, or bypass protected invariants.
+
+This establishes distributed learning in which multiple Gnozis lineages can validate one another while retaining separate identities and histories.
