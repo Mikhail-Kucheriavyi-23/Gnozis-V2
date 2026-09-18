@@ -258,3 +258,18 @@ def test_crosscheck_rejects_state_digest_mismatch():
     )
     assert not result.valid
     assert "parent_state_digest mismatch" in result.reasons
+
+
+def test_state_content_identity_is_canonical_and_version_independent():
+    from gnosis.core.types import State
+    a = State(elements={"b": 2, "a": {"x": 1}}, version=1)
+    b = State(elements={"a": {"x": 1}, "b": 2}, version=99)
+    assert a.content_id == b.content_id
+    assert a.state_id != b.state_id
+
+
+def test_state_content_identity_changes_with_content():
+    from gnosis.core.types import State
+    a = State(elements={"x": 1})
+    b = State(elements={"x": 2})
+    assert a.content_id != b.content_id
