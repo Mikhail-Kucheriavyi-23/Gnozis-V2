@@ -787,3 +787,18 @@ Added:
 - regression tests for intact, tampered and identity-mismatched evidence
 
 Replay is verification only. It has no Core mutation or activation authority.
+
+
+### GNV2-EVOLUTION-AUDIT-007
+
+Implementation status: **IMPLEMENTED — awaiting CI verification**.
+
+Added:
+- append-only evolution audit records
+- monotonic sequence numbers
+- chained previous/record SHA-256 digests
+- SQLite persistence for the audit chain
+- chain verification with fail-closed mismatch reasons
+- regression tests for intact and tampered chains
+
+Audit records are evidence/history only and have no Core mutation or activation authority.
