@@ -775,7 +775,9 @@ This gate is an eligibility/proof boundary, not an authorization boundary.
 
 ### GNV2-EVOLUTION-REPLAY-006
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35290463846 SUCCESS; Python 3.11 and 3.12 SUCCESS; 204 passed, 10 warnings.
 
 Added:
 - deterministic replay of recorded evidence without re-executing or activating a candidate
