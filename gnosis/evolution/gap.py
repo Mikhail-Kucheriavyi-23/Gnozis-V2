@@ -79,3 +79,31 @@ class GapDetector:
                 )
             )
         return tuple(result)
+
+
+def history_from_persisted_transitions(records: Sequence[Any]) -> tuple[dict[str, Any], ...]:
+    """Convert canonical TransitionRecord objects into detector observations.
+
+    This adapter is read-only: it does not reconstruct or mutate Core state.
+    The detector consumes only explicit transition evidence and preserves the
+    transition candidate/state identities as source references.
+    """
+    observations: list[dict[str, Any]] = []
+    for record in records:
+        accepted = bool(getattr(record, "accepted"))
+        test_result = getattr(record, "test_result", None)
+        reasons = tuple(getattr(test_result, "reasons", ())) if test_result is not None else ()
+        status = "ACCEPTED" if accepted else "REJECTED"
+        for reason in reasons or (getattr(record, "reason", "unspecified"),):
+            observations.append({
+                "record_id": f"transition:{record.candidate_id}:{record.from_state_id}:{record.to_state_id}:{reason}",
+                "kind": "transition",
+                "status": status,
+                "reason": str(reason),
+                "candidate_id": record.candidate_id,
+                "from_state_id": record.from_state_id,
+                "to_state_id": record.to_state_id,
+                "test_rule_id": getattr(record, "test_rule_id", "test-rule:unspecified"),
+                "unresolved": not accepted,
+            })
+    return tuple(observations)
