@@ -262,8 +262,8 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
     conn.execute(
         """INSERT OR IGNORE INTO evolution_provenance
         (provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,
-         evaluation_status,shadow_status,invariant_status,governance_decision,status,evolution_identity,proposed_state_content_id)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+         evaluation_status,shadow_status,invariant_status,governance_decision,status,evolution_identity,proposed_state_content_id,candidate_binding_digest)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             provenance_id,
             provenance.execution_id,
