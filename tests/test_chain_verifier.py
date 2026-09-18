@@ -1,7 +1,7 @@
 import sqlite3
 
 from gnosis.evolution.chain_verifier import verify_persisted_chain
-from gnosis.evolution.provenance import EvidenceProvenance, canonical_digest
+from gnosis.evolution.provenance import EvidenceProvenance, build_provenance, canonical_digest
 from gnosis.reflection.persistence import append_evolution_audit, ensure_reflection_schema, save_evolution_provenance, list_evolution_audit
 
 
@@ -9,22 +9,22 @@ def test_independent_verifier_accepts_persisted_chain():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
     observations = {"result": "ok"}
-    p = EvidenceProvenance(
-        execution_id="e", candidate_id="c", parent_state_id="s",
-        parent_state_digest="pd", proposed_state_digest="sd",
+    p = build_provenance(
+        candidate_id="c", parent_state_id="s", parent_state_digest="pd",
+        proposed_state_digest="sd", observations=observations,
         evidence_digest=canonical_digest(observations),
         evaluation_status="PASS", shadow_status="NO_BEHAVIORAL_CHANGE",
         invariant_status="PRESERVED", governance_decision="REVIEW",
     )
     pid = save_evolution_provenance(conn, p)
     append_evolution_audit(
-        conn, event_type="EVOLUTION_RECORDED", candidate_id="c", execution_id="e",
+        conn, event_type="EVOLUTION_RECORDED", candidate_id="c", execution_id=p.execution_id,
         provenance_id=pid, parent_state_digest="pd", proposed_state_digest="sd",
         evidence_digest=p.evidence_digest, payload={"status": "RECORDED"},
     )
     rows = list_evolution_audit(conn)
     provenance_row = {
-        "provenance_id": pid, "execution_id": "e", "candidate_id": "c",
+        "provenance_id": pid, "execution_id": p.execution_id, "candidate_id": "c",
         "parent_state_id": "s", "parent_state_digest": "pd",
         "proposed_state_digest": "sd", "evidence_digest": p.evidence_digest,
         "evaluation_status": "PASS", "shadow_status": "NO_BEHAVIORAL_CHANGE",
