@@ -1266,3 +1266,8 @@ Implementation status: **IMPLEMENTED — awaiting CI verification**. Added `gnos
 ### GNV2-MEMORY-TO-REFLECTION-044-BINDING
 
 044 refined: cumulative Reflection now exposes instance-scoped `EvolutionEvidence` from durable evolution memory. The binding accepts an explicit `instance_id` rather than guessing from Engine, preserving instance isolation. Memory remains read-only evidence and does not create candidates, mutate Core, or grant authority. Added a regression test for empty instance-scoped memory. Awaiting CI verification.
+
+
+### CI-VERIFIED-044
+
+CI run `35339136889` SUCCESS on `9bea14f72e244c39b8b3d689f63da88af1813a9e`. Instance-scoped Evolution Memory → Reflection evidence binding is CI-verified. Reflection remains read-only with respect to memory/Core; no authority or mutation path was introduced.
