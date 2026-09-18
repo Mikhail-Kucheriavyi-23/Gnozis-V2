@@ -1,4 +1,5 @@
-from gnosis.reflection.authority import request_authorization
+import pytest
+from gnosis.reflection.authority import ExecutionAuthorization, request_authorization, require_execution_authorization
 from gnosis.reflection.governance import GovernanceDecision
 
 
@@ -18,3 +19,17 @@ def test_authority_request_requires_owner_and_grants_no_capability() -> None:
     assert request.can_rollback is False
     assert request.decision == "REVIEW"
     assert request.rationale == ("behavior_changed",)
+
+
+def test_execution_authorization_fails_closed_without_explicit_owner_approval():
+    with pytest.raises(PermissionError, match="execution authorization required"):
+        require_execution_authorization(None)
+    auth = ExecutionAuthorization(request_provenance="p", owner_approved=False)
+    with pytest.raises(PermissionError, match="execution authorization required"):
+        require_execution_authorization(auth)
+
+
+def test_execution_authorization_requires_nonempty_provenance():
+    auth = ExecutionAuthorization(request_provenance="", owner_approved=True)
+    with pytest.raises(PermissionError, match="execution authorization required"):
+        require_execution_authorization(auth)
