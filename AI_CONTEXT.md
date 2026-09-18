@@ -791,7 +791,9 @@ Replay is verification only. It has no Core mutation or activation authority.
 
 ### GNV2-EVOLUTION-AUDIT-007
 
-Implementation status: **IMPLEMENTED — awaiting CI verification**.
+Implementation status: **VERIFIED by CI**.
+
+CI evidence: run 35290723629 SUCCESS; Python 3.11 and 3.12 SUCCESS; 206 passed, 10 warnings. Self-Diagnostic 35290719190 SUCCESS.
 
 Added:
 - append-only evolution audit records
