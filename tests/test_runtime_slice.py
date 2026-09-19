@@ -260,3 +260,28 @@ def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions
         baselines=(b1, b2), candidates=(c1, c2), minimum_repetitions=2, minimum_delta=0.0
     )
     assert result.status == "INSUFFICIENT"
+
+
+def test_runtime_slice_uses_replicated_evidence_for_selection():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "rb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "rb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "rc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "rc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "SUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "ACCEPT_FOR_REVIEW"
