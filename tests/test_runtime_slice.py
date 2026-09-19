@@ -384,3 +384,46 @@ def test_accept_for_review_cannot_mutate_canonical_state_or_grant_activation():
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
     assert "activation_capability" not in result.selection.__dict__
+
+
+def test_runtime_slice_replays_and_recovers_same_persisted_evidence():
+    from gnosis.evolution.replay import replay_complete
+    from gnosis.evolution.recovery import recover_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "pb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "pb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "pc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "pc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+
+    replay = replay_complete(
+        result.sandbox.execution,
+        result.provenance,
+        result.transaction.audit_record,
+        observations=result.sandbox.execution.observations,
+    )
+    assert replay.reproducible is True
+
+    recovery = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovery.chain_valid is True
+    assert recovery.replay_valid is True
+    assert recovery.expected_digest == recovery.actual_digest
