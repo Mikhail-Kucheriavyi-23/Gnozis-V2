@@ -11,12 +11,14 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Sequence
 
 from gnosis.core.types import Candidate, State, TransitionRecord
+from gnosis.core.verification import TestFn
 from .capability import CapabilityHypothesis, CapabilitySynthesizer
 from .evaluator import EvaluationResult, evaluate_observation
 from .gap import GapDetector, GapHypothesis, history_from_persisted_transitions
 from .provenance import EvidenceProvenance, build_provenance
 from .sandbox import ObservationFn, SandboxBudget, SandboxResult, run_sandbox
 from .transaction import EvolutionTransactionResult, persist_evolution_transaction
+from gnosis.reflection.shadow import ShadowEvaluation, evaluate_shadow
 
 
 @dataclass(frozen=True)
@@ -30,6 +32,7 @@ class RuntimeSliceResult:
     evaluation: EvaluationResult
     provenance: EvidenceProvenance
     transaction: EvolutionTransactionResult
+    shadow: ShadowEvaluation | None = None
 
 
 def capability_candidate(state: State, capability: CapabilityHypothesis) -> Candidate:
@@ -83,6 +86,8 @@ def run_runtime_slice(
     sandbox_budget: SandboxBudget = SandboxBudget(),
     predicate: str = "observations_present",
     minimum_repetitions: int = 2,
+    active_test: TestFn | None = None,
+    shadow_test: TestFn | None = None,
 ) -> RuntimeSliceResult:
     """Execute one complete bounded evolution slice and persist its evidence.
 
@@ -124,6 +129,14 @@ def run_runtime_slice(
         sandbox.execution.evidence_digest,
     )
 
+    shadow: ShadowEvaluation | None = None
+    shadow_status = "NOT_RUN"
+    if (active_test is None) != (shadow_test is None):
+        raise ValueError("active_test and shadow_test must be supplied together")
+    if active_test is not None and shadow_test is not None:
+        shadow = evaluate_shadow((candidate,), active_test, shadow_test)
+        shadow_status = shadow.status
+
     candidate_binding_digest = candidate.binding_digest(state.content_id)
     provenance = build_provenance(
         candidate_id=candidate.candidate_id,
@@ -135,7 +148,7 @@ def run_runtime_slice(
         observations=sandbox.execution.observations,
         evidence_digest=sandbox.execution.evidence_digest,
         evaluation_status=evaluation.status,
-        shadow_status="NOT_RUN",
+        shadow_status=shadow_status,
         invariant_status="UNCHANGED",
         governance_decision="REVIEW",
     )
@@ -160,4 +173,5 @@ def run_runtime_slice(
         evaluation=evaluation,
         provenance=provenance,
         transaction=transaction,
+        shadow=shadow,
     )
