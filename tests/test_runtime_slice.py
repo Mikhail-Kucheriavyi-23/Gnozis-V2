@@ -547,3 +547,54 @@ def test_tampered_persisted_provenance_fails_closed():
     )
     assert report.replay_valid is False
     assert "recovery replay digest mismatch" in report.reasons or "provenance identity mismatch" in report.reasons
+
+
+def test_tampered_candidate_binding_and_state_content_fail_closed():
+    from gnosis.evolution.recovery import recover_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 0}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "qb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "qb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "qc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "qc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    pid = result.provenance.provenance_id
+
+    conn.execute(
+        "UPDATE evolution_provenance SET candidate_binding_digest=? WHERE provenance_id=?",
+        ("tampered-binding", pid),
+    )
+    binding_report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert binding_report.replay_valid is False
+    assert "recovery evolution identity mismatch" in binding_report.reasons
+
+    conn.execute(
+        "UPDATE evolution_provenance SET candidate_binding_digest=? WHERE provenance_id=?",
+        (result.provenance.candidate_binding_digest, pid),
+    )
+    wrong_state = State(elements={"a": 999})
+    state_report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=wrong_state,
+    )
+    assert state_report.replay_valid is False
+    assert "proposed state content identity mismatch" in state_report.reasons
