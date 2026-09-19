@@ -63,3 +63,14 @@ The evaluator used by the default slice proves only that sandbox observations ex
 4. Only then update the main-branch implementation percentage.
 
 Absolute Genesis minimality and `JustifiedAuthority` remain research questions and are not blockers for this slice.
+
+
+## Follow-up: bounded shadow stage
+
+Commit: `8bbc6497fa4d17cc76e8099f5971edbcc8410d6e`
+
+The runtime slice now optionally accepts explicit `active_test` and `shadow_test` functions and records the existing reflection `ShadowEvaluation.status`. Both functions are required together; omission leaves the stage `NOT_RUN`. No activation API is called and `CapabilityHypothesis.can_activate` remains permanently false.
+
+CI run `35447187990`: **SUCCESS** — Python 3.11: **280 passed, 12 warnings**; Python 3.12: **280 passed, 12 warnings**.
+
+This verifies the adapter path, not the semantic usefulness of any particular shadow rule. A supplied shadow function remains external evidence, not authority.
