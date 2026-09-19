@@ -704,6 +704,60 @@ def test_tampered_candidate_binding_and_state_content_fail_closed():
 
 
 
+
+
+def test_reflection_recovery_detects_tampered_evidence_digest_and_fails_closed():
+    from gnosis.core import Budget
+    from gnosis.evolution.recovery import recover_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:tamper",
+            finding_id="finding:tamper",
+            target="rule:v1",
+            hypothesis="tamper test",
+            evidence_refs=("evidence:tamper",),
+            expected_effect="bounded effect",
+            regression_risk="low",
+            required_test="tamper test",
+        ),
+    ))
+    candidate = generate_endogenous_candidates(
+        state, report, budget=Budget(total=1)
+    ).candidates[0]
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    conn.execute(
+        "UPDATE evolution_provenance SET evidence_digest=? WHERE provenance_id=?",
+        ("tampered-evidence-digest", result.provenance.provenance_id),
+    )
+    conn.commit()
+
+    audits = list(list_evolution_audit(conn))
+    assert verify_audit_chain(audits)[0] is True
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovered.chain_valid is False
+    assert recovered.replay_valid is False
+    assert any("digest" in reason for reason in recovered.reasons)
+
 def test_reflection_vertical_evidence_recovers_and_replays_fail_closed():
     from gnosis.core import Budget
     from gnosis.evolution.recovery import recover_evolution_audit
