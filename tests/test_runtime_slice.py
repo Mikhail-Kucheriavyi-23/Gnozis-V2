@@ -484,6 +484,24 @@ def test_gap_identity_changes_for_a_different_repeated_pattern():
 
 
 
+
+
+def test_capability_synthesis_rejects_fabricated_gap():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapHypothesis
+
+    fabricated = GapHypothesis(
+        gap_id="fabricated-gap",
+        trigger_kind="transition",
+        source_records=(),
+        conflict_summary="fabricated",
+        confidence=0.0,
+        status="FABRICATED",
+    )
+
+    with pytest.raises(ValueError, match="valid gap hypothesis"):
+        CapabilitySynthesizer().synthesize(fabricated)
+
 def test_capability_synthesis_is_deterministic_and_gap_bound():
     from gnosis.evolution.capability import CapabilitySynthesizer
     from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
