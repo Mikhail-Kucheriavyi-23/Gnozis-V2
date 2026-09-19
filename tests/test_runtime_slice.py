@@ -702,6 +702,58 @@ def test_tampered_candidate_binding_and_state_content_fail_closed():
     assert "proposed state content identity mismatch" in state_report.reasons
 
 
+
+
+def test_reflection_vertical_evidence_recovers_and_replays_fail_closed():
+    from gnosis.core import Budget
+    from gnosis.evolution.recovery import recover_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before = state.content_id
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:recovery",
+            finding_id="finding:recovery",
+            target="rule:v1",
+            hypothesis="recovery test",
+            evidence_refs=("evidence:recovery",),
+            expected_effect="bounded effect",
+            regression_risk="low",
+            required_test="recovery test",
+        ),
+    ))
+    candidate = generate_endogenous_candidates(
+        state, report, budget=Budget(total=1)
+    ).candidates[0]
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    audits = list(list_evolution_audit(conn))
+    assert verify_audit_chain(audits)[0] is True
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovered.chain_valid is True
+    assert recovered.replay_valid is True
+    assert recovered.provenance is not None
+    assert recovered.provenance.governance_decision == "REVIEW"
+    assert state.content_id == before
+
 def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_core_mutation():
     from gnosis.core import Budget, State
     from gnosis.evolution import SandboxBudget, run_bounded_candidate
