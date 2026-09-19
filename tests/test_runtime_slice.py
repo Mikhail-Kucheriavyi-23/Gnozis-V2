@@ -432,6 +432,57 @@ def test_gap_detection_changes_when_material_history_changes():
     assert baseline[0].gap_id != altered[0].gap_id
     assert baseline[0].source_records != altered[0].source_records
 
+
+
+def test_gap_disappears_when_repeated_pattern_is_broken():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    records = list(_history())
+    records[1] = dataclasses.replace(records[1], reason="different-material-pattern")
+    altered = history_from_persisted_transitions(tuple(records))
+
+    result = detector.detect(
+        history=altered,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert result == ()
+
+
+def test_gap_identity_changes_for_a_different_repeated_pattern():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    baseline = history_from_persisted_transitions(_history())
+    records = list(_history())
+    records[0] = dataclasses.replace(records[0], reason="different-material-pattern")
+    records[1] = dataclasses.replace(records[1], reason="different-material-pattern")
+    altered = history_from_persisted_transitions(tuple(records))
+
+    first = detector.detect(
+        history=baseline,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+    second = detector.detect(
+        history=altered,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert first and second
+    assert first[0].gap_id != second[0].gap_id
+    assert first[0].trigger_kind == second[0].trigger_kind == "transition"
+    assert first[0].source_records != second[0].source_records
+
 def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
