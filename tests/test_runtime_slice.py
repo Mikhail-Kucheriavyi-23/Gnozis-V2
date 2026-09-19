@@ -3,7 +3,7 @@ import sqlite3
 
 from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
-from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, evaluate_comparative, evaluate_outcomes
+from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 
 
@@ -225,3 +225,38 @@ def test_runtime_slice_integrates_outcome_sufficiency_and_review_selection():
     assert result.selection.status == "ACCEPT_FOR_REVIEW"
     assert result.capability.can_activate is False
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+
+
+def test_replicated_evidence_requires_independent_repetitions_and_clears_conservative_bound():
+    baselines = (
+        Outcome("accuracy", 0.80, "maximize", 0.01, "b1"),
+        Outcome("accuracy", 0.81, "maximize", 0.01, "b2"),
+    )
+    candidates = (
+        Outcome("accuracy", 0.84, "maximize", 0.01, "c1"),
+        Outcome("accuracy", 0.85, "maximize", 0.01, "c2"),
+    )
+    result = assess_replicated_evidence(
+        baselines=baselines, candidates=candidates, minimum_repetitions=2, minimum_delta=0.01
+    )
+    assert result.status == "SUFFICIENT"
+    assert result.repetitions == 2
+    assert result.conservative_delta_lower_bound == pytest.approx(0.01)
+
+
+def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions():
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "same")
+    candidate = Outcome("accuracy", 0.84, "maximize", 0.01, "same")
+    result = assess_replicated_evidence(
+        baselines=(baseline,), candidates=(candidate,), minimum_repetitions=2
+    )
+    assert result.status == "INSUFFICIENT"
+
+    b1 = Outcome("accuracy", 0.80, "maximize", 0.01, "b1")
+    c1 = Outcome("accuracy", 0.84, "maximize", 0.01, "c1")
+    b2 = Outcome("accuracy", 0.82, "maximize", 0.02, "b2")
+    c2 = Outcome("accuracy", 0.83, "maximize", 0.02, "c2")
+    result = assess_replicated_evidence(
+        baselines=(b1, b2), candidates=(c1, c2), minimum_repetitions=2, minimum_delta=0.0
+    )
+    assert result.status == "INSUFFICIENT"
