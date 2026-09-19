@@ -13,3 +13,5 @@ from .runtime import RuntimeSliceResult, capability_candidate, run_runtime_slice
 __all__ = ["GapHypothesis","GapDetector","CapabilityHypothesis","CapabilitySynthesizer","SandboxBudget","SandboxExecution","SandboxResult","run_sandbox","EvaluationResult","evaluate_observation","PromotionCandidate","PromotionGate","ReplayResult","replay_evidence","replay_identity","EvolutionTransactionResult","persist_evolution_transaction","evaluate_promotion_gate","make_promotion_candidate","RuntimeSliceResult","capability_candidate","run_runtime_slice"]
 
 from .evaluator import Outcome, evaluate_outcomes
+
+from .selection import SelectionResult, select_for_review
