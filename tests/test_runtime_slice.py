@@ -199,3 +199,29 @@ def test_selection_rejects_insufficient_or_non_improving_evidence():
     assert select_for_review(
         candidate_id="candidate-1", comparison=no_change, sufficiency=sufficient
     ).status == "REJECT"
+
+
+def test_runtime_slice_integrates_outcome_sufficiency_and_review_selection():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcome=Outcome("accuracy", 0.80, "maximize", 0.01, "baseline"),
+        candidate_outcome=Outcome("accuracy", 0.84, "maximize", 0.01, "candidate"),
+        minimum_delta=0.02,
+        min_confidence=0.65,
+    )
+
+    assert result.comparison is not None
+    assert result.comparison.status == "IMPROVED"
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "SUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "ACCEPT_FOR_REVIEW"
+    assert result.capability.can_activate is False
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
