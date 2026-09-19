@@ -512,3 +512,37 @@ def test_corrupted_audit_chain_fails_closed():
     ok, reasons = verify_audit_chain(tampered_previous)
     assert ok is False
     assert any("previous digest mismatch" in reason for reason in reasons)
+
+
+def test_tampered_persisted_provenance_fails_closed():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 0}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "pb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "pb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "pc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "pc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    pid = result.provenance.provenance_id
+    conn.execute(
+        "UPDATE evolution_provenance SET evidence_digest=? WHERE provenance_id=?",
+        ("tampered", pid),
+    )
+    report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert report.replay_valid is False
+    assert "recovery replay digest mismatch" in report.reasons or "provenance identity mismatch" in report.reasons
