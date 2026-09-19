@@ -11,8 +11,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Sequence
 
 from gnosis.core.types import Candidate, State, TransitionRecord
-from gnosis.reflection.persistence import ensure_reflection_schema
-
 from .capability import CapabilityHypothesis, CapabilitySynthesizer
 from .evaluator import EvaluationResult, evaluate_observation
 from .gap import GapDetector, GapHypothesis, history_from_persisted_transitions
@@ -91,6 +89,8 @@ def run_runtime_slice(
     The canonical state supplied by the caller is never replaced or persisted
     by this function. Only candidate/evidence provenance is persisted.
     """
+    from gnosis.reflection.persistence import ensure_reflection_schema
+
     ensure_reflection_schema(conn)
     history = history_from_persisted_transitions(transitions)
     gaps = GapDetector().detect(
