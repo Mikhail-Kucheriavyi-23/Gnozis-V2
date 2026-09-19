@@ -236,6 +236,7 @@ def test_verified_evidence_stops_at_review_and_cannot_become_authority():
     from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
     from gnosis.evolution.promotion import make_promotion_candidate, evaluate_promotion_gate
     from gnosis.evolution.selection import select_for_review
+    from gnosis.reflection.authority import GovernanceDecision, request_authorization
 
     comparison = ComparativeEvaluation(
         status="IMPROVED",
