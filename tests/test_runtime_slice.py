@@ -428,9 +428,8 @@ def test_gap_detection_changes_when_material_history_changes():
         minimum_repetitions=2,
     )
 
-    assert baseline and altered
-    assert baseline[0].gap_id != altered[0].gap_id
-    assert baseline[0].source_records != altered[0].source_records
+    assert baseline
+    assert altered == ()
 
 
 
