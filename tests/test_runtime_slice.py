@@ -427,3 +427,44 @@ def test_runtime_slice_replays_and_recovers_same_persisted_evidence():
     assert recovery.chain_valid is True
     assert recovery.replay_valid is True
     assert recovery.expected_digest == recovery.actual_digest
+
+
+def test_multiple_runtime_cycles_form_append_only_audit_chain_and_recover():
+    from gnosis.evolution.recovery import recover_evolution_audit
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+
+    results = []
+    for idx, base in enumerate((0.80, 0.82, 0.84)):
+        result = run_runtime_slice(
+            conn=conn,
+            state=State(elements={"a": idx}),
+            transitions=_history(),
+            observe=_observer,
+            baseline_outcomes=(
+                Outcome("accuracy", base, "maximize", 0.01, f"mb{idx}1"),
+                Outcome("accuracy", base + 0.01, "maximize", 0.01, f"mb{idx}2"),
+            ),
+            candidate_outcomes=(
+                Outcome("accuracy", base + 0.04, "maximize", 0.01, f"mc{idx}1"),
+                Outcome("accuracy", base + 0.05, "maximize", 0.01, f"mc{idx}2"),
+            ),
+            minimum_repetitions=2,
+            minimum_delta=0.01,
+        )
+        results.append(result)
+
+    audits = list_evolution_audit(conn)
+    ok, reasons = verify_audit_chain(list(audits))
+    assert ok is True, reasons
+    assert [a.sequence for a in audits] == list(range(len(audits)))
+    assert len({a.record_digest for a in audits}) == len(audits)
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=results[-1].provenance.provenance_id,
+        observations=results[-1].sandbox.execution.observations,
+        proposed_state=results[-1].candidate.proposed_state,
+    )
+    assert recovered.chain_valid is True
+    assert recovered.replay_valid is True
