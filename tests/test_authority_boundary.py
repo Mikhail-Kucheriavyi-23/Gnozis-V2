@@ -239,17 +239,16 @@ def test_verified_evidence_stops_at_review_and_cannot_become_authority():
 
     comparison = ComparativeEvaluation(
         status="IMPROVED",
-        metric="accuracy",
-        baseline_value=0.80,
-        candidate_value=0.85,
+        baseline_score=0.80,
+        candidate_score=0.85,
         delta=0.05,
         rationale=("candidate improved baseline",),
+        evidence_digest="evidence-1",
     )
     sufficiency = EvidenceSufficiency(
-        sufficient=True,
-        repetitions=3,
-        minimum_repetitions=2,
-        rationale=("enough repeated evidence",),
+        status="SUFFICIENT",
+        confidence=1.0,
+        rationale=("enough evidence",),
     )
     selected = select_for_review(
         candidate_id="candidate-1",
