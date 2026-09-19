@@ -102,7 +102,7 @@ def test_memory_history_changes_hypothesis_context_deterministically():
 
 def test_endogenous_commit_records_hypothesis_only_and_not_authority():
     from gnosis.core import Budget, Engine
-    from gnosis.reflection.promotion import make_promotion_candidate, evaluate_promotion_gate
+    from gnosis.evolution.promotion import make_promotion_candidate, evaluate_promotion_gate
 
     state = State(elements={"a": 1})
     report = ReflectionReport(proposals=(proposal(1),))
