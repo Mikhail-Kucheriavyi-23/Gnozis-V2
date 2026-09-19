@@ -1,3 +1,4 @@
+import pytest
 import sqlite3
 
 from gnosis.core import State, TestResult, TransitionRecord
