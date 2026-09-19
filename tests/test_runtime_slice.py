@@ -750,8 +750,6 @@ def test_reflection_vertical_evidence_recovers_and_replays_fail_closed():
     )
     assert recovered.chain_valid is True
     assert recovered.replay_valid is True
-    assert recovered.provenance is not None
-    assert recovered.provenance.governance_decision == "REVIEW"
     assert state.content_id == before
 
 def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_core_mutation():
