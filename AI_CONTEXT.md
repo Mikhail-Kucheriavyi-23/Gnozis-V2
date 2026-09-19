@@ -2402,3 +2402,188 @@ Current state remains:
   Canonical self-evolution = CLOSED.
 
 The next agent must read this entire AI_CONTEXT, reconcile current HEAD, inspect the actual code, and select exactly one READY task. It must not assume that a mathematical completion percentage is runtime verification.
+
+
+### 20.13 — 2026-09-19 RUNTIME BOUNDARY PROGRESS UPDATE
+
+This section records the verified work completed after the earlier mathematical reverse-analysis and must be treated as the latest operational handoff for this workstream.
+
+IMPORTANT:
+- This work was performed on development branch `runtime-slice-001`, not main.
+- Do not treat branch commits as current main HEAD.
+- Main remains the authoritative production/reference branch until the development work is intentionally merged.
+- CI evidence below is real GitHub CI evidence for the stated commits.
+
+#### Verified progress
+
+1. Endogenous reflection candidate boundary
+- A multi-cycle regression test was added for three successive Reflection → endogenous Candidate → Core Test/Select cycles.
+- The test verifies that proposals may enter Ψ as proposal metadata while no `activated_rule`, `authority`, or `authorization` record is produced.
+- CI run 644 completed successfully with 302 passed.
+- This confirms the distinction:
+  Candidate/proposal state ≠ rule activation ≠ authority.
+
+2. Shared bounded candidate execution boundary
+A common Evolution boundary was added:
+
+Reflection Candidate
+  OR
+Gap/Capability Candidate
+  ↓
+run_bounded_candidate()
+  ↓
+Sandbox
+  ↓
+Evaluation
+  ↓
+Provenance
+  ↓
+Audit transaction
+  ↓
+Review
+
+The new boundary is intentionally non-authoritative:
+- it accepts a supplied Candidate;
+- executes it through the existing bounded sandbox/evidence path;
+- records provenance and a `BOUNDED_RUNTIME_EVIDENCE` transaction;
+- returns governance classification as REVIEW;
+- does not mutate canonical Core state;
+- does not activate the Candidate.
+
+The public Evolution export now exposes `run_bounded_candidate`.
+
+3. Real CI correction cycle
+The new integration test initially exposed two schema mismatches in the newly written test/adapter code:
+- GapHypothesis constructor mismatch;
+- CapabilityHypothesis required fields mismatch.
+
+These were corrected against the actual repository dataclass definitions. This is useful evidence: the CI loop caught concrete integration errors rather than allowing an unexecuted test to be called complete.
+
+Final CI:
+- commit: `836a69fface0170f638fb07014d0de20e0636909`
+- CI run: 652
+- result: SUCCESS
+- suite result: 305 passed
+- Python 3.11/3.12 workflow completed successfully.
+
+#### Current verified architectural position
+
+The current tested boundary is:
+
+Reflection
+  ↓
+RuleProposal
+  ↓
+endogenous Candidate
+  ↓
+shared bounded candidate boundary
+  ↓
+Sandbox / Evaluation / Provenance / Audit
+  ↓
+REVIEW
+  ↓
+NO AUTONOMOUS ACTIVATION
+
+The canonical Core state remains unchanged by `run_bounded_candidate`.
+
+This is stronger than the historical external-audit wording that merely said endogenous candidates "may enter canonical X/R if passed to Engine.step()". The current code now has an explicitly tested non-authoritative evidence path for those candidates. The historical audit finding remains relevant only to the separate question of whether proposal metadata is permitted to become canonical state through normal Core Test/Select.
+
+#### Current progress estimate — 2026-09-19
+
+These are analytical completion estimates, NOT test coverage:
+
+| Layer | Completion |
+|---|---:|
+| Ψ=(X,R) | 99% |
+| Transition / lineage | 96% |
+| Structural invariants | 96% |
+| Evidence / provenance | 97% |
+| Proof obligations | 92% |
+| Proof DAG | 86% |
+| Tension / contradiction | 87% |
+| Incomparability | 83% |
+| Composition | 82% |
+| Meaning preservation | 79% |
+| Meaning-loss accounting | 68% |
+| F/rule evolution | 72% |
+| Evolvable meaning M_E | 64% |
+| Protected M_K boundary | 95% |
+| Information ↔ authority separation | 96% |
+| Trust boundary | 96% |
+| Genesis candidate | 78% |
+| Genesis minimality | 57% |
+| External proof verification | 40% |
+| Meta-evolution | 44% |
+| Runtime enforcement | 35% |
+| Real pytest/CI verification of current research/runtime slice | 35% |
+
+Working overall engineering/architecture progress: approximately **94%** for the currently defined foundation/evidence workstream.
+
+This percentage must NOT be interpreted as:
+- repository completion;
+- autonomous evolution completion;
+- test coverage;
+- percentage of all planned Gnozis capabilities.
+
+Canonical self-evolution remains CLOSED.
+
+#### Current next task
+
+TASK-ID: GNV2-RUNTIME-FAILCLOSED-001
+BLOCK: Shared bounded candidate execution — failure path
+STATUS: READY
+PRIORITY: P1
+DEPENDS_ON:
+- shared bounded candidate boundary implemented;
+- Reflection → endogenous Candidate boundary verified;
+- CI run 652 SUCCESS.
+
+OBJECTIVE:
+Verify that a Reflection-generated Candidate which fails inside the bounded execution boundary becomes explicit rejected/insufficient evidence, remains auditable, and cannot become authority or canonical mutation.
+
+SCOPE:
+- use a real endogenous Reflection Candidate;
+- force a deterministic sandbox/test failure without bypassing the sandbox;
+- verify evaluation status is REJECTED/INCONCLUSIVE as appropriate;
+- verify provenance remains reconstructable;
+- verify audit transaction records the failure;
+- verify governance remains non-authoritative;
+- verify canonical Core state remains unchanged.
+
+DO_NOT_CHANGE:
+- Ψ-Core authority semantics;
+- protected invariants;
+- persistence append-only/hash-chain semantics;
+- `can_activate=False`;
+- `can_rollback=False`;
+- no autonomous promotion;
+- no Genesis implementation;
+- no JustifiedAuthority implementation yet.
+
+REQUIRED_TESTS:
+- new focused failure-path regression test;
+- relevant runtime/evolution suite;
+- complete pytest/CI verification.
+
+ACCEPTANCE:
+- deterministic failure is observed by the real sandbox;
+- failure is not converted into success;
+- evidence/provenance/audit survives;
+- no canonical Core mutation occurs;
+- no authority/authorization is granted;
+- CI is green before DONE.
+
+AUDIT:
+Classify every failure as production defect, test/fixture defect, or architectural contradiction. Do not weaken the boundary to make the test pass.
+
+NEXT:
+After this failure-path gate is green, perform the complete Reflection → Candidate → Sandbox → Evidence → Review vertical integration test. Only then reconsider the Proof/Authority mathematical implementation boundary.
+
+#### Handoff note
+
+The mathematical stopping-rule discussion remains active, but implementation is no longer blocked on solving Genesis minimality. The repository already contains a concrete bounded runtime contract compatible with the current research model. Therefore future work should alternate:
+1. one concrete evidence-backed runtime task;
+2. real CI verification;
+3. reverse-analysis only where a concrete architectural dependency remains unresolved.
+
+Do not return to an open-ended "reduce primitives further" loop without a measurable deletion/reduction criterion.
