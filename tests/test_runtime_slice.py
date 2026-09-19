@@ -470,3 +470,45 @@ def test_multiple_runtime_cycles_form_append_only_audit_chain_and_recover():
     )
     assert recovered.chain_valid is True
     assert recovered.replay_valid is True
+
+
+def test_corrupted_audit_chain_fails_closed():
+    from dataclasses import replace
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    for idx, base in enumerate((0.80, 0.82)):
+        run_runtime_slice(
+            conn=conn,
+            state=State(elements={"a": idx}),
+            transitions=_history(),
+            observe=_observer,
+            baseline_outcomes=(
+                Outcome("accuracy", base, "maximize", 0.01, f"cb{idx}1"),
+                Outcome("accuracy", base + 0.01, "maximize", 0.01, f"cb{idx}2"),
+            ),
+            candidate_outcomes=(
+                Outcome("accuracy", base + 0.04, "maximize", 0.01, f"cc{idx}1"),
+                Outcome("accuracy", base + 0.05, "maximize", 0.01, f"cc{idx}2"),
+            ),
+            minimum_repetitions=2,
+            minimum_delta=0.01,
+        )
+
+    records = list(list_evolution_audit(conn))
+    assert verify_audit_chain(records)[0] is True
+
+    tampered_digest = list(records)
+    tampered_digest[0] = replace(tampered_digest[0], record_digest="tampered")
+    ok, reasons = verify_audit_chain(tampered_digest)
+    assert ok is False
+    assert any("record digest mismatch" in reason for reason in reasons)
+    assert any("previous digest mismatch" in reason for reason in reasons)
+
+    tampered_previous = list(records)
+    tampered_previous[1] = replace(tampered_previous[1], previous_digest="tampered")
+    ok, reasons = verify_audit_chain(tampered_previous)
+    assert ok is False
+    assert any("previous digest mismatch" in reason for reason in reasons)
