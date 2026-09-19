@@ -2484,3 +2484,69 @@ The distinction between these two forms is now an explicit research question.
 - Formal/architectural research maturity: approximately 96% (analytical estimate, unchanged).
 - Runtime enforcement maturity: approximately 25% (analytical estimate, unchanged).
 - Today’s reverse-analysis has materially narrowed the remaining uncertainty from broad Core integrity to the exact semantic meaning of Test, provenance reconstruction, and whether Evolve is a required endogenous operator.
+
+
+## 2026-09-19 MATHEMATICAL REVERSE-CONTEXT — PROOF / EVOLUTION FOUNDATION
+
+This section records the reverse-analysis completed after the last repository commit. It is analytical context, not a claim of new runtime/CI verification.
+
+### A. Candidate identity / Select
+- Candidate identity is deterministic over its canonical payload: parent state identity, proposed-state content identity, origin and seed.
+- Select is deterministic over an already formed candidate set; it is not a semantic scorer and does not itself decide whether a candidate is meaningful/correct.
+- Determinism of the full Generate→Test→Select pipeline remains conditional on the provenance/determinism of candidate-generation inputs, especially seed.
+
+### B. Ψ State transition space
+- Canonical state remains Ψ=(X,R).
+- State/content representation permits arbitrary proposed X' and R', including R'=∅.
+- transition_validity checks relation endpoint consistency (source,target ∈ X' for each proposed relation); it does NOT require R ⊆ R' and does not require non-empty relations.
+- Therefore Core structural transition semantics do not impose relation monotonicity.
+- with_relations() is additive, but that is a helper/construction property, not a Core invariant.
+
+### C. Endogenous generation boundary
+- The current endogenous generator creates evidence-backed candidates by encoding proposals as bounded relation additions in proposed states.
+- This is a generator/candidate-space limitation, not a proven Core limitation: the Core State/transition layer can represent relation deletion, but the current generator does not expose an explicit ΔR− operation.
+- Do not modify Core merely to add deletion capability until the generator-level requirement is independently established.
+
+### D. Meaningful change
+- meaningful_change is content-based: meaningful iff content_id(parent) != content_id(proposed).
+- Version-only changes are not meaningful evolution.
+- Relation-only changes (ΔX=0, ΔR≠0) are meaningful; X-only changes are meaningful as well.
+- Thus meaningfulness is distinct from validity, safety, semantic correctness, or preference.
+
+### E. Invariant layer
+Current Core invariant set identified in invariants.py:
+1. parent/current-state integrity;
+2. proposed relation endpoint validity;
+3. monotonic version increase;
+4. meaningful content change.
+These invariants do not constitute a general semantic truth/utility/trust evaluator.
+
+### F. Transition identity vs change description
+- transition_id is content-addressed from the transition record/provenance and binds the transition history.
+- It is NOT itself a canonical ΔΨ object.
+- A mathematically useful derived diff is: ΔX+ = X'\\X, ΔX− = X\\X', ΔR+ = R'\\R, ΔR− = R\\R'.
+- Before introducing a new Change Object, test whether this derived Diff(Ψ,Ψ') is sufficient for proof/replay requirements.
+
+### G. Proof-preserving evolution model
+The currently justified conceptual separation is:
+Generate → Test → Select → Verify/Commit, with exact ordering of all invariant checks around Select still requiring direct execution-test confirmation.
+Useful proof layers are:
+- identity;
+- structural validity;
+- meaningful change;
+- transition consistency (Apply(Ψ,ΔΨ)=Ψ');
+- invariant preservation;
+- authorization;
+- commit/receipt evidence.
+Do not collapse these into a single notion of “proof”.
+
+### H. Open reverse-analysis points
+1. Verify actual Engine.step() execution order from executable tests/runtime evidence, not method-name inference.
+2. Establish exact provenance/determinism of seed.
+3. Determine whether existing execution tests prove Test → Select → invariant/commit ordering.
+4. Determine whether a canonical Diff(Ψ,Ψ') already exists elsewhere before proposing new ontology.
+5. Keep the distinction between Core capability and current generator behavior.
+
+### I. Audit discipline
+- No Claude audit is being used as implementation authority during this reverse pass; periodic external audits will be used later to scan the archive for missed defects.
+- Findings from this section are reverse-analysis findings and must not be marked VERIFIED until repository/runtime/CI evidence confirms them.
