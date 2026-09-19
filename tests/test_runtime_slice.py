@@ -364,6 +364,39 @@ def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions
     assert result.status == "INSUFFICIENT"
 
 
+
+
+def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before_id = state.state_id
+    before_content = state.content_id
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        available_operations=("observe", "record"),
+        resource_bound=1,
+        minimum_repetitions=2,
+    )
+
+    assert result.gap.source_records
+    assert result.gap.trigger_kind == "transition"
+    assert result.capability.source_gap_id == result.gap.gap_id
+    assert result.capability.provenance_refs == result.gap.source_records
+    assert result.capability.can_activate is False
+    assert result.candidate.origin == "evolution:capability-hypothesis"
+    assert result.candidate.proposed_state.elements["__gnozis_capability__"]["source_gap_id"] == result.gap.gap_id
+    assert result.sandbox.execution.status == "COMPLETED"
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+
 def test_runtime_slice_uses_replicated_evidence_for_selection():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
