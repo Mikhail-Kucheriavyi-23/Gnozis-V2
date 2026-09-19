@@ -149,3 +149,42 @@ def evaluate_comparative(
     return ComparativeEvaluation(
         status, baseline_score, candidate_score, delta, rationale, evidence_digest
     )
+
+
+@dataclass(frozen=True)
+class EvidenceSufficiency:
+    status: str
+    confidence: float
+    rationale: tuple[str, ...]
+
+    @property
+    def sufficient(self) -> bool:
+        return self.status == "SUFFICIENT"
+
+
+def assess_evidence_sufficiency(
+    *,
+    baseline: Outcome,
+    candidate: Outcome,
+    minimum_delta: float = 0.0,
+    min_confidence: float = 0.95,
+) -> EvidenceSufficiency:
+    """Gate comparison evidence without granting selection or activation authority."""
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if not 0.0 < min_confidence <= 1.0:
+        raise ValueError("min_confidence must be in (0, 1]")
+    if baseline.metric != candidate.metric or baseline.direction != candidate.direction:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("outcome definitions do not match",))
+    if baseline.evidence_digest == candidate.evidence_digest:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("baseline and candidate share one evidence digest",))
+    delta = abs(candidate.normalized_delta(baseline))
+    if baseline.uncertainty is None or candidate.uncertainty is None:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("uncertainty is required for sufficiency assessment",))
+    combined_uncertainty = baseline.uncertainty + candidate.uncertainty
+    confidence = 1.0 if combined_uncertainty == 0 else max(0.0, min(1.0, delta / (delta + combined_uncertainty)))
+    if delta <= minimum_delta:
+        return EvidenceSufficiency("INSUFFICIENT", confidence, ("measured delta does not clear the minimum threshold",))
+    if confidence < min_confidence:
+        return EvidenceSufficiency("INSUFFICIENT", confidence, ("combined measurement uncertainty is too high",))
+    return EvidenceSufficiency("SUFFICIENT", confidence, ("independent evidence and uncertainty support the measured delta",))
