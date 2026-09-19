@@ -366,6 +366,36 @@ def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions
 
 
 
+
+
+def test_gap_detection_is_deterministic_for_same_history():
+    from gnosis.evolution.gap import GapDetector
+
+    detector = GapDetector(minimum_repetitions=2)
+    first = detector.detect(_history())
+    second = detector.detect(_history())
+
+    assert first.gap_id == second.gap_id
+    assert first.source_records == second.source_records
+    assert first.trigger_kind == second.trigger_kind
+
+
+def test_gap_detection_ignores_irrelevant_evidence_for_same_history():
+    from gnosis.evolution.gap import GapDetector
+
+    detector = GapDetector(minimum_repetitions=2)
+    baseline = detector.detect(_history(), evidence=(), tensions=(), forecast_errors=())
+    noisy = detector.detect(
+        _history(),
+        evidence=("irrelevant-observation",),
+        tensions=("unrelated-tension",),
+        forecast_errors=(0.12345,),
+    )
+
+    assert noisy.gap_id == baseline.gap_id
+    assert noisy.source_records == baseline.source_records
+    assert noisy.trigger_kind == baseline.trigger_kind
+
 def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
