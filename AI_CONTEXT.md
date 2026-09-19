@@ -2607,3 +2607,38 @@ Do not collapse these into a single notion of “proof”.
 ### 8. Reverse-analysis discipline
 - These are reverse-analysis findings. Mark as VERIFIED only when executable tests/runtime/CI evidence supports the claim.
 - Preserve distinctions: Core capability vs generator behavior; evidence integrity vs truth; governance classification vs authority; code correction vs regression proof.
+
+
+## 2026-09-19 REVERSE-CONTEXT UPDATE — AUTHORITY / EXECUTION / PERSISTENCE
+
+### 9. Authority boundary findings
+- authority.py is fail-closed and does not manufacture trusted authority.
+- ExecutionAuthorization is bound to owner approval, request provenance and exact evolution_identity.
+- require_execution_authorization() checks authorization against the current request; authorization is not generic permission.
+- ExecutionIntentSnapshot binds provenance_id, execution_id, parent_state_id, parent_state_digest, evolution_identity, candidate_binding_digest and proposed_state_content_id.
+- Any intent/provenance/parent/proposed mismatch must reject before mutation.
+- issue_execution_authorization() intentionally does not implement a trusted owner-authority issuer; this is an explicit autonomous-authority stop point, not an accidental missing implementation.
+
+### 10. Execution / persistence boundary
+- SQLiteExecutionCommitAdapter is the intended durable execution boundary for authorized evolution.
+- Its intended path is: ExecutionCommitRequest -> require_execution_commit -> persist_transition -> reload/verify resulting state -> ExecutionReceipt.
+- ExecutionReceipt binds execution/provenance/evolution identity, parent state digest, resulting state digest and candidate binding digest; resulting state must match the authorized proposed state.
+- persist_transition() itself is a lower-level storage primitive and is not authority-protected internally. Do NOT call this a proven vulnerability: no reflection/autonomous direct bypass was discovered in the repository search.
+- Therefore the precise architectural finding is: authority enforcement is adapter/path-scoped rather than storage-global.
+- persist_transition() is transactionally atomic across candidate/transition/audit/head update; failure rolls back.
+
+### 11. Reflection/autonomous path
+- No discovered reflection/autonomous caller directly jumps from reflection to persist_transition().
+- Endogenous candidate generation produces ordinary Core Candidates from evidence-backed RuleProposal; it does not mutate Core, activate proposals or bypass Evaluate/Select.
+- Reflection currently cannot self-authorize. The trusted autonomous authority issuer is intentionally absent.
+- Current intended chain: Evidence -> RuleProposal -> Candidate -> Evaluate -> Select; any self-modification execution additionally requires Governance -> OwnerApproval -> Authorization -> ExecutionCommitGate -> SQLiteExecutionCommitAdapter -> Persistence.
+
+### 12. Runtime/CI evidence status
+- ReflectionEvidenceGate / governance non-authority has recorded CI evidence: run 35336802374 succeeded; can_activate=False and can_rollback=False.
+- Execution adapter has integration/fail-closed test coverage described in project context, but its current CI verification remains PENDING. Do not mark the full execution boundary VERIFIED until CI/runtime evidence is checked.
+- Required adversarial integration cases to verify: authorization for A + intent B -> reject; valid authorization + modified proposed state -> reject; valid authorization + modified provenance -> reject; governance can_activate=True -> reject; invalid authorization must cause no mutation.
+
+### 13. Current reverse target
+- Next narrow target: verify actual CI/runtime evidence for SQLiteExecutionCommitAdapter and the complete authorized execution chain.
+- If verified, then reverse the intentional stopping point: the semantics and trust model of OwnerApproval / trusted authority issuer.
+- Preserve all distinctions: implementation vs tests vs CI verification; storage integrity vs authority; governance classification vs authorization; authorized execution vs autonomous authority issuance.
