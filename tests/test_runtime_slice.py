@@ -76,3 +76,31 @@ def test_runtime_slice_records_failed_sandbox_as_non_authoritative_evidence():
     assert result.evaluation.status == "REJECTED"
     assert result.provenance.governance_decision == "REVIEW"
     assert result.capability.can_activate is False
+
+
+def test_runtime_slice_shadow_evaluation_is_non_authoritative():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+
+    def active(_state, _candidate):
+        return False
+
+    def shadow(_state, _candidate):
+        return True
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        active_test=active,
+        shadow_test=shadow,
+    )
+
+    assert result.shadow is not None
+    assert result.shadow.status == "BEHAVIOR_CHANGED"
+    assert result.shadow.improvements == 1
+    assert result.provenance.shadow_status == "BEHAVIOR_CHANGED"
+    assert result.capability.can_activate is False
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
