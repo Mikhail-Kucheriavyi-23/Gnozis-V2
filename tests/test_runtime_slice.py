@@ -598,3 +598,30 @@ def test_tampered_candidate_binding_and_state_content_fail_closed():
     )
     assert state_report.replay_valid is False
     assert "proposed state content identity mismatch" in state_report.reasons
+
+
+def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_core_mutation():
+    from gnosis.core import State
+    from gnosis.evolution import SandboxBudget, run_bounded_candidate
+    from gnosis.reflection.endogenous import generate_endogenous_candidates
+
+    state = State(elements={"a": 1})
+    before = state.content_id
+    report = ReflectionReport(proposals=(proposal(77),))
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
+    candidate = generation.candidates[0]
+
+    result = run_bounded_candidate(
+        conn=sqlite3.connect(":memory:"),
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.candidate.candidate_id == candidate.candidate_id
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert state.content_id == before
