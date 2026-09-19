@@ -2,7 +2,7 @@ import sqlite3
 
 from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
-from gnosis.evolution.evaluator import evaluate_comparative
+from gnosis.evolution.evaluator import Outcome, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 
 
@@ -125,3 +125,18 @@ def test_comparative_evaluator_refuses_missing_measurements():
         baseline_score=None, candidate_score=1.0, evidence_digest="e"
     )
     assert result.status == "INSUFFICIENT_EVIDENCE"
+
+
+def test_typed_outcome_respects_metric_direction():
+    baseline = Outcome("latency", 10.0, "minimize", 0.5, "b")
+    candidate = Outcome("latency", 8.0, "minimize", 0.4, "c")
+    result = evaluate_outcomes(baseline=baseline, candidate=candidate, minimum_delta=1.0)
+    assert result.status == "IMPROVED"
+    assert result.delta == 2.0
+
+
+def test_typed_outcome_rejects_mismatched_metric():
+    baseline = Outcome("accuracy", 0.8, "maximize", None, "b")
+    candidate = Outcome("latency", 0.2, "maximize", None, "c")
+    with pytest.raises(ValueError, match="metrics"):
+        evaluate_outcomes(baseline=baseline, candidate=candidate)
