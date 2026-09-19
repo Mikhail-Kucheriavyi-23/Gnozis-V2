@@ -410,7 +410,7 @@ def test_gap_detection_changes_when_material_history_changes():
     detector = GapDetector()
     baseline_history = history_from_persisted_transitions(_history())
     changed = list(_history())
-    changed[0] = dataclasses.replace(changed[0], reason="materially-different")
+    changed[0] = dataclasses.replace(changed[0], test_result=TestResult(False, ("materially-different",)))
     changed_history = history_from_persisted_transitions(tuple(changed))
 
     baseline = detector.detect(
