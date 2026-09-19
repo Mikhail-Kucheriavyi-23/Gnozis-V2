@@ -353,3 +353,34 @@ def test_runtime_slice_stops_on_one_failed_repetition():
     assert result.sufficiency.status == "INSUFFICIENT"
     assert result.selection is not None
     assert result.selection.status == "INSUFFICIENT"
+
+
+def test_accept_for_review_cannot_mutate_canonical_state_or_grant_activation():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    original_state_id = state.state_id
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "ab1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "ab2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "ac1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "ac2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+
+    assert state.state_id == original_state_id
+    assert result.selection is not None
+    assert result.selection.selected_for_review is True
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert result.transaction.audit_record.payload["activation"] is False
+    assert "activation_capability" not in result.selection.__dict__
