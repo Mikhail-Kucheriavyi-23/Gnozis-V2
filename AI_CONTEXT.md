@@ -2550,3 +2550,60 @@ Do not collapse these into a single notion of “proof”.
 ### I. Audit discipline
 - No Claude audit is being used as implementation authority during this reverse pass; periodic external audits will be used later to scan the archive for missed defects.
 - Findings from this section are reverse-analysis findings and must not be marked VERIFIED until repository/runtime/CI evidence confirms them.
+
+
+## 2026-09-19 REVERSE-CONTEXT — EVIDENCE / GOVERNANCE / AUTHORITY LAYER
+
+### 1. GNV2-003 invariant bypass status
+- The earlier custom-Test bypass finding must be stated precisely: the code correction exists in evaluate(); protected DEFAULT_INVARIANTS are evaluated before caller-supplied TestFn.
+- This applies to the ordinary Engine.step() path.
+- step_select() calls select(), and select() evaluates candidates through the same evaluate() boundary; therefore the previously suspected separate step_select() invariant bypass is NOT confirmed.
+- Runtime/adversarial regression evidence is still required before marking GNV2-003 DONE.
+- Required paired regression: (A) content-identical candidate with version increase + TestFn=True must reject/no-op; (B) genuine content change + protected invariants + TestFn=True must still commit.
+
+### 2. Transition proof / provenance model
+- TransitionRecord is provenance, not a complete Diff object or complete proof by itself.
+- CandidateID binds parent state identity, proposed-state content identity, origin and seed.
+- binding_digest links candidate/proposed/parent provenance artifacts.
+- A useful proof model is composite: State artifacts + Candidate binding + Test evidence + TransitionRecord + persisted provenance.
+- Execution correctness and replay completeness are distinct properties.
+
+### 3. EvidenceProvenance / replay
+- EvidenceProvenance links candidate, execution, parent, proposed state, evidence, evaluation, shadow, invariants, governance and provenance metadata.
+- evidence_digest protects canonical observation integrity: recovered observations must reproduce the persisted digest.
+- crosscheck_provenance() cross-links candidate IDs, parent/proposed digests, binding digest, evidence digest, execution ID and evaluation/shadow/invariant/governance statuses.
+- Independent chain verification exists and is deliberately separated from live evolution objects.
+- Audit-chain previous_digest/record_digest provides tamper-evident history.
+- Recovery checks persisted provenance against actual proposed-state content and observations.
+
+### 4. Epistemic separation
+- Integrity(E) means the recorded evidence artifact is unchanged/reproducible.
+- Validity(E) means it satisfies formal system rules.
+- InferenceConsistency means the classification follows the available evidence under the implemented rules.
+- Truth is NOT implied by any digest, provenance record, invariant pass, or governance classification.
+- Current evaluate_observation() is intentionally limited: observations_present produces PASS; otherwise REVIEW. It does not establish external truth.
+- ShadowEvaluation compares active vs shadow behavior; it is policy/behavior comparison, not truth evaluation.
+- InvariantDelta measures changes in invariant violations among the analyzed/accepted candidate sets; it is not a global truth or utility score.
+
+### 5. ReflectionEvidenceGate
+- read-only pipeline: ShadowEvaluation -> InvariantDelta -> GovernanceDecision.
+- It checks internal consistency of governance classifications and fails if governance evidence claims activation/rollback authority.
+- passed=True means evidence-gate consistency, NOT authorization to mutate Core.
+- HOLD requires insufficient/no-input evidence; BLOCK requires regressions or invariant violations; REVIEW requires behavioral change or invariant improvement; otherwise NO_CHANGE.
+- Reflection layer deliberately stops before mutation/authority.
+
+### 6. Governance
+- GovernanceDecision is deterministic and non-authoritative: G = f(ShadowEvaluation, InvariantDelta).
+- Decision classes: BLOCK, HOLD, REVIEW, NO_CHANGE.
+- Governance has can_activate=False and can_rollback=False by contract.
+- Trust is NOT currently part of governance. Do not retrofit trust into Core or Governance without a separate mathematical/architectural justification.
+- Future trust should be treated as contextual evidence (e.g. trust(source | domain, claim-class, context)), not universal truth/score.
+
+### 7. Next reverse target — Authority boundary
+- authority.py is the next layer to inspect.
+- Required proof questions: Governance must not imply execution; execution must require an explicitly authorized request/owner approval; identify exact binding between authorization, provenance/evolution identity and persisted execution receipt.
+- Do not mark authority as secure merely because requires_owner_approval=True exists; inspect the actual issuer/verification path and tests.
+
+### 8. Reverse-analysis discipline
+- These are reverse-analysis findings. Mark as VERIFIED only when executable tests/runtime/CI evidence supports the claim.
+- Preserve distinctions: Core capability vs generator behavior; evidence integrity vs truth; governance classification vs authority; code correction vs regression proof.
