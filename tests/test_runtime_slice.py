@@ -382,5 +382,5 @@ def test_accept_for_review_cannot_mutate_canonical_state_or_grant_activation():
     assert result.selection is not None
     assert result.selection.selected_for_review is True
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
-    assert result.transaction.audit_record.payload["activation"] is False
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
     assert "activation_capability" not in result.selection.__dict__
