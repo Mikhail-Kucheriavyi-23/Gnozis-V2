@@ -4,6 +4,7 @@ import sqlite3
 from gnosis.core import Candidate, State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_bounded_candidate, run_runtime_slice
 from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
+from gnosis.evolution.provenance import canonical_digest
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 from gnosis.reflection.analyzer import ReflectionReport, RuleProposal
 from gnosis.reflection.endogenous import generate_endogenous_candidates
@@ -60,7 +61,18 @@ def test_shared_bounded_candidate_failure_is_rejected_and_audited_without_core_m
     assert result.evaluation.status == "REJECTED"
     assert result.provenance.governance_decision == "REVIEW"
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
-    assert result.transaction.audit_record.payload["activation"] is False
+    expected_payload = {
+        "gap_id": "external-candidate",
+        "capability_id": "external-candidate",
+        "candidate_id": candidate.candidate_id,
+        "sandbox_status": "FAILED",
+        "evaluation_status": "REJECTED",
+        "comparison_status": "NOT_RUN",
+        "sufficiency_status": "NOT_RUN",
+        "selection_status": "NOT_RUN",
+        "activation": False,
+    }
+    assert result.transaction.audit_record.payload_digest == canonical_digest(expected_payload)
     assert result.capability.can_activate is False
     assert state.state_id == before_id
     assert state.content_id == before_content
