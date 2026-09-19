@@ -1,6 +1,6 @@
 """Bounded, non-canonical evolution experiments."""
 from .sandbox import SandboxBudget, SandboxExecution, SandboxResult, run_sandbox
-from .evaluator import EvaluationResult, evaluate_observation
+from .evaluator import ComparativeEvaluation, EvaluationResult, evaluate_comparative, evaluate_observation
 from .promotion import PromotionCandidate, PromotionGate, evaluate_promotion_gate, make_promotion_candidate
 from .replay import ReplayResult, replay_evidence, replay_identity
 from .transaction import EvolutionTransactionResult, persist_evolution_transaction
