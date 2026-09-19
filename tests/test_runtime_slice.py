@@ -494,8 +494,7 @@ def test_capability_synthesis_rejects_fabricated_gap():
         gap_id="fabricated-gap",
         trigger_kind="transition",
         source_records=(),
-        conflict_summary="fabricated",
-        confidence=0.0,
+        description="fabricated",
         status="FABRICATED",
     )
 
