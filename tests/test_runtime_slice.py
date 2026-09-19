@@ -515,6 +515,7 @@ def test_corrupted_audit_chain_fails_closed():
 
 
 def test_tampered_persisted_provenance_fails_closed():
+    from gnosis.evolution.recovery import recover_evolution_audit
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
     result = run_runtime_slice(
