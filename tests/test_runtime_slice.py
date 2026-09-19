@@ -3,7 +3,7 @@ import sqlite3
 
 from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
-from gnosis.evolution.evaluator import Outcome, evaluate_comparative, evaluate_outcomes
+from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 
 
@@ -141,3 +141,23 @@ def test_typed_outcome_rejects_mismatched_metric():
     candidate = Outcome("latency", 0.2, "maximize", None, "c")
     with pytest.raises(ValueError, match="metrics"):
         evaluate_outcomes(baseline=baseline, candidate=candidate)
+
+
+def test_evidence_sufficiency_requires_independent_uncertain_measurements():
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "baseline")
+    candidate = Outcome("accuracy", 0.84, "maximize", 0.01, "candidate")
+    result = assess_evidence_sufficiency(
+        baseline=baseline, candidate=candidate, minimum_delta=0.02, min_confidence=0.65
+    )
+    assert result.sufficient is True
+    assert result.status == "SUFFICIENT"
+
+
+def test_evidence_sufficiency_rejects_shared_or_missing_evidence():
+    shared_a = Outcome("accuracy", 0.80, "maximize", 0.01, "same")
+    shared_b = Outcome("accuracy", 0.84, "maximize", 0.01, "same")
+    assert assess_evidence_sufficiency(baseline=shared_a, candidate=shared_b).sufficient is False
+
+    missing = Outcome("accuracy", 0.84, "maximize", None, "candidate")
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "baseline")
+    assert assess_evidence_sufficiency(baseline=baseline, candidate=missing).sufficient is False
