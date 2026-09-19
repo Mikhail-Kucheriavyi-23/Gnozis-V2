@@ -72,6 +72,8 @@ def replay_complete(
             shadow_status=provenance.shadow_status,
             invariant_status=provenance.invariant_status,
             governance_decision=provenance.governance_decision,
+            proposed_state_content_id=provenance.proposed_state_content_id,
+            candidate_binding_digest=provenance.candidate_binding_digest,
         )
         reasons.extend(check.reasons)
     if audit_record is not None:
