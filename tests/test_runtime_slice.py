@@ -285,3 +285,71 @@ def test_runtime_slice_uses_replicated_evidence_for_selection():
     assert result.sufficiency.status == "SUFFICIENT"
     assert result.selection is not None
     assert result.selection.status == "ACCEPT_FOR_REVIEW"
+
+
+def test_runtime_slice_rejects_regression_after_sufficient_evidence():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcome=Outcome("accuracy", 0.90, "maximize", 0.01, "rb"),
+        candidate_outcome=Outcome("accuracy", 0.80, "maximize", 0.01, "rc"),
+        minimum_delta=0.01,
+    )
+    assert result.comparison is not None
+    assert result.comparison.status == "REGRESSION"
+    assert result.selection is not None
+    assert result.selection.status == "REJECT"
+
+
+def test_runtime_slice_rejects_noise_as_insufficient_evidence():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "nb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "nb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.81, "maximize", 0.01, "nc1"),
+            Outcome("accuracy", 0.82, "maximize", 0.01, "nc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "INSUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "INSUFFICIENT"
+
+
+def test_runtime_slice_stops_on_one_failed_repetition():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "fb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "fb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "fc1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "fc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "INSUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "INSUFFICIENT"
