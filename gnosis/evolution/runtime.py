@@ -13,12 +13,13 @@ from typing import Any, Callable, Mapping, Sequence
 from gnosis.core.types import Candidate, State, TransitionRecord
 from gnosis.core.verification import TestFn
 from .capability import CapabilityHypothesis, CapabilitySynthesizer
-from .evaluator import EvaluationResult, evaluate_observation
+from .evaluator import ComparativeEvaluation, EvaluationResult, EvidenceSufficiency, Outcome, assess_evidence_sufficiency, evaluate_observation, evaluate_outcomes
 from .gap import GapDetector, GapHypothesis, history_from_persisted_transitions
 from .provenance import EvidenceProvenance, build_provenance
 from .sandbox import ObservationFn, SandboxBudget, SandboxResult, run_sandbox
 from .transaction import EvolutionTransactionResult, persist_evolution_transaction
 from gnosis.reflection.shadow import ShadowEvaluation, evaluate_shadow
+from .selection import SelectionResult, select_for_review
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,9 @@ class RuntimeSliceResult:
     provenance: EvidenceProvenance
     transaction: EvolutionTransactionResult
     shadow: ShadowEvaluation | None = None
+    comparison: ComparativeEvaluation | None = None
+    sufficiency: EvidenceSufficiency | None = None
+    selection: SelectionResult | None = None
 
 
 def capability_candidate(state: State, capability: CapabilityHypothesis) -> Candidate:
@@ -88,6 +92,10 @@ def run_runtime_slice(
     minimum_repetitions: int = 2,
     active_test: TestFn | None = None,
     shadow_test: TestFn | None = None,
+    baseline_outcome: Outcome | None = None,
+    candidate_outcome: Outcome | None = None,
+    minimum_delta: float = 0.0,
+    min_confidence: float = 0.95,
 ) -> RuntimeSliceResult:
     """Execute one complete bounded evolution slice and persist its evidence.
 
@@ -137,6 +145,29 @@ def run_runtime_slice(
         shadow = evaluate_shadow((candidate,), active_test, shadow_test)
         shadow_status = shadow.status
 
+    comparison: ComparativeEvaluation | None = None
+    sufficiency: EvidenceSufficiency | None = None
+    selection: SelectionResult | None = None
+    if (baseline_outcome is None) != (candidate_outcome is None):
+        raise ValueError("baseline_outcome and candidate_outcome must be supplied together")
+    if baseline_outcome is not None and candidate_outcome is not None:
+        comparison = evaluate_outcomes(
+            baseline=baseline_outcome,
+            candidate=candidate_outcome,
+            minimum_delta=minimum_delta,
+        )
+        sufficiency = assess_evidence_sufficiency(
+            baseline=baseline_outcome,
+            candidate=candidate_outcome,
+            minimum_delta=minimum_delta,
+            min_confidence=min_confidence,
+        )
+        selection = select_for_review(
+            candidate_id=candidate.candidate_id,
+            comparison=comparison,
+            sufficiency=sufficiency,
+        )
+
     candidate_binding_digest = candidate.binding_digest(state.content_id)
     provenance = build_provenance(
         candidate_id=candidate.candidate_id,
@@ -162,6 +193,9 @@ def run_runtime_slice(
             "candidate_id": candidate.candidate_id,
             "sandbox_status": sandbox.execution.status,
             "evaluation_status": evaluation.status,
+            "comparison_status": comparison.status if comparison else "NOT_RUN",
+            "sufficiency_status": sufficiency.status if sufficiency else "NOT_RUN",
+            "selection_status": selection.status if selection else "NOT_RUN",
             "activation": False,
         },
     )
@@ -174,4 +208,7 @@ def run_runtime_slice(
         provenance=provenance,
         transaction=transaction,
         shadow=shadow,
+        comparison=comparison,
+        sufficiency=sufficiency,
+        selection=selection,
     )
