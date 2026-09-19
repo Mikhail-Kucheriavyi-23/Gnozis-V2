@@ -13,7 +13,7 @@ from typing import Any, Callable, Mapping, Sequence
 from gnosis.core.types import Candidate, State, TransitionRecord
 from gnosis.core.verification import TestFn
 from .capability import CapabilityHypothesis, CapabilitySynthesizer
-from .evaluator import ComparativeEvaluation, EvaluationResult, EvidenceSufficiency, Outcome, assess_evidence_sufficiency, evaluate_observation, evaluate_outcomes
+from .evaluator import ComparativeEvaluation, EvaluationResult, EvidenceSufficiency, Outcome, ReplicatedEvidence, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_observation, evaluate_outcomes
 from .gap import GapDetector, GapHypothesis, history_from_persisted_transitions
 from .provenance import EvidenceProvenance, build_provenance
 from .sandbox import ObservationFn, SandboxBudget, SandboxResult, run_sandbox
@@ -35,7 +35,7 @@ class RuntimeSliceResult:
     transaction: EvolutionTransactionResult
     shadow: ShadowEvaluation | None = None
     comparison: ComparativeEvaluation | None = None
-    sufficiency: EvidenceSufficiency | None = None
+    sufficiency: EvidenceSufficiency | ReplicatedEvidence | None = None
     selection: SelectionResult | None = None
 
 
@@ -94,6 +94,8 @@ def run_runtime_slice(
     shadow_test: TestFn | None = None,
     baseline_outcome: Outcome | None = None,
     candidate_outcome: Outcome | None = None,
+    baseline_outcomes: tuple[Outcome, ...] | None = None,
+    candidate_outcomes: tuple[Outcome, ...] | None = None,
     minimum_delta: float = 0.0,
     min_confidence: float = 0.95,
 ) -> RuntimeSliceResult:
@@ -148,25 +150,28 @@ def run_runtime_slice(
     comparison: ComparativeEvaluation | None = None
     sufficiency: EvidenceSufficiency | None = None
     selection: SelectionResult | None = None
-    if (baseline_outcome is None) != (candidate_outcome is None):
-        raise ValueError("baseline_outcome and candidate_outcome must be supplied together")
-    if baseline_outcome is not None and candidate_outcome is not None:
-        comparison = evaluate_outcomes(
-            baseline=baseline_outcome,
-            candidate=candidate_outcome,
-            minimum_delta=minimum_delta,
+    repeated_mode = baseline_outcomes is not None or candidate_outcomes is not None
+    if repeated_mode:
+        if baseline_outcomes is None or candidate_outcomes is None:
+            raise ValueError("baseline_outcomes and candidate_outcomes must be supplied together")
+        if not baseline_outcomes or not candidate_outcomes:
+            raise ValueError("repeated outcomes must not be empty")
+        comparison = evaluate_outcomes(baseline=baseline_outcomes[0], candidate=candidate_outcomes[0], minimum_delta=minimum_delta)
+        sufficiency = assess_replicated_evidence(
+            baselines=baseline_outcomes, candidates=candidate_outcomes,
+            minimum_repetitions=minimum_repetitions, minimum_delta=minimum_delta,
         )
-        sufficiency = assess_evidence_sufficiency(
-            baseline=baseline_outcome,
-            candidate=candidate_outcome,
-            minimum_delta=minimum_delta,
-            min_confidence=min_confidence,
-        )
-        selection = select_for_review(
-            candidate_id=candidate.candidate_id,
-            comparison=comparison,
-            sufficiency=sufficiency,
-        )
+    else:
+        if (baseline_outcome is None) != (candidate_outcome is None):
+            raise ValueError("baseline_outcome and candidate_outcome must be supplied together")
+        if baseline_outcome is not None and candidate_outcome is not None:
+            comparison = evaluate_outcomes(baseline=baseline_outcome, candidate=candidate_outcome, minimum_delta=minimum_delta)
+            sufficiency = assess_evidence_sufficiency(
+                baseline=baseline_outcome, candidate=candidate_outcome,
+                minimum_delta=minimum_delta, min_confidence=min_confidence,
+            )
+    if comparison is not None and sufficiency is not None:
+        selection = select_for_review(candidate_id=candidate.candidate_id, comparison=comparison, sufficiency=sufficiency)
 
     candidate_binding_digest = candidate.binding_digest(state.content_id)
     provenance = build_provenance(
