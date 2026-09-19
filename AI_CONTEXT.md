@@ -2402,3 +2402,85 @@ Current state remains:
   Canonical self-evolution = CLOSED.
 
 The next agent must read this entire AI_CONTEXT, reconcile current HEAD, inspect the actual code, and select exactly one READY task. It must not assume that a mathematical completion percentage is runtime verification.
+
+
+## 0B. 2026-09-19 REVERSE-ANALYSIS PROGRESS — PROOF / AUTHORITY / CORE TRANSITION
+
+This section records the current mathematical/reverse-analysis work performed after the latest repository commit. It is analysis context, not a claim that all properties below have fresh full-suite CI PASS.
+
+### Confirmed current properties
+
+- Evolution identity is content-linked. It binds candidate/parent/proposed-state/evidence/evaluation/shadow/invariant/governance/binding data rather than being only a candidate ID hash.
+- Persisted evolution identity tampering is detected during recovery/replay.
+- Candidate binding includes the proposed-state content identity and is checked downstream.
+- Execution authorization has pre-commit binding plus post-commit resulting-state verification.
+- A tampered resulting state is rejected by the commit/receipt path.
+- Execution receipts bind execution/provenance/evolution/result identity and are not themselves authority.
+- Durable recovery verifies recovered state against the canonical state head.
+- Reflection/recovery remains outside authority and does not itself activate Core.
+- Proposal Ingress is currently SPECIFICATION ONLY. No production ProposalIngress/ProposalEnvelope adapter path was found in the inspected repository. This is a missing capability, not evidence of a direct Core bypass.
+- Current Select implementation exists and is deterministic. The historical “Select missing” finding is stale relative to current code.
+- Candidate substitution between Test and Select was not found: the selected object remains the tested Candidate, and Candidate/State immutability plus content binding reinforce this.
+- State is now deeply immutable via recursive freezing; the historical shallow-freeze defect is CLOSED for the current implementation.
+- No-op transitions are rejected using content identity rather than version-only change; the historical no-op defect is CLOSED.
+- Test(candidate) strict boolean enforcement is implemented at runtime and at TestResult construction. The historical truthy-value defect is CLOSED.
+- Current transition validation does not impose monotonic growth of X or R. This is consistent with a Ψ=(X,R) model that permits replacement/removal and R→∅, provided structural invariants hold.
+
+### Important architectural findings
+
+1. proposed_state_digest is caller-supplied when building provenance, but the commit path independently binds the authorized digest to the actually persisted resulting state. Therefore this is currently an API/provenance-completeness concern, not a demonstrated authority bypass.
+2. crosscheck_stored_provenance() appears to reconstruct provenance without carrying proposed_state_content_id and candidate_binding_digest into the reconstructed object before cross-checking. Track as a concrete verification-path inconsistency; do not silently classify as fixed.
+3. Direct commit-time comparison of resulting content_id against provenance.proposed_state_content_id was not established. Track as review item; do not claim a bypass without further evidence.
+4. There is no separate production Evolve(Ψ,Candidate)→Ψ' operator identified. The current implementation treats Candidate.proposed_state as the already-constructed next State and validates/selects it. This is SPEC-DEPENDENT: if Evolve is required as an endogenous Core operator, it remains unimplemented; if Candidate construction is intentionally the evolution proposal mechanism, the current design can be valid.
+5. Current Core transition validation establishes structural validity (parent linkage, changed content, valid relation references, etc.) rather than a general semantic law for every possible Ψ_t→Ψ_{t+1}. Semantic acceptance is delegated to Test(candidate). This is a design boundary, not automatically a defect.
+6. The current Test receives current state and candidate context and returns strict bool. The next unresolved reverse step is to reconstruct the exact predicate set implemented by the verification/default-test path and distinguish structural invariants from genuine transition-semantic predicates.
+7. External Proposal Ingress remains unimplemented, so do not treat external agents/connectors as having a production mutation path into Core.
+
+### Reverse-audit status labels
+
+CLOSED / current:
+- deep State immutability
+- no-op transition rejection
+- strict TestResult/Test bool contract
+- Select implementation
+- candidate substitution gap (not found)
+
+OPEN / requires further reverse analysis:
+- exact semantic predicate decomposition of Test
+- crosscheck_stored_provenance() binding-field reconstruction
+- direct resulting content_id ↔ proposed content identity check
+- provenance proposed_state_digest recomputation semantics
+- whether a first-class endogenous Evolve operator is required by the formal Ψ contract
+- implementation of Proposal Ingress (future task; do not implement during this reverse pass)
+
+### Current mathematical reverse target
+
+Reconstruct:
+
+Test(Ψ_t, Candidate) → {True, False}
+
+as an explicit conjunction of predicates, distinguishing:
+
+StructuralValidity(Ψ')
+from
+SemanticValidity(Ψ_t, Ψ').
+
+Do not infer the latter merely from the existence of verification.py.
+
+Target comparison remains:
+
+Ψ=(X,R)
+
+Ψ_t → Candidate(proposed Ψ') → Test → Select → TransitionValidation → State'
+
+versus the stronger theoretical form:
+
+Ψ_t → Generate → Test → Select → Evolve → Ψ_{t+1}.
+
+The distinction between these two forms is now an explicit research question.
+
+### Working completion estimates
+
+- Formal/architectural research maturity: approximately 96% (analytical estimate, unchanged).
+- Runtime enforcement maturity: approximately 25% (analytical estimate, unchanged).
+- Today’s reverse-analysis has materially narrowed the remaining uncertainty from broad Core integrity to the exact semantic meaning of Test, provenance reconstruction, and whether Evolve is a required endogenous operator.
