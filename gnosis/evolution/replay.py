@@ -51,6 +51,13 @@ def replay_complete(
         reasons.append("audit record missing")
     evidence = replay_evidence(execution, observations)
     reasons.extend(evidence.reasons)
+    expected_execution_id = execution_id(
+        execution.candidate_id,
+        execution.parent_state_id,
+        execution.evidence_digest,
+        execution.parent_state_digest,
+        execution.proposed_state_digest,
+    )
     if provenance is not None:
         check = crosscheck_provenance(
             provenance=provenance,
@@ -60,11 +67,13 @@ def replay_complete(
             proposed_state_digest=execution.proposed_state_digest,
             observations=observations,
             evidence_digest=execution.evidence_digest,
-            execution_id_value=execution.execution_id,
-            evaluation_status=execution.evaluation_status,
-            shadow_status=execution.shadow_status,
-            invariant_status=execution.invariant_status,
-            governance_decision=execution.governance_decision,
+            execution_id_value=expected_execution_id,
+            evaluation_status=provenance.evaluation_status,
+            shadow_status=provenance.shadow_status,
+            invariant_status=provenance.invariant_status,
+            governance_decision=provenance.governance_decision,
+            proposed_state_content_id=provenance.proposed_state_content_id,
+            candidate_binding_digest=provenance.candidate_binding_digest,
         )
         reasons.extend(check.reasons)
     if audit_record is not None:
@@ -75,7 +84,7 @@ def replay_complete(
         for field in ("parent_state_digest", "proposed_state_digest", "evidence_digest"):
             if getattr(audit_record, field, None) != getattr(execution, field, None):
                 reasons.append(f"audit {field} mismatch")
-        if audit_record.execution_id != getattr(execution, "execution_id", execution.candidate_id):
+        if audit_record.execution_id != expected_execution_id:
             reasons.append("audit execution mismatch")
         if provenance is not None:
             link = crosscheck_provenance_audit(provenance, audit_record)

@@ -1,12 +1,242 @@
-"""Deterministic evaluation of sandbox evidence."""
+"""Deterministic comparison of bounded candidate evidence against a baseline."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any,Mapping
+from typing import Any, Mapping
+
+
 @dataclass(frozen=True)
 class EvaluationResult:
-    status:str; rationale:tuple[str,...]; evidence_digest:str
-def evaluate_observation(observations:Mapping[str,Any],*,evidence_digest:str,predicate:str)->EvaluationResult:
-    if not evidence_digest: return EvaluationResult("INSUFFICIENT_EVIDENCE",("missing evidence digest",),"")
-    if not observations: return EvaluationResult("INSUFFICIENT_EVIDENCE",("sandbox produced no observations",),evidence_digest)
-    if predicate!="observations_present": return EvaluationResult("REVIEW",("evidence requires an explicit evaluator implementation",),evidence_digest)
-    return EvaluationResult("PASS",("sandbox observations are present and digest-linked",),evidence_digest)
+    status: str
+    rationale: tuple[str, ...]
+    evidence_digest: str
+
+
+@dataclass(frozen=True)
+class Outcome:
+    """An explicitly typed measurement used for candidate/baseline comparison."""
+    metric: str
+    value: float
+    direction: str
+    uncertainty: float | None
+    evidence_digest: str
+
+    def __post_init__(self) -> None:
+        if not self.metric.strip():
+            raise ValueError("metric must not be empty")
+        if self.direction not in {"maximize", "minimize"}:
+            raise ValueError("direction must be 'maximize' or 'minimize'")
+        if self.uncertainty is not None and self.uncertainty < 0:
+            raise ValueError("uncertainty must be non-negative")
+        if not self.evidence_digest:
+            raise ValueError("evidence_digest is required")
+
+    def normalized_delta(self, baseline: "Outcome") -> float:
+        if self.metric != baseline.metric:
+            raise ValueError("baseline and candidate metrics must match")
+        if self.direction != baseline.direction:
+            raise ValueError("baseline and candidate directions must match")
+        raw = self.value - baseline.value
+        return raw if self.direction == "maximize" else -raw
+
+
+@dataclass(frozen=True)
+class ComparativeEvaluation:
+    status: str
+    baseline_score: float | None
+    candidate_score: float | None
+    delta: float | None
+    rationale: tuple[str, ...]
+    evidence_digest: str
+
+    @property
+    def improved(self) -> bool:
+        return self.status == "IMPROVED"
+
+    @property
+    def regressed(self) -> bool:
+        return self.status == "REGRESSION"
+
+
+def evaluate_observation(
+    observations: Mapping[str, Any],
+    *,
+    evidence_digest: str,
+    predicate: str,
+) -> EvaluationResult:
+    if not evidence_digest:
+        return EvaluationResult("INSUFFICIENT_EVIDENCE", ("missing evidence digest",), "")
+    if not observations:
+        return EvaluationResult(
+            "INSUFFICIENT_EVIDENCE",
+            ("sandbox produced no observations",),
+            evidence_digest,
+        )
+    if predicate != "observations_present":
+        return EvaluationResult(
+            "REVIEW",
+            ("evidence requires an explicit evaluator implementation",),
+            evidence_digest,
+        )
+    return EvaluationResult(
+        "PASS",
+        ("sandbox observations are present and digest-linked",),
+        evidence_digest,
+    )
+
+
+def evaluate_outcomes(
+    *, baseline: Outcome, candidate: Outcome, minimum_delta: float = 0.0
+) -> ComparativeEvaluation:
+    """Compare typed outcomes; this remains descriptive and non-authoritative."""
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if baseline.evidence_digest != candidate.evidence_digest:
+        digest = f"{baseline.evidence_digest}:{candidate.evidence_digest}"
+    else:
+        digest = baseline.evidence_digest
+    delta = candidate.normalized_delta(baseline)
+    if delta > minimum_delta:
+        status = "IMPROVED"
+    elif delta < -minimum_delta:
+        status = "REGRESSION"
+    else:
+        status = "NO_MEANINGFUL_CHANGE"
+    return ComparativeEvaluation(
+        status=status,
+        baseline_score=baseline.value,
+        candidate_score=candidate.value,
+        delta=delta,
+        rationale=(f"metric={candidate.metric}", f"direction={candidate.direction}"),
+        evidence_digest=digest,
+    )
+
+
+def evaluate_comparative(
+    *,
+    baseline_score: float | None,
+    candidate_score: float | None,
+    evidence_digest: str,
+    minimum_delta: float = 0.0,
+) -> ComparativeEvaluation:
+    """Compare two explicit measurements without selecting or activating a candidate."""
+    if not evidence_digest:
+        return ComparativeEvaluation(
+            "INSUFFICIENT_EVIDENCE", baseline_score, candidate_score, None,
+            ("missing evidence digest",), "",
+        )
+    if baseline_score is None or candidate_score is None:
+        return ComparativeEvaluation(
+            "INSUFFICIENT_EVIDENCE", baseline_score, candidate_score, None,
+            ("both baseline and candidate measurements are required",),
+            evidence_digest,
+        )
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+
+    delta = candidate_score - baseline_score
+    if delta > minimum_delta:
+        status = "IMPROVED"
+        rationale = ("candidate measurement exceeds baseline by more than minimum_delta",)
+    elif delta < -minimum_delta:
+        status = "REGRESSION"
+        rationale = ("candidate measurement is below baseline by more than minimum_delta",)
+    else:
+        status = "NO_MEANINGFUL_CHANGE"
+        rationale = ("candidate measurement does not exceed the comparison threshold",)
+
+    return ComparativeEvaluation(
+        status, baseline_score, candidate_score, delta, rationale, evidence_digest
+    )
+
+
+@dataclass(frozen=True)
+class EvidenceSufficiency:
+    status: str
+    confidence: float
+    rationale: tuple[str, ...]
+
+    @property
+    def sufficient(self) -> bool:
+        return self.status == "SUFFICIENT"
+
+
+def assess_evidence_sufficiency(
+    *,
+    baseline: Outcome,
+    candidate: Outcome,
+    minimum_delta: float = 0.0,
+    min_confidence: float = 0.95,
+) -> EvidenceSufficiency:
+    """Gate comparison evidence without granting selection or activation authority."""
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if not 0.0 < min_confidence <= 1.0:
+        raise ValueError("min_confidence must be in (0, 1]")
+    if baseline.metric != candidate.metric or baseline.direction != candidate.direction:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("outcome definitions do not match",))
+    if baseline.evidence_digest == candidate.evidence_digest:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("baseline and candidate share one evidence digest",))
+    delta = abs(candidate.normalized_delta(baseline))
+    if baseline.uncertainty is None or candidate.uncertainty is None:
+        return EvidenceSufficiency("INSUFFICIENT", 0.0, ("uncertainty is required for sufficiency assessment",))
+    combined_uncertainty = baseline.uncertainty + candidate.uncertainty
+    confidence = 1.0 if combined_uncertainty == 0 else max(0.0, min(1.0, delta / (delta + combined_uncertainty)))
+    if delta <= minimum_delta:
+        return EvidenceSufficiency("INSUFFICIENT", confidence, ("measured delta does not clear the minimum threshold",))
+    if confidence < min_confidence:
+        return EvidenceSufficiency("INSUFFICIENT", confidence, ("combined measurement uncertainty is too high",))
+    return EvidenceSufficiency("SUFFICIENT", confidence, ("independent evidence and uncertainty support the measured delta",))
+
+
+@dataclass(frozen=True)
+class ReplicatedEvidence:
+    status: str
+    repetitions: int
+    mean_delta: float | None
+    minimum_delta: float
+    conservative_delta_lower_bound: float | None
+    rationale: tuple[str, ...]
+
+    @property
+    def sufficient(self) -> bool:
+        return self.status == "SUFFICIENT"
+
+
+def assess_replicated_evidence(
+    *,
+    baselines: tuple[Outcome, ...],
+    candidates: tuple[Outcome, ...],
+    minimum_repetitions: int = 2,
+    minimum_delta: float = 0.0,
+) -> ReplicatedEvidence:
+    """Conservative repeated-evidence gate; makes no statistical claim."""
+    if minimum_repetitions < 1:
+        raise ValueError("minimum_repetitions must be >= 1")
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if len(baselines) != len(candidates):
+        return ReplicatedEvidence("INSUFFICIENT", min(len(baselines), len(candidates)), None, minimum_delta, None, ("baseline/candidate repetition counts differ",))
+    if len(baselines) < minimum_repetitions:
+        return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("minimum repetition count not reached",))
+    if not baselines:
+        return ReplicatedEvidence("INSUFFICIENT", 0, None, minimum_delta, None, ("no repetitions supplied",))
+    digests = [o.evidence_digest for o in (*baselines, *candidates)]
+    if len(set(digests)) != len(digests):
+        return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("evidence digests must be unique across repetitions",))
+    deltas: list[float] = []
+    lower_bounds: list[float] = []
+    for baseline, candidate in zip(baselines, candidates):
+        if baseline.metric != candidate.metric or baseline.direction != candidate.direction:
+            return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("outcome definitions do not match",))
+        if baseline.uncertainty is None or candidate.uncertainty is None:
+            return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("uncertainty is required for every repetition",))
+        delta = candidate.normalized_delta(baseline)
+        deltas.append(delta)
+        lower_bounds.append(delta - baseline.uncertainty - candidate.uncertainty)
+    mean_delta = sum(deltas) / len(deltas)
+    conservative_lower_bound = min(lower_bounds)
+    if conservative_lower_bound <= minimum_delta:
+        return ReplicatedEvidence("INSUFFICIENT", len(deltas), mean_delta, minimum_delta, conservative_lower_bound, ("at least one repetition does not clear the threshold after uncertainty",))
+    return ReplicatedEvidence("SUFFICIENT", len(deltas), mean_delta, minimum_delta, conservative_lower_bound, ("all independent repetitions clear the threshold after uncertainty",))

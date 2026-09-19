@@ -1,0 +1,1069 @@
+import dataclasses
+import pytest
+import sqlite3
+
+from gnosis.core import Candidate, State, TestResult, TransitionRecord
+from gnosis.evolution import SandboxBudget, run_bounded_candidate, run_runtime_slice
+from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
+from gnosis.evolution.provenance import canonical_digest
+from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
+from gnosis.reflection.analyzer import ReflectionReport, RuleProposal
+from gnosis.reflection.endogenous import generate_endogenous_candidates
+
+
+def _history():
+    return (
+        TransitionRecord(
+            "s0", "s1", "c1", TestResult(False, ("missing_relation",)), False, "rejected"
+        ),
+        TransitionRecord(
+            "s0", "s2", "c2", TestResult(False, ("missing_relation",)), False, "rejected"
+        ),
+    )
+
+
+def _observer(_state, candidate):
+    return {
+        "candidate_id": candidate.candidate_id,
+        "capability_present": "__gnozis_capability__" in candidate.proposed_state.elements,
+    }
+
+
+def _failing_observer(_state, _candidate):
+    raise RuntimeError("observer failure")
+
+
+
+
+def test_shared_bounded_candidate_failure_is_rejected_and_audited_without_core_mutation():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    proposed = state.with_elements({"proposal:test": {"kind": "rule_proposal"}})
+    candidate = Candidate(
+        parent_state_id=state.state_id,
+        proposed_state=proposed,
+        origin="reflection:test",
+    )
+    before_id = state.state_id
+    before_content = state.content_id
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_failing_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.sandbox.execution.status == "FAILED"
+    assert result.sandbox.accepted_for_evaluation is False
+    assert result.evaluation.status == "REJECTED"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    expected_payload = {
+        "gap_id": "external-candidate",
+        "capability_id": "external-candidate",
+        "candidate_id": candidate.candidate_id,
+        "sandbox_status": "FAILED",
+        "evaluation_status": "REJECTED",
+        "comparison_status": "NOT_RUN",
+        "sufficiency_status": "NOT_RUN",
+        "selection_status": "NOT_RUN",
+        "activation": False,
+    }
+    assert result.transaction.audit_record.payload_digest == canonical_digest(expected_payload)
+    assert result.capability.can_activate is False
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+    stored = load_evolution_provenance(conn, result.provenance.provenance_id)
+    assert stored["candidate_id"] == candidate.candidate_id
+
+
+
+def test_reflection_candidate_runs_through_shared_boundary_and_remains_review_only():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before_id = state.state_id
+    before_content = state.content_id
+
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:vertical",
+            finding_id="finding:vertical",
+            rule_id="rule:v1",
+            current_version="1",
+            proposed_version="2",
+            target="rule:v1",
+            expected_effect="bounded test effect",
+            regression_risk="low",
+            required_test="bounded test",
+            hypothesis="bounded reflection hypothesis",
+            evidence_refs=("evidence:vertical",),
+        ),
+    ))
+    from gnosis.core import Budget
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
+    candidate = generation.candidates[0]
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=lambda _state, c: {
+            "candidate_id": c.candidate_id,
+            "reflection_proposal_present": "proposal:vertical" in c.proposed_state.elements,
+        },
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.candidate.origin == "reflection:endogenous"
+    assert result.sandbox.execution.status == "COMPLETED"
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert result.capability.can_activate is False
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+    assert "proposal:vertical" not in state.elements
+    stored = load_evolution_provenance(conn, result.provenance.provenance_id)
+    assert stored["candidate_id"] == candidate.candidate_id
+
+def test_runtime_slice_completes_and_persists_evidence_without_core_mutation():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before_id = state.state_id
+    before_content = state.content_id
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.gap.source_records
+    assert result.capability.source_gap_id == result.gap.gap_id
+    assert result.sandbox.accepted_for_evaluation
+    assert result.sandbox.execution.status == "COMPLETED"
+    assert result.evaluation.status == "PASS"
+    assert result.capability.can_activate is False
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.provenance_id == result.provenance.provenance_id
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+    assert "__gnozis_capability__" not in state.elements
+
+    stored = load_evolution_provenance(conn, result.provenance.provenance_id)
+    assert stored["evolution_identity"] == result.provenance.evolution_identity
+    assert stored["candidate_id"] == result.candidate.candidate_id
+
+
+def test_runtime_slice_records_failed_sandbox_as_non_authoritative_evidence():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_failing_observer,
+    )
+
+    assert result.sandbox.execution.status == "FAILED"
+    assert not result.sandbox.accepted_for_evaluation
+    assert result.evaluation.status == "REJECTED"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.capability.can_activate is False
+
+
+def test_runtime_slice_shadow_evaluation_is_non_authoritative():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+
+    def active(_state, _candidate):
+        return False
+
+    def shadow(_state, _candidate):
+        return True
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        active_test=active,
+        shadow_test=shadow,
+    )
+
+    assert result.shadow is not None
+    assert result.shadow.status == "BEHAVIOR_CHANGED"
+    assert result.shadow.improvements == 1
+    assert result.provenance.shadow_status == "BEHAVIOR_CHANGED"
+    assert result.capability.can_activate is False
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+
+
+def test_comparative_evaluator_distinguishes_improvement_regression_and_no_change():
+    digest = "evidence-digest"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=1.2, evidence_digest=digest, minimum_delta=0.1
+    ).status == "IMPROVED"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=0.8, evidence_digest=digest, minimum_delta=0.1
+    ).status == "REGRESSION"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=1.05, evidence_digest=digest, minimum_delta=0.1
+    ).status == "NO_MEANINGFUL_CHANGE"
+
+
+def test_comparative_evaluator_refuses_missing_measurements():
+    result = evaluate_comparative(
+        baseline_score=None, candidate_score=1.0, evidence_digest="e"
+    )
+    assert result.status == "INSUFFICIENT_EVIDENCE"
+
+
+def test_typed_outcome_respects_metric_direction():
+    baseline = Outcome("latency", 10.0, "minimize", 0.5, "b")
+    candidate = Outcome("latency", 8.0, "minimize", 0.4, "c")
+    result = evaluate_outcomes(baseline=baseline, candidate=candidate, minimum_delta=1.0)
+    assert result.status == "IMPROVED"
+    assert result.delta == 2.0
+
+
+def test_typed_outcome_rejects_mismatched_metric():
+    baseline = Outcome("accuracy", 0.8, "maximize", None, "b")
+    candidate = Outcome("latency", 0.2, "maximize", None, "c")
+    with pytest.raises(ValueError, match="metrics"):
+        evaluate_outcomes(baseline=baseline, candidate=candidate)
+
+
+def test_evidence_sufficiency_requires_independent_uncertain_measurements():
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "baseline")
+    candidate = Outcome("accuracy", 0.84, "maximize", 0.01, "candidate")
+    result = assess_evidence_sufficiency(
+        baseline=baseline, candidate=candidate, minimum_delta=0.02, min_confidence=0.65
+    )
+    assert result.sufficient is True
+    assert result.status == "SUFFICIENT"
+
+
+def test_evidence_sufficiency_rejects_shared_or_missing_evidence():
+    shared_a = Outcome("accuracy", 0.80, "maximize", 0.01, "same")
+    shared_b = Outcome("accuracy", 0.84, "maximize", 0.01, "same")
+    assert assess_evidence_sufficiency(baseline=shared_a, candidate=shared_b).sufficient is False
+
+    missing = Outcome("accuracy", 0.84, "maximize", None, "candidate")
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "baseline")
+    assert assess_evidence_sufficiency(baseline=baseline, candidate=missing).sufficient is False
+
+
+def test_selection_requires_sufficient_improvement_and_stays_review_only():
+    from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
+    from gnosis.evolution.selection import select_for_review
+
+    comparison = ComparativeEvaluation(
+        "IMPROVED", 1.0, 1.2, 0.2, ("improved",), "e"
+    )
+    sufficient = EvidenceSufficiency("SUFFICIENT", 0.99, ("sufficient",))
+    result = select_for_review(
+        candidate_id="candidate-1",
+        comparison=comparison,
+        sufficiency=sufficient,
+    )
+    assert result.status == "ACCEPT_FOR_REVIEW"
+    assert result.selected_for_review is True
+
+
+def test_selection_rejects_insufficient_or_non_improving_evidence():
+    from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
+    from gnosis.evolution.selection import select_for_review
+
+    comparison = ComparativeEvaluation(
+        "IMPROVED", 1.0, 1.2, 0.2, ("improved",), "e"
+    )
+    insufficient = EvidenceSufficiency("INSUFFICIENT", 0.4, ("uncertain",))
+    assert select_for_review(
+        candidate_id="candidate-1", comparison=comparison, sufficiency=insufficient
+    ).status == "INSUFFICIENT"
+
+    no_change = ComparativeEvaluation(
+        "NO_MEANINGFUL_CHANGE", 1.0, 1.0, 0.0, ("same",), "e"
+    )
+    sufficient = EvidenceSufficiency("SUFFICIENT", 0.99, ("sufficient",))
+    assert select_for_review(
+        candidate_id="candidate-1", comparison=no_change, sufficiency=sufficient
+    ).status == "REJECT"
+
+
+def test_runtime_slice_integrates_outcome_sufficiency_and_review_selection():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcome=Outcome("accuracy", 0.80, "maximize", 0.01, "baseline"),
+        candidate_outcome=Outcome("accuracy", 0.84, "maximize", 0.01, "candidate"),
+        minimum_delta=0.02,
+        min_confidence=0.65,
+    )
+
+    assert result.comparison is not None
+    assert result.comparison.status == "IMPROVED"
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "SUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "ACCEPT_FOR_REVIEW"
+    assert result.capability.can_activate is False
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+
+
+def test_replicated_evidence_requires_independent_repetitions_and_clears_conservative_bound():
+    baselines = (
+        Outcome("accuracy", 0.80, "maximize", 0.01, "b1"),
+        Outcome("accuracy", 0.81, "maximize", 0.01, "b2"),
+    )
+    candidates = (
+        Outcome("accuracy", 0.84, "maximize", 0.01, "c1"),
+        Outcome("accuracy", 0.85, "maximize", 0.01, "c2"),
+    )
+    result = assess_replicated_evidence(
+        baselines=baselines, candidates=candidates, minimum_repetitions=2, minimum_delta=0.01
+    )
+    assert result.status == "SUFFICIENT"
+    assert result.repetitions == 2
+    assert result.conservative_delta_lower_bound == pytest.approx(0.02)
+
+
+def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions():
+    baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "same")
+    candidate = Outcome("accuracy", 0.84, "maximize", 0.01, "same")
+    result = assess_replicated_evidence(
+        baselines=(baseline,), candidates=(candidate,), minimum_repetitions=2
+    )
+    assert result.status == "INSUFFICIENT"
+
+    b1 = Outcome("accuracy", 0.80, "maximize", 0.01, "b1")
+    c1 = Outcome("accuracy", 0.84, "maximize", 0.01, "c1")
+    b2 = Outcome("accuracy", 0.82, "maximize", 0.02, "b2")
+    c2 = Outcome("accuracy", 0.83, "maximize", 0.02, "c2")
+    result = assess_replicated_evidence(
+        baselines=(b1, b2), candidates=(c1, c2), minimum_repetitions=2, minimum_delta=0.0
+    )
+    assert result.status == "INSUFFICIENT"
+
+
+
+
+
+
+def test_gap_detection_is_deterministic_for_same_history():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    history = history_from_persisted_transitions(_history())
+    first = detector.detect(history=history, minimum_repetitions=2)
+    second = detector.detect(history=history, minimum_repetitions=2)
+
+    assert first and second
+    assert first[0].gap_id == second[0].gap_id
+    assert first[0].source_records == second[0].source_records
+    assert first[0].trigger_kind == second[0].trigger_kind
+
+
+def test_gap_detection_ignores_irrelevant_evidence_for_same_history():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    history = history_from_persisted_transitions(_history())
+    baseline = detector.detect(history=history, evidence=(), tensions=(), forecast_errors=(), minimum_repetitions=2)
+    noisy = detector.detect(
+        history=history,
+        evidence=({"kind": "noise", "status": "ACCEPTED", "reason": "unrelated"},),
+        tensions=({"kind": "noise", "status": "ACCEPTED", "reason": "unrelated"},),
+        forecast_errors=({"kind": "noise", "status": "ACCEPTED", "reason": "unrelated"},),
+        minimum_repetitions=2,
+    )
+
+    assert baseline and noisy
+    assert noisy[0].gap_id == baseline[0].gap_id
+    assert noisy[0].source_records == baseline[0].source_records
+    assert noisy[0].trigger_kind == baseline[0].trigger_kind
+
+
+
+def test_gap_detection_changes_when_material_history_changes():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    baseline_history = history_from_persisted_transitions(_history())
+    changed = list(_history())
+    changed[0] = dataclasses.replace(changed[0], test_result=TestResult(False, ("materially-different",)))
+    changed_history = history_from_persisted_transitions(tuple(changed))
+
+    baseline = detector.detect(
+        history=baseline_history,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+    altered = detector.detect(
+        history=changed_history,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert baseline
+    assert altered == ()
+
+
+
+def test_gap_disappears_when_repeated_pattern_is_broken():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    records = list(_history())
+    records[1] = dataclasses.replace(records[1], test_result=TestResult(False, ("different-material-pattern",)))
+    altered = history_from_persisted_transitions(tuple(records))
+
+    result = detector.detect(
+        history=altered,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert result == ()
+
+
+def test_gap_identity_changes_for_a_different_repeated_pattern():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    baseline = history_from_persisted_transitions(_history())
+    records = list(_history())
+    records[0] = dataclasses.replace(records[0], test_result=TestResult(False, ("different-material-pattern",)))
+    records[1] = dataclasses.replace(records[1], test_result=TestResult(False, ("different-material-pattern",)))
+    altered = history_from_persisted_transitions(tuple(records))
+
+    first = detector.detect(
+        history=baseline,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+    second = detector.detect(
+        history=altered,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert first and second
+    assert first[0].gap_id != second[0].gap_id
+    assert first[0].trigger_kind == second[0].trigger_kind == "transition"
+    assert first[0].source_records != second[0].source_records
+
+
+
+
+
+def test_capability_synthesis_rejects_fabricated_gap():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapHypothesis
+
+    fabricated = GapHypothesis(
+        gap_id="fabricated-gap",
+        trigger_kind="transition",
+        source_records=(),
+        description="fabricated",
+        status="FABRICATED",
+    )
+
+    with pytest.raises(ValueError, match="valid gap hypothesis"):
+        CapabilitySynthesizer().synthesize(fabricated)
+
+def test_capability_synthesis_is_deterministic_and_gap_bound():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    history = history_from_persisted_transitions(_history())
+    gaps = GapDetector().detect(history=history, minimum_repetitions=2)
+    assert gaps
+
+    synthesizer = CapabilitySynthesizer()
+    first = synthesizer.synthesize(
+        gaps[0], available_operations=("record", "observe"), resource_bound=1
+    )
+    second = synthesizer.synthesize(
+        gaps[0], available_operations=("observe", "record"), resource_bound=1
+    )
+
+    assert first and second
+    assert first[0].capability_id == second[0].capability_id
+    assert first[0].source_gap_id == gaps[0].gap_id
+    assert first[0].provenance_refs == gaps[0].source_records
+    assert first[0].target_conflicts == gaps[0].source_records
+    assert first[0].can_activate is False
+
+
+def test_capability_identity_changes_with_source_gap():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    synthesizer = CapabilitySynthesizer()
+    baseline = history_from_persisted_transitions(_history())
+    changed = list(_history())
+    changed[0] = dataclasses.replace(
+        changed[0], test_result=TestResult(False, ("different-material-pattern",))
+    )
+    changed[1] = dataclasses.replace(
+        changed[1], test_result=TestResult(False, ("different-material-pattern",))
+    )
+    altered = history_from_persisted_transitions(tuple(changed))
+
+    gap_a = detector.detect(history=baseline, minimum_repetitions=2)
+    gap_b = detector.detect(history=altered, minimum_repetitions=2)
+    assert gap_a and gap_b and gap_a[0].gap_id != gap_b[0].gap_id
+
+    cap_a = synthesizer.synthesize(gap_a[0], available_operations=("observe", "record"))[0]
+    cap_b = synthesizer.synthesize(gap_b[0], available_operations=("observe", "record"))[0]
+
+    assert cap_a.capability_id != cap_b.capability_id
+    assert cap_a.source_gap_id == gap_a[0].gap_id
+    assert cap_b.source_gap_id == gap_b[0].gap_id
+    assert cap_a.provenance_refs != cap_b.provenance_refs
+
+
+def test_capability_synthesis_marks_missing_dependencies_without_activation():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    history = history_from_persisted_transitions(_history())
+    gaps = GapDetector().detect(history=history, minimum_repetitions=2)
+    assert gaps
+
+    capability = CapabilitySynthesizer().synthesize(
+        gaps[0], available_operations=("observe",), resource_bound=1
+    )[0]
+
+    assert capability.missing_dependencies == ("record",)
+    assert capability.can_activate is False
+
+def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before_id = state.state_id
+    before_content = state.content_id
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        available_operations=("observe", "record"),
+        resource_bound=1,
+        minimum_repetitions=2,
+    )
+
+    assert result.gap.source_records
+    assert result.gap.trigger_kind == "transition"
+    assert result.capability.source_gap_id == result.gap.gap_id
+    assert result.capability.provenance_refs == result.gap.source_records
+    assert result.capability.can_activate is False
+    assert result.candidate.origin == "evolution:capability-hypothesis"
+    assert result.candidate.proposed_state.elements["__gnozis_capability__"]["source_gap_id"] == result.gap.gap_id
+    assert result.sandbox.execution.status == "COMPLETED"
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+
+def test_runtime_slice_uses_replicated_evidence_for_selection():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "rb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "rb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "rc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "rc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "SUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "ACCEPT_FOR_REVIEW"
+
+
+def test_runtime_slice_rejects_regression_after_sufficient_evidence():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcome=Outcome("accuracy", 0.90, "maximize", 0.01, "rb"),
+        candidate_outcome=Outcome("accuracy", 0.80, "maximize", 0.01, "rc"),
+        minimum_delta=0.01,
+    )
+    assert result.comparison is not None
+    assert result.comparison.status == "REGRESSION"
+    assert result.selection is not None
+    assert result.selection.status == "REJECT"
+
+
+def test_runtime_slice_rejects_noise_as_insufficient_evidence():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "nb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "nb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.81, "maximize", 0.01, "nc1"),
+            Outcome("accuracy", 0.82, "maximize", 0.01, "nc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "INSUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "INSUFFICIENT"
+
+
+def test_runtime_slice_stops_on_one_failed_repetition():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 1}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "fb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "fb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "fc1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "fc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    assert result.sufficiency is not None
+    assert result.sufficiency.status == "INSUFFICIENT"
+    assert result.selection is not None
+    assert result.selection.status == "INSUFFICIENT"
+
+
+def test_accept_for_review_cannot_mutate_canonical_state_or_grant_activation():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    original_state_id = state.state_id
+
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "ab1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "ab2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "ac1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "ac2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+
+    assert state.state_id == original_state_id
+    assert result.selection is not None
+    assert result.selection.selected_for_review is True
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert "activation_capability" not in result.selection.__dict__
+
+
+def test_runtime_slice_replays_and_recovers_same_persisted_evidence():
+    from gnosis.evolution.replay import replay_complete
+    from gnosis.evolution.recovery import recover_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    result = run_runtime_slice(
+        conn=conn,
+        state=state,
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "pb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "pb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "pc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "pc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+
+    replay = replay_complete(
+        result.sandbox.execution,
+        result.provenance,
+        result.transaction.audit_record,
+        observations=result.sandbox.execution.observations,
+    )
+    assert replay.reproducible is True
+
+    recovery = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovery.chain_valid is True
+    assert recovery.replay_valid is True
+    assert recovery.expected_digest == recovery.actual_digest
+
+
+def test_multiple_runtime_cycles_form_append_only_audit_chain_and_recover():
+    from gnosis.evolution.recovery import recover_evolution_audit
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+
+    results = []
+    for idx, base in enumerate((0.80, 0.82, 0.84)):
+        result = run_runtime_slice(
+            conn=conn,
+            state=State(elements={"a": idx}),
+            transitions=_history(),
+            observe=_observer,
+            baseline_outcomes=(
+                Outcome("accuracy", base, "maximize", 0.01, f"mb{idx}1"),
+                Outcome("accuracy", base + 0.01, "maximize", 0.01, f"mb{idx}2"),
+            ),
+            candidate_outcomes=(
+                Outcome("accuracy", base + 0.04, "maximize", 0.01, f"mc{idx}1"),
+                Outcome("accuracy", base + 0.05, "maximize", 0.01, f"mc{idx}2"),
+            ),
+            minimum_repetitions=2,
+            minimum_delta=0.01,
+        )
+        results.append(result)
+
+    from gnosis.reflection.persistence import list_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
+    audits = list_evolution_audit(conn)
+    ok, reasons = verify_audit_chain(list(audits))
+    assert ok is True, reasons
+    assert [a.sequence for a in audits] == list(range(len(audits)))
+    assert len({a.record_digest for a in audits}) == len(audits)
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=results[-1].provenance.provenance_id,
+        observations=results[-1].sandbox.execution.observations,
+        proposed_state=results[-1].candidate.proposed_state,
+    )
+    assert recovered.chain_valid is True
+    assert recovered.replay_valid is True
+
+
+def test_corrupted_audit_chain_fails_closed():
+    from dataclasses import replace
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    for idx, base in enumerate((0.80, 0.82)):
+        run_runtime_slice(
+            conn=conn,
+            state=State(elements={"a": idx}),
+            transitions=_history(),
+            observe=_observer,
+            baseline_outcomes=(
+                Outcome("accuracy", base, "maximize", 0.01, f"cb{idx}1"),
+                Outcome("accuracy", base + 0.01, "maximize", 0.01, f"cb{idx}2"),
+            ),
+            candidate_outcomes=(
+                Outcome("accuracy", base + 0.04, "maximize", 0.01, f"cc{idx}1"),
+                Outcome("accuracy", base + 0.05, "maximize", 0.01, f"cc{idx}2"),
+            ),
+            minimum_repetitions=2,
+            minimum_delta=0.01,
+        )
+
+    records = list(list_evolution_audit(conn))
+    assert verify_audit_chain(records)[0] is True
+
+    tampered_digest = list(records)
+    tampered_digest[0] = replace(tampered_digest[0], record_digest="tampered")
+    ok, reasons = verify_audit_chain(tampered_digest)
+    assert ok is False
+    assert any("record digest mismatch" in reason for reason in reasons)
+    assert any("previous digest mismatch" in reason for reason in reasons)
+
+    tampered_previous = list(records)
+    tampered_previous[1] = replace(tampered_previous[1], previous_digest="tampered")
+    ok, reasons = verify_audit_chain(tampered_previous)
+    assert ok is False
+    assert any("previous digest mismatch" in reason for reason in reasons)
+
+
+def test_tampered_persisted_provenance_fails_closed():
+    from gnosis.evolution.recovery import recover_evolution_audit
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 0}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "pb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "pb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "pc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "pc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    pid = result.provenance.provenance_id
+    conn.execute(
+        "UPDATE evolution_provenance SET evidence_digest=? WHERE provenance_id=?",
+        ("tampered", pid),
+    )
+    report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert report.replay_valid is False
+    assert "recovery replay digest mismatch" in report.reasons or "provenance identity mismatch" in report.reasons
+
+
+def test_tampered_candidate_binding_and_state_content_fail_closed():
+    from gnosis.evolution.recovery import recover_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    result = run_runtime_slice(
+        conn=conn,
+        state=State(elements={"a": 0}),
+        transitions=_history(),
+        observe=_observer,
+        baseline_outcomes=(
+            Outcome("accuracy", 0.80, "maximize", 0.01, "qb1"),
+            Outcome("accuracy", 0.81, "maximize", 0.01, "qb2"),
+        ),
+        candidate_outcomes=(
+            Outcome("accuracy", 0.84, "maximize", 0.01, "qc1"),
+            Outcome("accuracy", 0.85, "maximize", 0.01, "qc2"),
+        ),
+        minimum_repetitions=2,
+        minimum_delta=0.01,
+    )
+    pid = result.provenance.provenance_id
+
+    conn.execute(
+        "UPDATE evolution_provenance SET candidate_binding_digest=? WHERE provenance_id=?",
+        ("tampered-binding", pid),
+    )
+    binding_report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert binding_report.replay_valid is False
+    assert "recovery evolution identity mismatch" in binding_report.reasons
+
+    conn.execute(
+        "UPDATE evolution_provenance SET candidate_binding_digest=? WHERE provenance_id=?",
+        (result.provenance.candidate_binding_digest, pid),
+    )
+    wrong_state = State(elements={"a": 999})
+    state_report = recover_evolution_audit(
+        conn,
+        provenance_id=pid,
+        observations=result.sandbox.execution.observations,
+        proposed_state=wrong_state,
+    )
+    assert state_report.replay_valid is False
+    assert "proposed state content identity mismatch" in state_report.reasons
+
+
+
+
+
+
+def test_reflection_recovery_detects_tampered_evidence_digest_and_fails_closed():
+    from gnosis.core import Budget
+    from gnosis.evolution.recovery import recover_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:tamper",
+            finding_id="finding:tamper",
+            target="rule:v1",
+            hypothesis="tamper test",
+            evidence_refs=("evidence:tamper",),
+            expected_effect="bounded effect",
+            regression_risk="low",
+            required_test="tamper test",
+        ),
+    ))
+    candidate = generate_endogenous_candidates(
+        state, report, budget=Budget(total=1)
+    ).candidates[0]
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    conn.execute(
+        "UPDATE evolution_provenance SET evidence_digest=? WHERE provenance_id=?",
+        ("tampered-evidence-digest", result.provenance.provenance_id),
+    )
+    conn.commit()
+
+    audits = list(list_evolution_audit(conn))
+    assert verify_audit_chain(audits)[0] is True
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovered.chain_valid is False
+    assert recovered.replay_valid is False
+    assert any("digest" in reason for reason in recovered.reasons)
+
+def test_reflection_vertical_evidence_recovers_and_replays_fail_closed():
+    from gnosis.core import Budget
+    from gnosis.evolution.recovery import recover_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
+    from gnosis.reflection.persistence import list_evolution_audit
+
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before = state.content_id
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:recovery",
+            finding_id="finding:recovery",
+            target="rule:v1",
+            hypothesis="recovery test",
+            evidence_refs=("evidence:recovery",),
+            expected_effect="bounded effect",
+            regression_risk="low",
+            required_test="recovery test",
+        ),
+    ))
+    candidate = generate_endogenous_candidates(
+        state, report, budget=Budget(total=1)
+    ).candidates[0]
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    audits = list(list_evolution_audit(conn))
+    assert verify_audit_chain(audits)[0] is True
+
+    recovered = recover_evolution_audit(
+        conn,
+        provenance_id=result.provenance.provenance_id,
+        observations=result.sandbox.execution.observations,
+        proposed_state=result.candidate.proposed_state,
+    )
+    assert recovered.chain_valid is True
+    assert recovered.replay_valid is True
+    assert state.content_id == before
+
+def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_core_mutation():
+    from gnosis.core import Budget, State
+    from gnosis.evolution import SandboxBudget, run_bounded_candidate
+    from gnosis.reflection.endogenous import generate_endogenous_candidates
+
+    state = State(elements={"a": 1})
+    before = state.content_id
+    report = ReflectionReport(proposals=(RuleProposal(proposal_id="proposal:77", finding_id="finding:77", target="rule:v1", hypothesis="test hypothesis", evidence_refs=("evidence:77",), expected_effect="test", regression_risk="test", required_test="test"),))
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
+    candidate = generation.candidates[0]
+
+    result = run_bounded_candidate(
+        conn=sqlite3.connect(":memory:"),
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.candidate.candidate_id == candidate.candidate_id
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert state.content_id == before

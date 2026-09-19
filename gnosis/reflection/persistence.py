@@ -288,7 +288,7 @@ def save_evolution_provenance(conn: sqlite3.Connection, provenance: Any) -> str:
 def load_evolution_provenance(conn: sqlite3.Connection, provenance_id: str) -> dict[str, Any]:
     ensure_reflection_schema(conn)
     row = conn.execute(
-        """SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,
+        """SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,candidate_binding_digest,
                   evaluation_status,shadow_status,invariant_status,governance_decision,status
            FROM evolution_provenance WHERE provenance_id=?""",
         (provenance_id,),
@@ -296,7 +296,7 @@ def load_evolution_provenance(conn: sqlite3.Connection, provenance_id: str) -> d
     if row is None:
         raise KeyError(provenance_id)
     keys = (
-        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest","evolution_identity","proposed_state_content_id",
+        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest","evolution_identity","proposed_state_content_id","candidate_binding_digest",
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return dict(zip(keys, row))
@@ -308,19 +308,19 @@ def list_evolution_provenance(
     ensure_reflection_schema(conn)
     if candidate_id is None:
         rows = conn.execute(
-            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,"
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,candidate_binding_digest,"
             "evaluation_status,shadow_status,invariant_status,governance_decision,status "
             "FROM evolution_provenance ORDER BY rowid"
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,"
+            "SELECT provenance_id,execution_id,candidate_id,parent_state_id,parent_state_digest,proposed_state_digest,evidence_digest,evolution_identity,proposed_state_content_id,candidate_binding_digest,"
             "evaluation_status,shadow_status,invariant_status,governance_decision,status "
             "FROM evolution_provenance WHERE candidate_id=? ORDER BY rowid",
             (candidate_id,),
         ).fetchall()
     keys = (
-        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest","evolution_identity","proposed_state_content_id",
+        "provenance_id","execution_id","candidate_id","parent_state_id","parent_state_digest","proposed_state_digest","evidence_digest","evolution_identity","proposed_state_content_id","candidate_binding_digest",
         "evaluation_status","shadow_status","invariant_status","governance_decision","status",
     )
     return tuple(dict(zip(keys, row)) for row in rows)
