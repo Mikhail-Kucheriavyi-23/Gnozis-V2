@@ -161,3 +161,41 @@ def test_evidence_sufficiency_rejects_shared_or_missing_evidence():
     missing = Outcome("accuracy", 0.84, "maximize", None, "candidate")
     baseline = Outcome("accuracy", 0.80, "maximize", 0.01, "baseline")
     assert assess_evidence_sufficiency(baseline=baseline, candidate=missing).sufficient is False
+
+
+def test_selection_requires_sufficient_improvement_and_stays_review_only():
+    from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
+    from gnosis.evolution.selection import select_for_review
+
+    comparison = ComparativeEvaluation(
+        "IMPROVED", 1.0, 1.2, 0.2, ("improved",), "e"
+    )
+    sufficient = EvidenceSufficiency("SUFFICIENT", 0.99, ("sufficient",))
+    result = select_for_review(
+        candidate_id="candidate-1",
+        comparison=comparison,
+        sufficiency=sufficient,
+    )
+    assert result.status == "ACCEPT_FOR_REVIEW"
+    assert result.selected_for_review is True
+
+
+def test_selection_rejects_insufficient_or_non_improving_evidence():
+    from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
+    from gnosis.evolution.selection import select_for_review
+
+    comparison = ComparativeEvaluation(
+        "IMPROVED", 1.0, 1.2, 0.2, ("improved",), "e"
+    )
+    insufficient = EvidenceSufficiency("INSUFFICIENT", 0.4, ("uncertain",))
+    assert select_for_review(
+        candidate_id="candidate-1", comparison=comparison, sufficiency=insufficient
+    ).status == "INSUFFICIENT"
+
+    no_change = ComparativeEvaluation(
+        "NO_MEANINGFUL_CHANGE", 1.0, 1.0, 0.0, ("same",), "e"
+    )
+    sufficient = EvidenceSufficiency("SUFFICIENT", 0.99, ("sufficient",))
+    assert select_for_review(
+        candidate_id="candidate-1", comparison=no_change, sufficiency=sufficient
+    ).status == "REJECT"
