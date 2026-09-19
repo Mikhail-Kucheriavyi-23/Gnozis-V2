@@ -2,6 +2,7 @@ import sqlite3
 
 from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
+from gnosis.evolution.evaluator import evaluate_comparative
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 
 
@@ -104,3 +105,23 @@ def test_runtime_slice_shadow_evaluation_is_non_authoritative():
     assert result.provenance.shadow_status == "BEHAVIOR_CHANGED"
     assert result.capability.can_activate is False
     assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+
+
+def test_comparative_evaluator_distinguishes_improvement_regression_and_no_change():
+    digest = "evidence-digest"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=1.2, evidence_digest=digest, minimum_delta=0.1
+    ).status == "IMPROVED"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=0.8, evidence_digest=digest, minimum_delta=0.1
+    ).status == "REGRESSION"
+    assert evaluate_comparative(
+        baseline_score=1.0, candidate_score=1.05, evidence_digest=digest, minimum_delta=0.1
+    ).status == "NO_MEANINGFUL_CHANGE"
+
+
+def test_comparative_evaluator_refuses_missing_measurements():
+    result = evaluate_comparative(
+        baseline_score=None, candidate_score=1.0, evidence_digest="e"
+    )
+    assert result.status == "INSUFFICIENT_EVIDENCE"
