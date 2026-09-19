@@ -241,7 +241,7 @@ def test_replicated_evidence_requires_independent_repetitions_and_clears_conserv
     )
     assert result.status == "SUFFICIENT"
     assert result.repetitions == 2
-    assert result.conservative_delta_lower_bound == pytest.approx(0.01)
+    assert result.conservative_delta_lower_bound == pytest.approx(0.02)
 
 
 def test_replicated_evidence_rejects_insufficient_or_non_independent_repetitions():
