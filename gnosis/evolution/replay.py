@@ -68,10 +68,10 @@ def replay_complete(
             observations=observations,
             evidence_digest=execution.evidence_digest,
             execution_id_value=expected_execution_id,
-            evaluation_status=execution.evaluation_status,
-            shadow_status=execution.shadow_status,
-            invariant_status=execution.invariant_status,
-            governance_decision=execution.governance_decision,
+            evaluation_status=provenance.evaluation_status,
+            shadow_status=provenance.shadow_status,
+            invariant_status=provenance.invariant_status,
+            governance_decision=provenance.governance_decision,
         )
         reasons.extend(check.reasons)
     if audit_record is not None:
