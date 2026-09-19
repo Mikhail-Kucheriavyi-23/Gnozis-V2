@@ -69,6 +69,7 @@ def recover_evolution_audit(
                 shadow_status=provenance_row["shadow_status"],
                 invariant_status=provenance_row["invariant_status"],
                 governance_decision=provenance_row["governance_decision"],
+                status=provenance_row.get("status", "RECORDED"),
                 proposed_state_content_id=provenance_row.get("proposed_state_content_id", ""),
                 candidate_binding_digest=provenance_row.get("candidate_binding_digest", ""),
             )
