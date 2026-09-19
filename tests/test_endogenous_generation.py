@@ -128,3 +128,41 @@ def test_endogenous_commit_records_hypothesis_only_and_not_authority():
     gate = evaluate_promotion_gate(promotion, provenance_valid=True)
     assert gate.can_activate is False
     assert promotion.can_activate is False
+
+
+def test_multi_cycle_reflection_candidates_never_become_rule_mutations():
+    from gnosis.core import Budget, Engine, select
+
+    engine = Engine(state=State(elements={"a": 1}), budget=Budget(total=3))
+    committed_proposals = []
+
+    for i in range(1, 4):
+        report = ReflectionReport(proposals=(proposal(i),))
+        generation = generate_endogenous_candidates(
+            engine.state,
+            report,
+            budget=Budget(total=1),
+        )
+        assert len(generation.candidates) == 1
+
+        candidate = generation.candidates[0]
+        selection = select(engine.state, generation.candidates, engine.test_fn)
+        assert selection.selected is not None
+
+        record = engine.step_select(generation.candidates)
+        assert record.accepted
+        committed_proposals.append(candidate.candidate_id)
+
+        state = engine.state
+        assert state.elements[f"proposal:{i}"]["kind"] == "rule_proposal"
+        assert all(
+            node.get("kind") != "activated_rule"
+            for key, node in state.elements.items()
+            if isinstance(node, dict)
+        )
+        assert all("authority" not in node for node in state.elements.values() if isinstance(node, dict))
+        assert all("authorization" not in node for node in state.elements.values() if isinstance(node, dict))
+
+    assert len(committed_proposals) == 3
+    assert len(set(committed_proposals)) == 3
+    assert len(engine.history) == 3
