@@ -5,7 +5,8 @@ from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
 from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
-from gnosis.reflection.endogenous import ReflectionReport, generate_endogenous_candidates
+from gnosis.reflection.analyzer import ReflectionReport, RuleProposal
+from gnosis.reflection.endogenous import generate_endogenous_candidates
 
 
 def _history():
@@ -608,7 +609,7 @@ def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_
 
     state = State(elements={"a": 1})
     before = state.content_id
-    report = ReflectionReport(proposals=(proposal(77),))
+    report = ReflectionReport(proposals=(RuleProposal(proposal_id="proposal:77", finding_id="finding:77", target="rule:v1", hypothesis="test hypothesis", evidence_refs=("evidence:77",), expected_effect="test", regression_risk="test", required_test="test"),))
     generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
     candidate = generation.candidates[0]
 
