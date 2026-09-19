@@ -230,3 +230,53 @@ def test_owner_approval_cannot_cross_bind_evolution():
     approval = OwnerApproval("approval-1", "p", "e")
     with pytest.raises(PermissionError, match="owner approval"):
         issue_execution_authorization(approval, request_provenance="p", evolution_identity="other")
+
+
+def test_verified_evidence_stops_at_review_and_cannot_become_authority():
+    from gnosis.evolution.evaluator import ComparativeEvaluation, EvidenceSufficiency
+    from gnosis.evolution.promotion import make_promotion_candidate, evaluate_promotion_gate
+    from gnosis.evolution.selection import select_for_review
+
+    comparison = ComparativeEvaluation(
+        status="IMPROVED",
+        metric="accuracy",
+        baseline_value=0.80,
+        candidate_value=0.85,
+        delta=0.05,
+        rationale=("candidate improved baseline",),
+    )
+    sufficiency = EvidenceSufficiency(
+        sufficient=True,
+        repetitions=3,
+        minimum_repetitions=2,
+        rationale=("enough repeated evidence",),
+    )
+    selected = select_for_review(
+        candidate_id="candidate-1",
+        comparison=comparison,
+        sufficiency=sufficiency,
+    )
+    assert selected.selected_for_review is True
+
+    promotion = make_promotion_candidate(
+        candidate_id="candidate-1",
+        evidence_digest="evidence-1",
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="APPROVE",
+    )
+    gate = evaluate_promotion_gate(promotion, provenance_valid=True)
+    assert gate.eligible is True
+    assert gate.can_activate is False
+    assert promotion.can_activate is False
+
+    decision = GovernanceDecision(
+        decision="REVIEW",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        rationale=("evidence accepted for review",),
+    )
+    request = request_authorization(decision)
+    assert request.authorized is False
+    assert request.can_activate is False
