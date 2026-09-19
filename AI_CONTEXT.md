@@ -2642,3 +2642,64 @@ Do not collapse these into a single notion of “proof”.
 - Next narrow target: verify actual CI/runtime evidence for SQLiteExecutionCommitAdapter and the complete authorized execution chain.
 - If verified, then reverse the intentional stopping point: the semantics and trust model of OwnerApproval / trusted authority issuer.
 - Preserve all distinctions: implementation vs tests vs CI verification; storage integrity vs authority; governance classification vs authorization; authorized execution vs autonomous authority issuance.
+
+
+## GNV2-REVERSE-PROOF-CONTEXT-2026-09-19-2
+
+This checkpoint records the reverse-analysis completed after the prior AI context update. It is research context, not a new implementation claim.
+
+### Recovered proof/identity chain
+
+- RelationID commits source, target, relation_type and value.
+- State.content_id commits elements plus sorted relation IDs and intentionally excludes State version. This is semantic content identity for Psi=(X,R).
+- StateID remains a distinct versioned-state/context identity.
+- CandidateID is history/context sensitive and includes parent state identity, proposed-state content identity, origin and seed.
+- candidate_binding_digest binds CandidateID to the exact parent-state digest and proposed-state content identity: conceptually B = H(CandidateID, ParentStateDigest, ProposedStateContentID).
+- EvidenceDigest uses the current canonical JSON -> UTF-8 -> SHA-256 primitive; current implementation still uses default=str for unsupported objects. Formal strict canonical-domain tests remain a research gap.
+- ProvenanceID is a 96-bit truncated identifier used as provenance/persistence/idempotency identity; it is not the full evolution commitment.
+- EvolutionIdentity is the full SHA-256 commitment over the evolution context, including candidate/execution context, parent/proposed identities/digests, proposed content identity, candidate binding, evidence and evaluation/shadow/invariant/governance status plus provenance identity.
+- Audit record digest includes identity-bearing fields and previous_digest, producing a local append-only hash chain. This provides tamper detection within the anchored chain but is not an external trust anchor.
+
+### Authority boundary recovered
+
+- Governance is classification/evidence, not authority.
+- ExecutionAuthorization is a fail-closed boundary marker, not an authority source.
+- Authorization must match request provenance and exact evolution identity.
+- ExecutionIntentSnapshot binds provenance, execution identity, evolution identity, candidate binding, proposed content identity, parent state identity and parent state digest.
+- ExecutionCommitRequest is the composed pre-commit gate; it does not itself mutate state or grant authority.
+- ExecutionReceipt is post-commit evidence and never grants authority.
+- SQLiteExecutionCommitAdapter is the narrow durable commit boundary: pre-commit gate -> persist -> reload/verify resulting state -> receipt.
+- issue_execution_authorization() intentionally refuses to become a trusted owner issuer. OwnerApproval is therefore an explicit authority stop point. Boolean owner_approved=True is not proof of legitimate ownership.
+- The current architecture therefore preserves AuthorityGain=0 at Core.
+
+### Critical distinctions fixed
+
+Identity != Authority.
+Receipt != Authorization.
+ProvenanceID != EvolutionIdentity.
+ContentID != StateID.
+HashChain != ExternalAnchor.
+Governance != Activation authority.
+
+### Current proof chain
+
+Psi_t=(X,R)
+-> StateID / StateDigest / ContentID
+-> CandidateID
+-> CandidateBindingDigest
+-> Evidence + evaluation/shadow/invariant/governance
+-> ProvenanceID
+-> EvolutionIdentity
+-> OWNER AUTHORITY BOUNDARY
+-> ExecutionAuthorization
+-> ExecutionIntentSnapshot
+-> ExecutionCommitRequest
+-> SQLiteExecutionCommitAdapter
+-> committed resulting state
+-> ExecutionReceipt.
+
+### Next reverse target
+
+Do not implement speculative authority issuance yet. First enumerate every actual canonical State mutation point and caller, classify whether it mutates canonical Core or only local/shadow state, and prove whether each path converges on the existing authorization/commit boundary. Record any bypass as an explicit gap.
+
+Acceptance for this reverse stage: no claim of complete mutation safety until every canonical mutation path has been inspected and either proven gated or explicitly identified as a gap.
