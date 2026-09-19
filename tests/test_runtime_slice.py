@@ -482,6 +482,76 @@ def test_gap_identity_changes_for_a_different_repeated_pattern():
     assert first[0].trigger_kind == second[0].trigger_kind == "transition"
     assert first[0].source_records != second[0].source_records
 
+
+
+def test_capability_synthesis_is_deterministic_and_gap_bound():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    history = history_from_persisted_transitions(_history())
+    gaps = GapDetector().detect(history=history, minimum_repetitions=2)
+    assert gaps
+
+    synthesizer = CapabilitySynthesizer()
+    first = synthesizer.synthesize(
+        gaps[0], available_operations=("record", "observe"), resource_bound=1
+    )
+    second = synthesizer.synthesize(
+        gaps[0], available_operations=("observe", "record"), resource_bound=1
+    )
+
+    assert first and second
+    assert first[0].capability_id == second[0].capability_id
+    assert first[0].source_gap_id == gaps[0].gap_id
+    assert first[0].provenance_refs == gaps[0].source_records
+    assert first[0].target_conflicts == gaps[0].source_records
+    assert first[0].can_activate is False
+
+
+def test_capability_identity_changes_with_source_gap():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    synthesizer = CapabilitySynthesizer()
+    baseline = history_from_persisted_transitions(_history())
+    changed = list(_history())
+    changed[0] = dataclasses.replace(
+        changed[0], test_result=TestResult(False, ("different-material-pattern",))
+    )
+    changed[1] = dataclasses.replace(
+        changed[1], test_result=TestResult(False, ("different-material-pattern",))
+    )
+    altered = history_from_persisted_transitions(tuple(changed))
+
+    gap_a = detector.detect(history=baseline, minimum_repetitions=2)
+    gap_b = detector.detect(history=altered, minimum_repetitions=2)
+    assert gap_a and gap_b and gap_a[0].gap_id != gap_b[0].gap_id
+
+    cap_a = synthesizer.synthesize(gap_a[0], available_operations=("observe", "record"))[0]
+    cap_b = synthesizer.synthesize(gap_b[0], available_operations=("observe", "record"))[0]
+
+    assert cap_a.capability_id != cap_b.capability_id
+    assert cap_a.source_gap_id == gap_a[0].gap_id
+    assert cap_b.source_gap_id == gap_b[0].gap_id
+    assert cap_a.provenance_refs != cap_b.provenance_refs
+
+
+def test_capability_synthesis_marks_missing_dependencies_without_activation():
+    from gnosis.evolution.capability import CapabilitySynthesizer
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    history = history_from_persisted_transitions(_history())
+    gaps = GapDetector().detect(history=history, minimum_repetitions=2)
+    assert gaps
+
+    capability = CapabilitySynthesizer().synthesize(
+        gaps[0], available_operations=("observe",), resource_bound=1
+    )[0]
+
+    assert capability.missing_dependencies == ("record",)
+    assert capability.can_activate is False
+
 def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
