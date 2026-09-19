@@ -8,9 +8,9 @@ from .transaction import EvolutionTransactionResult, persist_evolution_transacti
 from .gap import GapHypothesis, GapDetector
 from .capability import CapabilityHypothesis, CapabilitySynthesizer
 from .provenance import EvidenceProvenance, ProvenanceCrossCheck, build_provenance, canonical_digest, crosscheck_provenance, execution_id, verify_evidence_digest
-from .runtime import RuntimeSliceResult, capability_candidate, run_runtime_slice
+from .runtime import RuntimeSliceResult, capability_candidate, run_runtime_slice, run_bounded_candidate
 
-__all__ = ["GapHypothesis","GapDetector","CapabilityHypothesis","CapabilitySynthesizer","SandboxBudget","SandboxExecution","SandboxResult","run_sandbox","EvaluationResult","evaluate_observation","PromotionCandidate","PromotionGate","ReplayResult","replay_evidence","replay_identity","EvolutionTransactionResult","persist_evolution_transaction","evaluate_promotion_gate","make_promotion_candidate","RuntimeSliceResult","capability_candidate","run_runtime_slice"]
+__all__ = ["GapHypothesis","GapDetector","CapabilityHypothesis","CapabilitySynthesizer","SandboxBudget","SandboxExecution","SandboxResult","run_sandbox","EvaluationResult","evaluate_observation","PromotionCandidate","PromotionGate","ReplayResult","replay_evidence","replay_identity","EvolutionTransactionResult","persist_evolution_transaction","evaluate_promotion_gate","make_promotion_candidate","RuntimeSliceResult","capability_candidate","run_runtime_slice","run_bounded_candidate"]
 
 from .evaluator import Outcome, evaluate_outcomes
 
