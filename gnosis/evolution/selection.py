@@ -27,17 +27,17 @@ def select_for_review(
     """Select evidence for human/governance review, never for activation."""
     if not candidate_id:
         raise ValueError("candidate_id is required")
-    if not sufficiency.sufficient:
-        return SelectionResult(
-            "INSUFFICIENT",
-            candidate_id,
-            ("evidence is not sufficient for selection",),
-        )
     if comparison.status != "IMPROVED":
         return SelectionResult(
             "REJECT",
             candidate_id,
             (f"comparison status is {comparison.status}",),
+        )
+    if not sufficiency.sufficient:
+        return SelectionResult(
+            "INSUFFICIENT",
+            candidate_id,
+            ("evidence is not sufficient for selection",),
         )
     return SelectionResult(
         "ACCEPT_FOR_REVIEW",
