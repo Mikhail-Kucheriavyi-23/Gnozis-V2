@@ -79,6 +79,92 @@ def _default_observer(state: State, candidate: Candidate) -> Mapping[str, Any]:
     }
 
 
+def run_bounded_candidate(
+    *,
+    conn: sqlite3.Connection,
+    state: State,
+    candidate: Candidate,
+    transitions: Sequence[TransitionRecord],
+    observe: ObservationFn | None = None,
+    sandbox_budget: SandboxBudget = SandboxBudget(),
+    predicate: str = "observations_present",
+    minimum_repetitions: int = 2,
+    baseline_outcomes: tuple[Outcome, ...] | None = None,
+    candidate_outcomes: tuple[Outcome, ...] | None = None,
+    minimum_delta: float = 0.0,
+) -> RuntimeSliceResult:
+    """Run a supplied Candidate through the common bounded evidence path.
+
+    This shared boundary is non-authoritative and never mutates canonical Core state.
+    """
+    from gnosis.reflection.persistence import ensure_reflection_schema
+    ensure_reflection_schema(conn)
+    sandbox = run_sandbox(state, candidate, observe or _default_observer, budget=sandbox_budget)
+    evaluation = evaluate_observation(
+        sandbox.execution.observations,
+        evidence_digest=sandbox.execution.evidence_digest,
+        predicate=predicate,
+    ) if sandbox.accepted_for_evaluation else EvaluationResult(
+        "REJECTED",
+        (f"sandbox execution status: {sandbox.execution.status}",),
+        sandbox.execution.evidence_digest,
+    )
+    comparison = None
+    sufficiency = None
+    selection = None
+    if baseline_outcomes is not None or candidate_outcomes is not None:
+        if not baseline_outcomes or not candidate_outcomes:
+            raise ValueError("baseline_outcomes and candidate_outcomes must be supplied together")
+        comparison = evaluate_outcomes(
+            baseline=baseline_outcomes[0], candidate=candidate_outcomes[0],
+            minimum_delta=minimum_delta,
+        )
+        sufficiency = assess_replicated_evidence(
+            baselines=baseline_outcomes, candidates=candidate_outcomes,
+            minimum_repetitions=minimum_repetitions, minimum_delta=minimum_delta,
+        )
+        selection = select_for_review(
+            candidate_id=candidate.candidate_id,
+            comparison=comparison,
+            sufficiency=sufficiency,
+        )
+    provenance = build_provenance(
+        candidate_id=candidate.candidate_id,
+        parent_state_id=state.state_id,
+        parent_state_digest=state.content_id,
+        proposed_state_digest=candidate.proposed_state.content_id,
+        proposed_state_content_id=candidate.proposed_state.content_id,
+        candidate_binding_digest=candidate.binding_digest(state.content_id),
+        observations=sandbox.execution.observations,
+        evidence_digest=sandbox.execution.evidence_digest,
+        evaluation_status=evaluation.status,
+        shadow_status="NOT_RUN",
+        invariant_status="UNCHANGED",
+        governance_decision="REVIEW",
+    )
+    transaction = persist_evolution_transaction(
+        conn, provenance, event_type="BOUNDED_RUNTIME_EVIDENCE",
+        payload={
+            "gap_id": "external-candidate",
+            "capability_id": "external-candidate",
+            "candidate_id": candidate.candidate_id,
+            "sandbox_status": sandbox.execution.status,
+            "evaluation_status": evaluation.status,
+            "comparison_status": comparison.status if comparison else "NOT_RUN",
+            "sufficiency_status": sufficiency.status if sufficiency else "NOT_RUN",
+            "selection_status": selection.status if selection else "NOT_RUN",
+            "activation": False,
+        },
+    )
+    return RuntimeSliceResult(
+        gap=GapHypothesis(source_records=(), gap_id="external-candidate", tension="external", rationale=("external candidate",)),
+        capability=CapabilityHypothesis(capability_id="external-candidate", source_gap_id="external-candidate", mechanism="external", expected_effects=(), resource_bound=1, available_operations=(), test_strategy="external"),
+        candidate=candidate, sandbox=sandbox, evaluation=evaluation,
+        provenance=provenance, transaction=transaction,
+        comparison=comparison, sufficiency=sufficiency, selection=selection,
+    )
+
+
 def run_runtime_slice(
     *,
     conn: sqlite3.Connection,
