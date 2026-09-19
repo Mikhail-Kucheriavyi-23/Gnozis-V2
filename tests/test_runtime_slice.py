@@ -439,7 +439,7 @@ def test_gap_disappears_when_repeated_pattern_is_broken():
 
     detector = GapDetector()
     records = list(_history())
-    records[1] = dataclasses.replace(records[1], reason="different-material-pattern")
+    records[1] = dataclasses.replace(records[1], test_result=TestResult(False, ("different-material-pattern",)))
     altered = history_from_persisted_transitions(tuple(records))
 
     result = detector.detect(
@@ -459,8 +459,8 @@ def test_gap_identity_changes_for_a_different_repeated_pattern():
     detector = GapDetector()
     baseline = history_from_persisted_transitions(_history())
     records = list(_history())
-    records[0] = dataclasses.replace(records[0], reason="different-material-pattern")
-    records[1] = dataclasses.replace(records[1], reason="different-material-pattern")
+    records[0] = dataclasses.replace(records[0], test_result=TestResult(False, ("different-material-pattern",)))
+    records[1] = dataclasses.replace(records[1], test_result=TestResult(False, ("different-material-pattern",)))
     altered = history_from_persisted_transitions(tuple(records))
 
     first = detector.detect(
