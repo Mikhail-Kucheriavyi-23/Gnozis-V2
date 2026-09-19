@@ -98,3 +98,33 @@ def test_memory_history_changes_hypothesis_context_deterministically():
     assert a.proposal_ids == b.proposal_ids == ("proposal:1",)
     again = generate_endogenous_candidates(state, report, memory_evidence=memory_a)
     assert again.candidates[0].proposed_state.state_id == a.candidates[0].proposed_state.state_id
+
+
+def test_endogenous_commit_records_hypothesis_only_and_not_authority():
+    from gnosis.core import Budget, Engine
+    from gnosis.reflection.promotion import make_promotion_candidate, evaluate_promotion_gate
+
+    state = State(elements={"a": 1})
+    report = ReflectionReport(proposals=(proposal(1),))
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
+    engine = Engine(state=state, budget=Budget(total=1))
+
+    record = engine.step(generation.candidates[0])
+    assert record.accepted
+    node = engine.state.elements["proposal:1"]
+    assert node["kind"] == "rule_proposal"
+    assert "authority" not in node
+    assert "authorization" not in node
+    assert "activation" not in node
+
+    promotion = make_promotion_candidate(
+        candidate_id=generation.candidates[0].candidate_id,
+        evidence_digest="evidence-1",
+        evaluation_status="PASS",
+        shadow_status="NO_BEHAVIORAL_CHANGE",
+        invariant_status="PRESERVED",
+        governance_decision="APPROVE",
+    )
+    gate = evaluate_promotion_gate(promotion, provenance_valid=True)
+    assert gate.can_activate is False
+    assert promotion.can_activate is False
