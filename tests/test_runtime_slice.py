@@ -79,6 +79,54 @@ def test_shared_bounded_candidate_failure_is_rejected_and_audited_without_core_m
     stored = load_evolution_provenance(conn, result.provenance.provenance_id)
     assert stored["candidate_id"] == candidate.candidate_id
 
+
+
+def test_reflection_candidate_runs_through_shared_boundary_and_remains_review_only():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    before_id = state.state_id
+    before_content = state.content_id
+
+    report = ReflectionReport(proposals=(
+        RuleProposal(
+            proposal_id="proposal:vertical",
+            finding_id="finding:vertical",
+            rule_id="rule:v1",
+            current_version="1",
+            proposed_version="2",
+            hypothesis="bounded reflection hypothesis",
+            evidence_refs=("evidence:vertical",),
+        ),
+    ))
+    from gnosis.core import Budget
+    generation = generate_endogenous_candidates(state, report, budget=Budget(total=1))
+    candidate = generation.candidates[0]
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=lambda _state, c: {
+            "candidate_id": c.candidate_id,
+            "reflection_proposal_present": "proposal:vertical" in c.proposed_state.elements,
+        },
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.candidate.origin == "reflection:endogenous"
+    assert result.sandbox.execution.status == "COMPLETED"
+    assert result.evaluation.status == "PASS"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert result.capability.can_activate is False
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+    assert "proposal:vertical" not in state.elements
+    stored = load_evolution_provenance(conn, result.provenance.provenance_id)
+    assert stored["candidate_id"] == candidate.candidate_id
+
 def test_runtime_slice_completes_and_persists_evidence_without_core_mutation():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
