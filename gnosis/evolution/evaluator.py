@@ -14,6 +14,34 @@ class EvaluationResult:
 
 
 @dataclass(frozen=True)
+class Outcome:
+    """An explicitly typed measurement used for candidate/baseline comparison."""
+    metric: str
+    value: float
+    direction: str
+    uncertainty: float | None
+    evidence_digest: str
+
+    def __post_init__(self) -> None:
+        if not self.metric.strip():
+            raise ValueError("metric must not be empty")
+        if self.direction not in {"maximize", "minimize"}:
+            raise ValueError("direction must be 'maximize' or 'minimize'")
+        if self.uncertainty is not None and self.uncertainty < 0:
+            raise ValueError("uncertainty must be non-negative")
+        if not self.evidence_digest:
+            raise ValueError("evidence_digest is required")
+
+    def normalized_delta(self, baseline: "Outcome") -> float:
+        if self.metric != baseline.metric:
+            raise ValueError("baseline and candidate metrics must match")
+        if self.direction != baseline.direction:
+            raise ValueError("baseline and candidate directions must match")
+        raw = self.value - baseline.value
+        return raw if self.direction == "maximize" else -raw
+
+
+@dataclass(frozen=True)
 class ComparativeEvaluation:
     status: str
     baseline_score: float | None
@@ -55,6 +83,33 @@ def evaluate_observation(
         "PASS",
         ("sandbox observations are present and digest-linked",),
         evidence_digest,
+    )
+
+
+def evaluate_outcomes(
+    *, baseline: Outcome, candidate: Outcome, minimum_delta: float = 0.0
+) -> ComparativeEvaluation:
+    """Compare typed outcomes; this remains descriptive and non-authoritative."""
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if baseline.evidence_digest != candidate.evidence_digest:
+        digest = f"{baseline.evidence_digest}:{candidate.evidence_digest}"
+    else:
+        digest = baseline.evidence_digest
+    delta = candidate.normalized_delta(baseline)
+    if delta > minimum_delta:
+        status = "IMPROVED"
+    elif delta < -minimum_delta:
+        status = "REGRESSION"
+    else:
+        status = "NO_MEANINGFUL_CHANGE"
+    return ComparativeEvaluation(
+        status=status,
+        baseline_score=baseline.value,
+        candidate_score=candidate.value,
+        delta=delta,
+        rationale=(f"metric={candidate.metric}", f"direction={candidate.direction}"),
+        evidence_digest=digest,
     )
 
 
