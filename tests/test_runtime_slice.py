@@ -1,8 +1,8 @@
 import pytest
 import sqlite3
 
-from gnosis.core import State, TestResult, TransitionRecord
-from gnosis.evolution import SandboxBudget, run_runtime_slice
+from gnosis.core import Candidate, State, TestResult, TransitionRecord
+from gnosis.evolution import SandboxBudget, run_bounded_candidate, run_runtime_slice
 from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
 from gnosis.reflection.analyzer import ReflectionReport, RuleProposal
@@ -30,6 +30,42 @@ def _observer(_state, candidate):
 def _failing_observer(_state, _candidate):
     raise RuntimeError("observer failure")
 
+
+
+
+def test_shared_bounded_candidate_failure_is_rejected_and_audited_without_core_mutation():
+    conn = sqlite3.connect(":memory:")
+    ensure_reflection_schema(conn)
+    state = State(elements={"a": 1})
+    proposed = state.with_elements({"proposal:test": {"kind": "rule_proposal"}})
+    candidate = Candidate(
+        parent_state_id=state.state_id,
+        proposed_state=proposed,
+        origin="reflection:test",
+    )
+    before_id = state.state_id
+    before_content = state.content_id
+
+    result = run_bounded_candidate(
+        conn=conn,
+        state=state,
+        candidate=candidate,
+        transitions=_history(),
+        observe=_failing_observer,
+        sandbox_budget=SandboxBudget(timeout_seconds=1.0),
+    )
+
+    assert result.sandbox.execution.status == "FAILED"
+    assert result.sandbox.accepted_for_evaluation is False
+    assert result.evaluation.status == "REJECTED"
+    assert result.provenance.governance_decision == "REVIEW"
+    assert result.transaction.audit_record.event_type == "BOUNDED_RUNTIME_EVIDENCE"
+    assert result.transaction.audit_record.payload["activation"] is False
+    assert result.capability.can_activate is False
+    assert state.state_id == before_id
+    assert state.content_id == before_content
+    stored = load_evolution_provenance(conn, result.provenance.provenance_id)
+    assert stored["candidate_id"] == candidate.candidate_id
 
 def test_runtime_slice_completes_and_persists_evidence_without_core_mutation():
     conn = sqlite3.connect(":memory:")
