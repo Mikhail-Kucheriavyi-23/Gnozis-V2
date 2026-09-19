@@ -454,6 +454,8 @@ def test_multiple_runtime_cycles_form_append_only_audit_chain_and_recover():
         )
         results.append(result)
 
+    from gnosis.reflection.persistence import list_evolution_audit
+    from gnosis.evolution.audit import verify_audit_chain
     audits = list_evolution_audit(conn)
     ok, reasons = verify_audit_chain(list(audits))
     assert ok is True, reasons
