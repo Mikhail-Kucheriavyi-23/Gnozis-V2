@@ -5,6 +5,7 @@ from gnosis.core import State, TestResult, TransitionRecord
 from gnosis.evolution import SandboxBudget, run_runtime_slice
 from gnosis.evolution.evaluator import Outcome, assess_evidence_sufficiency, assess_replicated_evidence, evaluate_comparative, evaluate_outcomes
 from gnosis.reflection.persistence import ensure_reflection_schema, load_evolution_provenance
+from gnosis.reflection.endogenous import ReflectionReport, generate_endogenous_candidates
 
 
 def _history():
