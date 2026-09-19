@@ -188,3 +188,55 @@ def assess_evidence_sufficiency(
     if confidence < min_confidence:
         return EvidenceSufficiency("INSUFFICIENT", confidence, ("combined measurement uncertainty is too high",))
     return EvidenceSufficiency("SUFFICIENT", confidence, ("independent evidence and uncertainty support the measured delta",))
+
+
+@dataclass(frozen=True)
+class ReplicatedEvidence:
+    status: str
+    repetitions: int
+    mean_delta: float | None
+    minimum_delta: float
+    conservative_delta_lower_bound: float | None
+    rationale: tuple[str, ...]
+
+    @property
+    def sufficient(self) -> bool:
+        return self.status == "SUFFICIENT"
+
+
+def assess_replicated_evidence(
+    *,
+    baselines: tuple[Outcome, ...],
+    candidates: tuple[Outcome, ...],
+    minimum_repetitions: int = 2,
+    minimum_delta: float = 0.0,
+) -> ReplicatedEvidence:
+    """Conservative repeated-evidence gate; makes no statistical claim."""
+    if minimum_repetitions < 1:
+        raise ValueError("minimum_repetitions must be >= 1")
+    if minimum_delta < 0:
+        raise ValueError("minimum_delta must be non-negative")
+    if len(baselines) != len(candidates):
+        return ReplicatedEvidence("INSUFFICIENT", min(len(baselines), len(candidates)), None, minimum_delta, None, ("baseline/candidate repetition counts differ",))
+    if len(baselines) < minimum_repetitions:
+        return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("minimum repetition count not reached",))
+    if not baselines:
+        return ReplicatedEvidence("INSUFFICIENT", 0, None, minimum_delta, None, ("no repetitions supplied",))
+    digests = [o.evidence_digest for o in (*baselines, *candidates)]
+    if len(set(digests)) != len(digests):
+        return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("evidence digests must be unique across repetitions",))
+    deltas: list[float] = []
+    lower_bounds: list[float] = []
+    for baseline, candidate in zip(baselines, candidates):
+        if baseline.metric != candidate.metric or baseline.direction != candidate.direction:
+            return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("outcome definitions do not match",))
+        if baseline.uncertainty is None or candidate.uncertainty is None:
+            return ReplicatedEvidence("INSUFFICIENT", len(baselines), None, minimum_delta, None, ("uncertainty is required for every repetition",))
+        delta = candidate.normalized_delta(baseline)
+        deltas.append(delta)
+        lower_bounds.append(delta - baseline.uncertainty - candidate.uncertainty)
+    mean_delta = sum(deltas) / len(deltas)
+    conservative_lower_bound = min(lower_bounds)
+    if conservative_lower_bound <= minimum_delta:
+        return ReplicatedEvidence("INSUFFICIENT", len(deltas), mean_delta, minimum_delta, conservative_lower_bound, ("at least one repetition does not clear the threshold after uncertainty",))
+    return ReplicatedEvidence("SUFFICIENT", len(deltas), mean_delta, minimum_delta, conservative_lower_bound, ("all independent repetitions clear the threshold after uncertainty",))
