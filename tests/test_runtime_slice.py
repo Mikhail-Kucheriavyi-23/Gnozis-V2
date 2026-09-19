@@ -603,7 +603,7 @@ def test_tampered_candidate_binding_and_state_content_fail_closed():
 
 
 def test_shared_bounded_candidate_boundary_accepts_reflection_candidate_without_core_mutation():
-    from gnosis.core import State
+    from gnosis.core import Budget, State
     from gnosis.evolution import SandboxBudget, run_bounded_candidate
     from gnosis.reflection.endogenous import generate_endogenous_candidates
 
