@@ -158,7 +158,7 @@ def run_bounded_candidate(
     )
     return RuntimeSliceResult(
         gap=GapHypothesis(gap_id="external-candidate", source_records=(), trigger_kind="external", description="external candidate", conditions=(), counterevidence=()),
-        capability=CapabilityHypothesis(capability_id="external-candidate", source_gap_id="external-candidate", mechanism="external", expected_effects=(), resource_bound=1, available_operations=(), test_strategy="external"),
+        capability=CapabilityHypothesis(capability_id="external-candidate", source_gap_id="external-candidate", mechanism="external", expected_effects=(), target_conflicts=(), possible_side_effects=(), resource_bound=1, available_operations=(), test_strategy="external"),
         candidate=candidate, sandbox=sandbox, evaluation=evaluation,
         provenance=provenance, transaction=transaction,
         comparison=comparison, sufficiency=sufficiency, selection=selection,
