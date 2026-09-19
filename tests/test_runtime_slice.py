@@ -401,6 +401,36 @@ def test_gap_detection_ignores_irrelevant_evidence_for_same_history():
     assert noisy[0].source_records == baseline[0].source_records
     assert noisy[0].trigger_kind == baseline[0].trigger_kind
 
+
+
+def test_gap_detection_changes_when_material_history_changes():
+    from gnosis.evolution.gap import GapDetector, history_from_persisted_transitions
+
+    detector = GapDetector()
+    baseline_history = history_from_persisted_transitions(_history())
+    changed = list(_history())
+    changed[0] = replace(changed[0], reason="materially-different")
+    changed_history = history_from_persisted_transitions(tuple(changed))
+
+    baseline = detector.detect(
+        history=baseline_history,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+    altered = detector.detect(
+        history=changed_history,
+        evidence=(),
+        tensions=(),
+        forecast_errors=(),
+        minimum_repetitions=2,
+    )
+
+    assert baseline and altered
+    assert baseline[0].gap_id != altered[0].gap_id
+    assert baseline[0].source_records != altered[0].source_records
+
 def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
     conn = sqlite3.connect(":memory:")
     ensure_reflection_schema(conn)
