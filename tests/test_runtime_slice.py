@@ -376,9 +376,10 @@ def test_gap_detection_is_deterministic_for_same_history():
     first = detector.detect(history=history, minimum_repetitions=2)
     second = detector.detect(history=history, minimum_repetitions=2)
 
-    assert first.gap_id == second.gap_id
-    assert first.source_records == second.source_records
-    assert first.trigger_kind == second.trigger_kind
+    assert first and second
+    assert first[0].gap_id == second[0].gap_id
+    assert first[0].source_records == second[0].source_records
+    assert first[0].trigger_kind == second[0].trigger_kind
 
 
 def test_gap_detection_ignores_irrelevant_evidence_for_same_history():
@@ -395,9 +396,10 @@ def test_gap_detection_ignores_irrelevant_evidence_for_same_history():
         minimum_repetitions=2,
     )
 
-    assert noisy.gap_id == baseline.gap_id
-    assert noisy.source_records == baseline.source_records
-    assert noisy.trigger_kind == baseline.trigger_kind
+    assert baseline and noisy
+    assert noisy[0].gap_id == baseline[0].gap_id
+    assert noisy[0].source_records == baseline[0].source_records
+    assert noisy[0].trigger_kind == baseline[0].trigger_kind
 
 def test_full_history_to_gap_to_capability_vertical_slice_is_provenance_bound():
     conn = sqlite3.connect(":memory:")
