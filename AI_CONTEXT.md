@@ -7,7 +7,7 @@ This file is the operational handoff for AI agents working on Gnozis-V2.
 Repository:
 - GitHub: Mikhail-Kucheriavyi-23/Gnozis-V2
 - default branch: main
-- current HEAD inspected: 63e1f0b57c591a06fa902fe63cd84369c30bf65c
+- current HEAD inspected historically; authoritative current main HEAD is recorded in Section 0A: 70e385702e66daa0cbb5934e30ab0e577181f959
 
 Rules:
 1. Repository code, tests and actual runtime/CI evidence outrank chat memory or this document.
@@ -17,6 +17,31 @@ Rules:
 5. Do not broaden a task into unrelated architecture.
 6. Preserve evidence: rejected, failed, quarantined and insufficient-evidence outcomes are historical data, not noise.
 7. Never weaken an invariant, persistence constraint or evidence gate merely to make tests green.
+
+## 0A. AUTHORITATIVE CONTEXT REFRESH — 2026-09-19
+
+This section supersedes older HEAD/task-status statements in this file when they conflict.
+
+CURRENT REPOSITORY STATE:
+- Repository: Mikhail-Kucheriavyi-23/Gnozis-V2
+- Current main HEAD verified from GitHub: 70e385702e66daa0cbb5934e30ab0e577181f959
+- HEAD date: 2026-09-18 19:14:51 UTC
+- Latest commit: `docs: record 2026-09-18 math closure and repository gaps`
+- There are no repository commits dated 2026-09-19 in the inspected recent commit history; the 2026-09-19 work below is a mathematical/reverse-analysis continuation performed after the latest repository commit.
+- A supplied external audit was performed against HEAD 7d40a9c91fd2e69736305141a71b62aeebb99461. GitHub comparison confirms current main is 546 commits ahead of that audit HEAD. Therefore the audit is historical architectural evidence, NOT current HEAD verification. Its observations must be revalidated before being converted into current implementation claims.
+
+AUTHORITATIVE CURRENT TASK:
+- The previously verified Reflection/Shadow gate is not to be reopened without regression evidence.
+- The current research stage is formal reverse-analysis of the proof foundation and Genesis/trust-anchor model.
+- Before assigning implementation work to another AI, finish the current minimal Proof/Authority dependency reverse, then update the task registry with exactly one READY implementation task.
+- Do not implement speculative Genesis/meta-evolution while the dependency analysis remains unresolved.
+
+CURRENT PROGRESS MODEL:
+- Formal/architectural research maturity: approximately 96%.
+- Runtime enforcement maturity: approximately 25%.
+- Real runtime/CI verification must be reported separately from mathematical completion.
+- These percentages are working analytical estimates, not measured software coverage.
+
 
 ## 1. ARCHITECTURAL PURPOSE
 
@@ -1976,3 +2001,404 @@ E. failed tests do not mutate protected Core;
 F. complete provenance reconstructs History → Gap → Capability → Test → Evidence → Proposal.
 
 This is the first concrete runtime milestone toward autopoiesis. It intentionally stops one step before autonomous state activation.
+
+## 20. REVERSE-ANALYSIS LOG — 2026-09-18 / 2026-09-19
+
+This section records the mathematical reverse work performed after the repository implementation gates were substantially stabilized. It is a research/architecture record, not a claim that all concepts below are implemented.
+
+### 20.1 2026-09-18 — Reverse direction and semantic preservation
+
+The analysis moved from implementation-first thinking toward a bottom-up mathematical reverse:
+
+Psi = (X,R)
+→ transition semantics
+→ evidence/provenance
+→ proof obligations
+→ reflection
+→ meaning preservation
+→ authority boundaries
+→ trust anchor / Genesis.
+
+Key conclusions:
+
+1. Structural preservation is not semantic preservation.
+
+Structural validity:
+  Valid_struct(Psi') = 1
+
+does not imply:
+
+  Meaning(Psi') = Meaning(Psi).
+
+A separate derived semantic representation M(Psi) is therefore useful for reasoning, but it MUST NOT become a second source of truth. Meaning must remain derivable from canonical state plus protected criteria/context.
+
+2. Meaning should be divided conceptually:
+
+  M = M_K ∪ M_E
+
+where M_K is the protected minimum semantic foundation and M_E is evolvable semantic organization.
+
+Ordinary evolution must preserve M_K. Changes to M_K are meta-evolution and require a separate external/meta proof contract.
+
+3. Semantic loss is not automatically forbidden, but unexplained semantic loss is.
+
+  MeaningLoss(tau) = M_required(Psi) - M(Psi')
+
+A loss may be allowed only if its removal is explicitly justified/proven. This is preferable to an absolute monotonicity rule because genuine evolution may remove obsolete structure.
+
+4. Claim, observation, change and authority are distinct concepts.
+
+  Observation(Psi) != Transition(Psi)
+  Claim(C) != Proof(C)
+  Information != Authority
+  Information does not imply Authority without a qualifying proof/admission path.
+
+5. Information flow and authority flow are different graphs.
+
+Information graph:
+  Psi → Evidence → Reflection → Candidate → Proof
+
+Authority graph:
+  K → Rules → Semantic constraints → State
+
+They may interact only through explicit proof/admission boundaries.
+
+6. Endogenous generation is not automatically authoritative.
+
+A generated candidate may be recorded as state/evidence if explicitly allowed, but candidate generation must not silently become rule activation or trust-anchor mutation.
+
+### 20.2 2026-09-18 — Authority and trust-anchor reverse
+
+The analysis identified the following boundary:
+
+  Descendant ↛ Ancestor
+
+for authority mutation.
+
+A descendant transition may produce information about an ancestor-level rule, but cannot redefine the trust ancestor using the same authority path that it is trying to justify.
+
+Therefore:
+
+  SelfModification != SelfAuthorization.
+
+Ordinary evolution:
+  K fixed
+  Rules/semantic organization/state may evolve under K.
+
+Meta-evolution:
+  K or M_K changes
+  requires a separate meta-level contract and must not be justified solely by the descendant system.
+
+Cryptographic integrity and epistemic validity are distinct:
+
+  Integrity(Hash(K)) != Truth(K).
+
+A hash can identify the exact Genesis artifact used by a proof chain; it does not independently establish the philosophical or epistemic truth of the Genesis assumptions.
+
+The project should therefore use a minimal trust base rather than attempting to make Gnozis prove the foundations of logic/world-modeling from inside itself.
+
+### 20.3 2026-09-18 — Minimal Genesis candidate
+
+An initial Genesis candidate contained:
+
+- State ontology
+- Identity
+- Transition
+- Admissibility
+- Observation/change separation
+- Information/authority separation
+- Claim/proof separation
+- Conflict/tension
+- Unknown/insufficient evidence
+- No implicit selector/incomparability
+- Trust boundary
+
+Deletion analysis then showed that several of these may be derived rather than primitive.
+
+Current reduced candidate:
+
+  K0_candidate =
+  {
+    K_S = State ontology,
+    K_C = Change/transition ontology,
+    K_P = Claim/Proof boundary,
+    K_A = Information/Authority boundary,
+    K_T = Trust/authority ancestor boundary
+  }
+
+This is a candidate only. Minimality is not yet formally proven.
+
+Potentially derived rather than independent Genesis axioms:
+
+- Unknown != False
+- NotProven(C) != Proven(not C)
+- unresolved contradiction/tension
+- incomparability
+- identity/lineage if identity can be derived from state/lineage semantics
+- transition as a relation if it is fully defined by the change ontology.
+
+Important negative result:
+No global clock, global selector, winner function, external AI model, human preference function, or utility function is required as a Genesis primitive. Lineage/generation can be represented causally without a global clock.
+
+### 20.4 2026-09-19 — Deletion test result
+
+The following candidate primitives survived first-pass deletion testing:
+
+1. State ontology is necessary to define the evolving object.
+2. Change/transition ontology is necessary to distinguish evolution from arbitrary state replacement.
+3. Admissibility is necessary if not every mathematically possible transition is acceptable; however, the concrete admissibility rules need not all be Genesis primitives.
+4. Claim/Proof distinction is necessary unless it can be derived from a more primitive justified-authority relation.
+5. Information/Authority distinction is necessary to prevent observation/reflection from becoming implicit mutation.
+6. Trust boundary is necessary to prevent self-authorization.
+
+Current status:
+- These are semantic necessities.
+- Their status as independent axioms is still unresolved.
+- The next reverse must test whether Claim/Proof and Information/Authority can be reduced to a smaller primitive such as JustifiedAuthority.
+
+### 20.5 2026-09-19 — Current deepest unresolved question
+
+Test:
+
+  K_P = Claim != Proof
+
+against:
+
+  K_A = Information does not imply Authority.
+
+Question:
+
+  Can both be derived from a single primitive:
+
+  JustifiedAuthority(C, context, proof)
+
+such that:
+- a claim has no authority merely by being generated;
+- evidence can contribute to proof;
+- proof can satisfy an admission contract;
+- authority is scoped to an effect;
+- no authority can modify its own trust ancestor;
+- absence of proof remains UNKNOWN rather than FALSE.
+
+If the reduction is valid, Genesis can become smaller and the architecture can treat proof/admission/activation as instances of justified, scoped authority rather than unrelated mechanisms.
+
+If the reduction is invalid, retain Proof and Authority as independent boundaries and document the exact dependency.
+
+DO NOT implement this reduction before the reverse analysis is complete.
+
+### 20.6 2026-09-19 — Current formal hierarchy
+
+Current working model:
+
+  K
+  ↓
+  F (evolution/rule constraints)
+  ↓
+  M = M_K ∪ M_E
+  ↓
+  Psi = (X,R)
+
+with proof/evidence context:
+
+  Proof_K → Proof_F → Proof_M → Proof_Psi
+
+Ordinary evolution keeps K and M_K fixed.
+
+Meta-evolution is a separate class and is not currently autonomous.
+
+Full transition evidence chain:
+
+  State_t
+  → Observation
+  → Evidence
+  → Reflection
+  → Candidate
+  → Proof
+  → Authority/Admission gate
+  → State_(t+1)
+
+The candidate is not the proof.
+The proof is not automatically authority.
+Authority is scoped to the declared effect.
+No descendant may redefine its own trust ancestor.
+
+### 20.7 2026-09-19 — Meaning preservation contract
+
+Meaning must not be implemented as a second mutable state model.
+
+Preferred abstraction:
+
+  M(Psi) = Derived(Psi, K, context)
+
+with a protected semantic core M_K and evolvable M_E.
+
+For a transition tau:
+
+  M_required(Psi_t) ⊆ M(Psi_(t+1))
+
+is the preservation condition for the declared required meaning.
+
+If:
+
+  MeaningLoss(tau) != empty
+
+then the transition requires explicit removal justification.
+
+Do not equate existing Core `check_meaningful_change` with semantic preservation. A structural change detector and a semantic-preservation verifier answer different questions.
+
+### 20.8 External audit integration — 2026-09-19
+
+A supplied independent audit inspected the repository at historical HEAD 7d40a9c... and reported:
+
+- evolution layer has bounded child-process sandboxing, wall-clock timeout and operation budget;
+- promotion/capability activation is hard-disabled;
+- audit/transaction layer uses append-only records and hash-chain provenance;
+- recovery is fail-closed when provenance/audit diverges;
+- reflection governance/authority activation remains disabled;
+- `reflection/endogenous.py` can generate Candidate records which, if passed into Core Engine.step(), may enter canonical X/R as proposal metadata; the audit identified this as requiring an explicit architecture decision;
+- reflection persistence creates its own SQLite tables and migration handling should be reviewed;
+- storage has SQLite-level append-only triggers, audit hash chain, secret rejection and integrity checks;
+- instances documentation contains stale statements claiming persistence is not implemented;
+- root documentation may lag actual storage implementation;
+- the audit could not itself verify pytest/CI execution at that historical HEAD.
+
+Important qualification:
+GitHub confirms current main 70e3857... is 546 commits ahead of the audited 7d40a9c... HEAD. Therefore these findings are treated as:
+  historical findings requiring revalidation,
+not:
+  current verified defects.
+
+The `endogenous.py` finding is especially important and should be rechecked against current code before assigning any implementation task involving endogenous candidates.
+
+### 20.9 2026-09-18 repository progress relevant to the research stage
+
+Recent main commits inspected include:
+
+- 70e3857 — docs: record 2026-09-18 math closure and repository gaps
+- 29014d1 — test: derive gaps from persisted transition records
+- 89b7f29 — feat: adapt persisted transition history to gap detection
+- 27f06ec — feat: export endogenous evolution primitives
+- e0782c9 — test: cover endogenous gap and capability hypotheses
+- 43ec8b5 — feat: add authority-free capability synthesis
+- 4e199f1 — feat: add endogenous capability gap detector
+- e8942b2 — docs: define minimum runtime autopoietic loop
+- f47a216 — docs: extend autopoietic, immunity, perception and protected-core architecture
+- 9a5939c — docs: define endogenous capability-gap detection
+- be7e16c — docs: define autopoietic core acceptance conditions
+- f6be3c6 — docs: formalize conflict pressure and autopoietic loop
+- 257749d — docs: formalize distributed evolution without central authority
+- 7df2e83 — docs: formalize replication and independent confirmation
+- 62c150a — docs: formalize cross-lineage evidence exchange
+- b0a99de — docs: formalize evolutionary lineage branching
+- 3382c4b — docs: formalize evolutionary identity and lineage
+- 634c13c — docs: formalize evolutionary memory graph
+
+These commits establish that the repository has already moved from purely static reflection toward persisted-history gap detection and authority-free capability synthesis. They do NOT mean full autonomous autopoiesis is implemented.
+
+### 20.10 Current research percentages — 2026-09-19
+
+Working analytical estimates:
+
+| Layer | Completion |
+|---|---:|
+| Psi=(X,R) | 99% |
+| Transition / lineage | 96% |
+| Structural invariants | 96% |
+| Evidence / provenance | 96% |
+| Proof obligations | 92% |
+| Proof DAG | 86% |
+| Tension / contradiction | 87% |
+| Incomparability | 83% |
+| Composition | 82% |
+| Meaning preservation | 79% |
+| Meaning-loss accounting | 68% |
+| F/rule evolution | 72% |
+| Evolvable meaning M_E | 64% |
+| Protected M_K boundary | 95% |
+| Information ↔ authority separation | 93% |
+| Trust boundary | 96% |
+| Genesis candidate | 78% |
+| Genesis minimality | 57% |
+| External proof verification | 40% |
+| Meta-evolution | 44% |
+| Runtime enforcement | 25% |
+| Real pytest/CI verification of current research layer | 20% |
+
+Overall formal/architectural research maturity: approximately 96%.
+
+This is NOT software test coverage and MUST NOT be reported as implementation completion.
+
+### 20.11 Next AI handoff decision
+
+Claude or another implementation AI should be engaged only after the current reverse has resolved:
+
+  Proof/Claim
+  ↔
+  Information/Authority
+  ↔
+  JustifiedAuthority?
+
+The first implementation task after that analysis should be one self-contained Task Block, not a broad "continue development" instruction.
+
+Proposed next task envelope:
+
+TASK-ID: GNV2-GENESIS-PROOF-001
+BLOCK: Minimal proof/authority foundation
+STATUS: ANALYSIS
+PRIORITY: P1
+DEPENDS_ON:
+- current Reflection/Shadow gate evidence
+- persisted provenance baseline
+- current endogenous gap/capability implementation
+- completion of Proof/Authority deletion reverse
+
+OBJECTIVE:
+Determine and, only if justified, implement the smallest non-self-authorizing contract connecting claim, evidence, proof, scoped authority and admission.
+
+SCOPE:
+- inspect current core/reflection/evolution authority boundaries;
+- map mathematical primitives to existing code;
+- determine whether Proof and Authority are independent or reducible;
+- identify hidden self-authorization paths;
+- implement only the justified minimum;
+- add boundary tests;
+- execute tests and inspect CI.
+
+DO_NOT_CHANGE:
+- Psi=(X,R)
+- Core as source of truth
+- protected invariants
+- can_activate=False until separately authorized
+- can_rollback=False
+- no autonomous Genesis mutation
+- no global selector
+- no global clock
+- no second state model
+- no AI model inside Core
+- persistence append-only/hash-chain semantics
+- existing evidence gates.
+
+ACCEPTANCE:
+- primitive vs derived concepts explicitly separated;
+- no authority path bypasses proof/admission;
+- no descendant can rewrite its trust ancestor;
+- insufficient evidence remains UNKNOWN/INCONCLUSIVE;
+- tests cover the actual boundary;
+- real execution evidence is recorded;
+- CI status is inspected before marking DONE.
+
+AUDIT:
+Compare code, tests and current HEAD; do not trust stale README/STATUS statements; revalidate the historical endogenous.py concern before changing it.
+
+NEXT:
+If JustifiedAuthority reduction is proven, implement the reduced contract. Otherwise preserve independent Proof and Authority layers and document the dependency.
+
+### 20.12 Handoff rule
+
+The mathematical reverse work is not a license to start canonical self-evolution.
+
+Current state remains:
+
+  Canonical self-evolution = CLOSED.
+
+The next agent must read this entire AI_CONTEXT, reconcile current HEAD, inspect the actual code, and select exactly one READY task. It must not assume that a mathematical completion percentage is runtime verification.
